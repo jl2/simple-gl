@@ -17,4 +17,6 @@
 
 (defpackage :blend2d-surface
   (:use #:cl #:j-utils #:alexandria)
-  (:export #:hello))
+  (:export #:blend2d-surface
+           #:draw-texture
+           #:draw-image))

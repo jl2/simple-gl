@@ -17,27 +17,86 @@
 
 (in-package :blend2d-surface)
 
-(defclass vertex-object (vertex-object)
-  ((vertices :initarg :vertices)
-   (indices :initarg :indices)
-   (primitive-type :initarg :primitive-type :initform :triangles))
+(defparameter *shader-dir* (asdf:system-relative-pathname :blend2d-surface "shaders/")
+  "Directory containing newgl shaders.")
+
+(defclass blend2d-surface (newgl:vertex-object)
+  ((newgl:vertices :initform (make-array
+                              (* 4 (+ 3 2))
+                              :element-type 'single-float
+                              :initial-contents '(-1.0f0 1.0f0 0.0f0  0.0f0 1.0f0
+                                                  -1.0f0  -1.0f0 0.0f0  0.0f0 0.0f0
+                                                   1.0f0  1.0f0 0.0f0  1.0f0 1.0f0
+                                                   1.0f0 -1.0f0 0.0f0  1.0f0 0.0f0
+                                                  )))
+   (newgl:indices :initform (make-array
+                       6
+                       :element-type 'fixnum
+                       :initial-contents '(0 1 2 1 3 2)))
+   (newgl:primitive-type :initform :triangles)
+   (newgl:shader-program :initform (newgl:make-shader-program
+                                    (newgl:shader-from-file (merge-pathnames *shader-dir* "bls-vertex.glsl"))
+                                    (newgl:shader-from-file (merge-pathnames *shader-dir* "bls-fragment.glsl"))))
+   (size :initarg :size :initform 1024)
+   (textures :initform nil))
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
-(defmethod fill-buffers ((object vertex-object))
-  (with-slots (vbos ebos vertices indices) object
-    (cond ((null vbos)
-           (setf vbos (gl:gen-buffers 1))
-           (setf ebos (gl:gen-buffers 1))
-           (let ((gl-vertices (to-gl-float-array vertices))
-                 (gl-indices (to-gl-array indices :unsigned-int)))
 
-             (gl:bind-buffer :array-buffer (car vbos))
-             (gl:buffer-data :array-buffer :dynamic-draw gl-vertices)
-             (gl:free-gl-array gl-vertices)
+(defgeneric draw-image (obj img ctx size))
 
-             (gl:bind-buffer :element-array-buffer (car ebos))
-             (gl:buffer-data :element-array-buffer :dynamic-draw gl-indices)
-             (gl:free-gl-array gl-indices)))
-          (t
-           (gl:bind-buffer :array-buffer (car vbos))
-           (gl:bind-buffer :element-array-buffer (car ebos))))))
+(defmethod draw-image ((obj blend2d-surface) img ctx size)
+  (declare (ignorable obj img ctx size))
+  (bl:with-objects
+      ((circle bl:circle))
+    (dotimes (i 2000)
+        (let* ((sx (random (coerce size 'double-float)))
+               (sy (random (coerce size 'double-float)))
+               (radius (random (/ size 50.0))))
+
+          (setf (bl:circle.cx circle) sx)
+          (setf (bl:circle.cy circle) sy)
+          (setf (bl:circle.r circle) radius)
+          (bl:lookup-error (bl:context-set-comp-op ctx bl:+comp-op-src-over+))
+          (bl:lookup-error (bl:context-set-fill-style-rgba32 ctx (random #16rffffffff)))
+          (bl:lookup-error (bl:context-fill-geometry ctx bl:+geometry-type-circle+ circle))))))
+
+(defgeneric draw-texture (obj))
+
+(defmethod draw-texture ((obj blend2d-surface))
+  (with-slots (size textures) obj
+    (bl:with-memory-image-context*
+        (img ctx :width size :height size)
+        ((data bl:image-data))
+      (draw-image obj img ctx size)
+      (bl:image-get-data img data)
+      (gl:tex-image-2d :texture-2d 0 :rgba size size 0 :rgba :unsigned-byte (bl:image-data.pixel-data data))
+      (gl:generate-mipmap :texture-2d))))
+
+
+(defmethod newgl:fill-buffers ((object blend2d-surface))
+  (call-next-method)
+  (with-slots (textures size) object
+    (when textures
+      (error "fill-buffers called twice!"))
+    (setf textures (gl:gen-textures 1))
+    (gl:bind-texture :texture-2d (car textures))
+    (gl:tex-parameter :texture-2d :texture-wrap-s :repeat)
+    (gl:tex-parameter :texture-2d :texture-wrap-t :repeat)
+    (gl:tex-parameter :texture-2d :texture-base-level 0)
+    (gl:tex-parameter :texture-2d :texture-max-level 8)
+    (gl:tex-parameter :texture-2d :texture-min-filter :linear-mipmap-linear)
+    (gl:tex-parameter :texture-2d :texture-mag-filter :linear)
+    (draw-texture object)))
+
+(defmethod newgl:bind-buffers ((object blend2d-surface))
+  (call-next-method)
+  (with-slots (textures) object
+    (gl:bind-texture :texture-2d (car textures))))
+
+(defmethod newgl:cleanup ((object blend2d-surface))
+  (with-slots (textures) object
+    (when textures
+      (gl:bind-texture :texture-2d 0)
+      (gl:delete-textures textures)
+      (setf textures nil)))
+  (call-next-method))
