@@ -20,20 +20,8 @@
 (defparameter *shader-dir* (asdf:system-relative-pathname :blend2d-surface "shaders/")
   "Directory containing newgl shaders.")
 
-(defclass blend2d-surface (newgl:vertex-object)
-  ((newgl:vertices :initform (make-array
-                              (* 4 (+ 3 2))
-                              :element-type 'single-float
-                              :initial-contents '(-1.0f0 1.0f0 0.0f0  0.0f0 1.0f0
-                                                  -1.0f0  -1.0f0 0.0f0  0.0f0 0.0f0
-                                                   1.0f0  1.0f0 0.0f0  1.0f0 1.0f0
-                                                   1.0f0 -1.0f0 0.0f0  1.0f0 0.0f0
-                                                  )))
-   (newgl:indices :initform (make-array
-                       6
-                       :element-type 'fixnum
-                       :initial-contents '(0 1 2 1 3 2)))
-   (newgl:primitive-type :initform :triangles)
+(defclass blend2d-surface (newgl:geometry)
+  ((newgl:primitive-type :initform :triangles)
    (newgl:shader-program :initform (newgl:make-shader-program
                                     (newgl:shader-from-file (merge-pathnames *shader-dir* "bls-vertex.glsl"))
                                     (newgl:shader-from-file (merge-pathnames *shader-dir* "bls-fragment.glsl"))))
@@ -41,6 +29,19 @@
    (textures :initform nil))
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
+
+(defmethod newgl:vertex-buffers ((object blend2d-surface))
+  (values (make-array
+           (* 4 (+ 3 2))
+           :element-type 'single-float
+           :initial-contents '(-1.0f0 1.0f0 0.0f0  0.0f0 1.0f0
+                               -1.0f0  -1.0f0 0.0f0  0.0f0 0.0f0
+                               1.0f0  1.0f0 0.0f0  1.0f0 1.0f0
+                               1.0f0 -1.0f0 0.0f0  1.0f0 0.0f0))
+          (make-array
+                       6
+                       :element-type 'fixnum
+                       :initial-contents '(0 1 2 1 3 2))))
 
 (defgeneric draw-image (obj img ctx size))
 
