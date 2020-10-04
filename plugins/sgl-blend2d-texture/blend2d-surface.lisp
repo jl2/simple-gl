@@ -52,7 +52,7 @@
     (dotimes (i 2000)
         (let* ((sx (random (coerce size 'double-float)))
                (sy (random (coerce size 'double-float)))
-               (radius (random (/ size 50.0))))
+               (radius (coerce (random (/ size 50.0)) 'double-float)))
 
           (setf (bl:circle.cx circle) sx)
           (setf (bl:circle.cy circle) sy)
