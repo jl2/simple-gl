@@ -157,7 +157,7 @@
     (gl:buffer-sub-data target pointer)))
 
 
-(declaim (inline allocate-gl-array free-gl-array gl-fset gl-iset gl-get to-gl-float-array to-gl-array fill-buffer))
+(declaim (inline allocate-gl-array free-gl-array gl-fset gl-iset gl-get to-gl-float-array to-gl-array fill-pointer-offset))
 (defun allocate-gl-array (type count)
   (declare (optimize (speed 3))
            (type fixnum count))
@@ -195,65 +195,70 @@
            (type gl:gl-array array))
   (gl:glaref array idx))
 
+
 (defun to-gl-array (gl-type size arr)
   "Create an OpenGL array of the specified type, initialized with the contents of arr."
   (declare (optimize (speed 3)))
   (let* ((gl-array (allocate-gl-array gl-type size)))
-    (fill-buffer arr gl-array 0)
+    (fill-pointer-offset arr gl-array 0)
     gl-array))
 
-(defgeneric fill-buffer (data ptr offset))
-(defmethod fill-buffer ((data vec2) ptr offset)
+
+(defun fill-buffer (buffer data)
+  (with-slots (pointer) buffer
+    (fill-pointer-offset data pointer 0)))
+
+(defgeneric fill-pointer-offset (data ptr offset)
+  (:documentation "Low-level function for filling a C buffer using a pointer and offset."))
+
+(defmethod fill-pointer-offset ((data vec2) ptr offset)
   (gl-fset ptr (+ 0 offset) (vx data))
   (gl-fset ptr (+ 1 offset) (vy data))
   (+ 2 offset))
 
-(defmethod fill-buffer ((data vector) ptr offset)
+(defmethod fill-pointer-offset ((data vector) ptr offset)
   (loop for obj across data
         for off = offset then next-off
-        for next-off = (fill-buffer obj ptr off)
+        for next-off = (fill-pointer-offset obj ptr off)
         finally (return next-off)))
 
-(defmethod fill-buffer ((data vec3) ptr offset)
+(defmethod fill-pointer-offset ((data vec3) ptr offset)
   (gl-fset ptr (+ 0 offset) (vx data))
   (gl-fset ptr (+ 1 offset) (vy data))
   (gl-fset ptr (+ 2 offset) (vz data))
   (+ 3 offset))
 
-(defmethod fill-buffer ((data vec4) ptr offset)
+(defmethod fill-pointer-offset ((data vec4) ptr offset)
   (gl-fset ptr (+ 0 offset) (vx data))
   (gl-fset ptr (+ 1 offset) (vy data))
   (gl-fset ptr (+ 2 offset) (vz data))
   (gl-fset ptr (+ 3 offset) (vw data))
   (+ 4 offset))
 
-(defmethod fill-buffer ((data mat3) ptr offset)
+(defmethod fill-pointer-offset ((data mat3) ptr offset)
   (loop for off from 0
         for d across (marr (mtranspose data))
         do
            (gl-fset ptr (+ off offset) d)
         finally (return (+ off offset))))
 
-(defmethod fill-buffer ((data mat4) ptr offset)
+(defmethod fill-pointer-offset ((data mat4) ptr offset)
   (loop for off from 0
         for d across (marr (mtranspose data))
         do
            (gl-fset ptr (+ off offset) d)
         finally (return (+ off offset))))
 
-(defmethod fill-buffer ((data list) ptr offset)
+(defmethod fill-pointer-offset ((data list) ptr offset)
   (loop for obj in data
         for off = offset then next-off
-        for next-off = (fill-buffer obj ptr off)
+        for next-off = (fill-pointer-offset obj ptr off)
         finally (return next-off)))
 
-(defmethod fill-buffer ((data integer) ptr offset)
+(defmethod fill-pointer-offset ((data integer) ptr offset)
   (gl-iset ptr offset data)
   (1+ offset))
 
-(defmethod fill-buffer ((data real) ptr offset)
+(defmethod fill-pointer-offset ((data real) ptr offset)
   (gl-fset ptr offset data)
   (1+ offset))
-
-
-

@@ -26,9 +26,7 @@
              :accessor uniforms
              :initarg :uniforms)
    (primitive-type :initform :triangles)
-   (active-style :initform nil
-                 :accessor active-style
-                 :initarg :active-style))
+   )
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
 (defclass instanced-opengl-object (opengl-object)
@@ -147,19 +145,16 @@
                'attribute-buffer
                :pointer (to-gl-array
                          :float
-                         21
+                         9
                          (list -0.5f0 -0.5f0 0.0f0
-                               0.0f0 1.0f0 0.0f0
 
                                0.5f0 -0.5f0 0.0f0
-                               0.0f0 1.0f0  0.0f0
 
-                               0.0f0 (- (sqrt (- 1.0f0 (* 0.5f0 0.5f0))) 0.5f0)  0.0f0
-                               0.0f0 1.0f0 0.0f0))
+                               0.0f0 (- (sqrt (- 1.0f0 (* 0.5f0 0.5f0))) 0.5f0)  0.0f0))
                :stride nil
-               :attributes '(("in_position" . :vec3) ("in_color" . :vec4))
+               :attributes '(("in_position" . :vec3))
                :usage :static-draw
-               :free nil))
+               :free t))
   (set-buffer object
               :indices
               (make-instance
@@ -168,23 +163,29 @@
                :pointer (to-gl-array :unsigned-int 3 #(0 1 2))
                :stride nil
                :usage :static-draw
-               :free nil))
+               :free t))
   (set-buffer object
-              :transform (make-instance
+              :obj-transform (make-instance
                           'instance-buffer
-                          :pointer (to-gl-array :float 16 (meye 4))
+                          :pointer (to-gl-array :float 32 (list
+                                                           (meye 4)
+                                                            (mtranslation (vec3 0.0 0.5 0.5))))
                           :stride nil
                           :attributes '(("obj_transform" . :mat4))
                           :usage :static-draw
-                          :free t))
+                          :free nil))
   (set-buffer object
               :obj-color (make-instance
                           'instance-buffer
-                          :pointer (to-gl-array :float 4 (vec4 0.0 1.0 0.0 1.0))
+                          :pointer (to-gl-array :float 8
+                                                (list (vec4 0.1 0.8 0.1 1.0)
+                                                           (vec4 0.1 0.1 0.8 1.0))
+                                                )
                           :stride nil
-                          :attributes '(("obj_color" . :vec4))
+                          :attributes '(("in_color" . :vec4))
                           :usage :static-draw
-                          :free t)))
+                          :free nil))
+  (setf (slot-value object 'instance-count) 2))
 
 
 (defmethod initialize-textures ((object opengl-object) &key)
