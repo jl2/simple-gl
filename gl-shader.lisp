@@ -10,11 +10,13 @@
 ;; 2. Layout information is 'parsed' out of the shader using regular expressions.
 ;;    They work for the shader's I write, but may need improvements or replacements.
 
-(defparameter *shader-dir* (asdf:system-relative-pathname :simple-gl "shaders/")
+(defparameter *shader-dirs* (list (asdf:system-relative-pathname :simple-gl "shaders/"))
   "Directory containing simple-gl shaders.")
 
 (defun simple-gl-shader (fname)
-  (merge-pathnames fname *shader-dir*))
+  (loop for path in *shader-dirs*
+        until (probe-file (merge-pathnames fname path))
+        finally (return (merge-pathnames fname path))))
 
 ;; Shader
 (define-condition shader-error (error)
@@ -113,7 +115,7 @@
 
 (defmethod get-source ((shader gl-file-shader))
   (with-slots (source-file) shader
-    (ju:read-file source-file)))
+    (read-file-into-string source-file)))
 
 (defmethod initialize ((shader gl-shader) &key)
   (compile-shader shader))

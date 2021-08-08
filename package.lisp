@@ -21,18 +21,59 @@
   (:nicknames #:sgl)
 
   (:use #:cl
-        #:j-utils
         #:alexandria
         #:3d-vectors
-        #:3d-matrices
-        )
-  (:export #:viewer
-           #:opengl-object
-           #:instanced-opengl-object
-           #:gl-shader
-           #:read-shader
-           #:style
-           #:texture
-           #:buffer
+        #:3d-matrices)
+
+  (:export #:*shader-dirs*  ;; The search paths for shaders
+
+           ;; Shared methods
+           #:cleanup
+           #:update
+           #:show-info
+
+           ;; Viewer
+           #:viewer
            #:display-in
+
+           ;; OpenGL objects
+           #:opengl-object
+           #:initialize-buffers
+           #:initialize-uniforms
+           #:initialize-textures
+           #:buffers
+           #:get-buffer
+           #:set-buffer
+           #:get-uniform
+           #:set-uniform
+           #:bind
+           #:render
+
+           ;; Instanced OpenGL objects (inherits from opengl-object)
+           #:instanced-opengl-object
+           #:instance-count
+
+           ;; Buffers
+           #:buffer
+           #:attribute-buffer
+           #:index-buffer
+           #:instance-buffer
+           #:fill-pointer-offset
+           #:reload
+           #:pointer
+           #:to-gl-array
+           #:fill-buffer
+
+           ;; Styles/shaders
+           #:style
+           #:gl-shader
+           #:make-style
+           #:build-style
+           #:simple-gl-shader
+           #:read-shader
+           #:point-style
+
+           ;; Textures
+           #:texture
+           #:fill-texture
            ))

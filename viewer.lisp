@@ -20,7 +20,7 @@
 
 
 (let ((viewers (make-hash-table :test 'equal)))
-
+  (declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
   (defun find-viewer (window)
     (gethash (cffi:pointer-address window) viewers))
 
@@ -338,7 +338,8 @@
                     ;; This do is important...
                do (progn
                     (glfw:swap-buffers window)
-                    #+spacenav(when-let (ev (sn:poll-event))
+                    #+spacenav
+                    (when-let (ev (sn:poll-event))
                       (sn:remove-events :motion)
                       (handle-3d-mouse-event viewer ev)))
                do

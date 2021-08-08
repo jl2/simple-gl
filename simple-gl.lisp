@@ -16,6 +16,3 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (in-package :simple-gl)
-
-(defun hello ()
-  (error "Not implemented"))

@@ -119,14 +119,8 @@
           (ignore-validation-error () t))))
     program))
 
-(defclass wireframe-style (style)
-  ((shaders :initform (list (read-shader "position-vertex.glsl")
-                            (read-shader "black-fragment.glsl")))))
-
 (defgeneric use-style (style)
   (:documentation "Apply style settings."))
-(defgeneric unuse-style (style)
-  (:documentation "Unapply style settings."))
 
 (defmethod use-style ((style style))
   (with-slots (program) style
@@ -135,52 +129,10 @@
     (gl:use-program program))
   t)
 
-(defmethod unuse-style ((style style))
-  t)
-
-(defmethod use-style ((style wireframe-style))
-  (gl:polygon-mode :front-and-back :line)
-  (gl:enable :polygon-offset-line)
-  (gl:polygon-offset 1.0 (/ 1.0 10))
-  (with-slots (program) style
-    (gl:use-program program))
-
-  t)
-
-(defmethod unuse-style ((style wireframe-style))
-  ;; (gl:polygon-mode :front-and-back
-  ;;                  :fill)
-  ;; (gl:disable :polygon-offset-line)
-  )
-
-(defun make-style (name type &rest shaders)
+(defun make-style (name &rest shaders)
   (if shaders
-      (make-instance type :shaders (mapcar #'read-shader shaders) :name name)
-      (make-instance type :name name)))
+      (make-instance 'style :shaders (mapcar #'read-shader shaders) :name name)
+      (make-instance 'style :name name)))
 
 (defun point-style ()
-  (make-style "point" 'style "position-color-vertex.glsl" "point-fragment.glsl"))
-
-(defun plastic-style ()
-  (make-style "plastic" 'style
-              "position-normal-color-vertex.glsl"
-              "plastic-fragment.glsl"))
-
-(defun normal-style ()
-  (make-style "normal" 'style "position-normal-vertex.glsl" "normal-fragment.glsl"))
-
-(defun position-style ()
-  (make-style "position" 'style "position-vertex.glsl" "position-fragment.glsl"))
-
-(defun painted-plastic-style ()
-  (make-style "painted" 'style "position-normal-uv-vertex.glsl" "textured-plastic-fragment.glsl"))
-
-(defun circled-plastic-style ()
-  (make-style "circled" 'style "position-normal-uv-vertex.glsl" "circle-fragment.glsl"))
-
-(defun wireframe-style ()
-  (make-style "wireframe" 'wireframe-style))
-
-(defun simple-texture-style ()
-  (make-style "simple-texture" "position-uv-vertex.glsl" "simple-texture-fragment.glsl"))
-
+  (make-style "point" "position-color-vertex.glsl" "point-fragment.glsl"))

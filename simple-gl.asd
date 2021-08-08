@@ -25,7 +25,6 @@
                #:spacenav
 
                #:alexandria
-               #:j-utils
 
                #:cl-glfw3
                #:cl-opengl

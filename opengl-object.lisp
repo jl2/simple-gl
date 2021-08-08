@@ -35,8 +35,6 @@
 (defgeneric build-style (object)
   (:documentation "Build this object's shader programs.  Binding correct VAO is handled by before and after methods."))
 
-(defgeneric set-uniform (object name value type &key overwrite)
-  (:documentation "Set a uniform variable on object."))
 
 (defun indent-whitespace (n)
   (make-string (* 2 n) :initial-element #\space))
@@ -67,6 +65,7 @@
   nil)
 
 (defmethod handle-resize ((object opengl-object) window width height)
+  (declare (ignorable object window width height))
   nil)
 
 (defmethod handle-click ((object opengl-object) window click-info)
@@ -94,7 +93,7 @@
   (declare (ignorable object elapsed-seconds))
   nil)
 
-(defmethod set-uniform ((obj opengl-object) name value type &key (overwrite t))
+(defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj
     (if-let (previous (assoc name uniforms :test #'string=))
       (when overwrite
@@ -103,6 +102,11 @@
                                                :type type
                                                :value value))
             uniforms))))
+
+(defun get-uniform (obj name)
+  (with-slots (uniforms) obj
+    (if-let (previous (assoc name uniforms :test #'string=))
+      (cdr previous))))
 
 (defmethod initialize :before ((object opengl-object) &key)
   (cleanup object))
@@ -134,6 +138,7 @@
       (associate-attributes (cdr buffer) (program style)))))
 
 (defmethod initialize-uniforms ((object opengl-object) &key)
+  (declare (ignorable object))
   t)
 
 (defmethod initialize-buffers ((object instanced-opengl-object) &key)
@@ -239,8 +244,7 @@
 
     (gl:draw-elements primitive-type
                       (gl:make-null-gl-array :unsigned-int)
-                      :count (idx-count (assoc-value buffers :indices)))
-    (unuse-style style)))
+                      :count (idx-count (assoc-value buffers :indices)))))
 
 (defmethod render ((object instanced-opengl-object))
   (with-slots (buffers uniforms primitive-type instance-count style) object
@@ -254,8 +258,7 @@
       (gl:draw-elements-instanced  primitive-type
                                    (gl:make-null-gl-array :unsigned-int)
                                    instance-count
-                                   :count (idx-count (assoc-value buffers :indices))))
-    (unuse-style style)))
+                                   :count (idx-count (assoc-value buffers :indices))))))
 
 (defun set-buffer (object buffer-name buffer)
   (declare (type opengl-object object)
@@ -280,10 +283,9 @@
     (setf style new-style)))
 
 (defun get-buffer (object buffer-name)
-  (assoc (buffers object) buffer-name))
+  (assoc-value (buffers object) buffer-name))
 
 (defun add-texture (object texture)
   (declare (type opengl-object object)
            (type texture texture))
   (push texture (textures object)))
-
