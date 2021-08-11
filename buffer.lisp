@@ -12,39 +12,39 @@
    (stride :initform nil :initarg :stride)
    (free :initform t :initarg :free)
    (needs-rebind :initform t :initarg :needs-rebind :accessor needs-rebind)
-   (needs-realloc :initform t :initarg :needs-realloc :accessor needs-realloc)))
+   (needs-realloc :initform t :initarg :needs-realloc :accessor needs-realloc))
+  (:documentation "An OpenGL buffer object."))
 
 (defclass attribute-buffer (buffer)
   ((stride :initform nil)
    (target :initform :array-buffer :initarg :target)
    (attributes :initform '(("in_position" . :vec3) ("in_color" . :vec4))
-               :initarg :attributes)))
+               :initarg :attributes))
+  (:documentation "An OpenGL vertex buffer containing (mutable) vertex data that is passed into a shader."))
 
 (defclass index-buffer (buffer)
   ((target :initform :element-array-buffer)
    (idx-count :initform 0 :initarg :idx-count :accessor idx-count)
-   (stride :initform 1)))
+   (stride :initform 1))
+  (:documentation "A GL_ELEMENT_ARRAY buffer containing integer indices for drawing."))
 
 (defclass uniform-buffer (buffer)
   ((block-index :initform 0 :initarg :block-index)
    (block-name :initarg :block-name)
-   (bind-location :initform 0 :initarg :bind-location)))
+   (bind-location :initform 0 :initarg :bind-location))
+  (:documentation "A mutable buffer containing uniform values.."))
 
 
 (defclass instance-buffer (attribute-buffer)
-  ((attributes :initform '(("obj_transform" . :mat4))
-               :initarg :attributes)))
+  ((attributes :initform '(("obj_transform" . :mat4)) :initarg :attributes))
+  (:documentation "A mutable buffer containing instance data."))
 
-(defgeneric compute-stride (buffer))
+(defgeneric compute-stride (buffer)
+  (:documentation "Use the 'attributes' slot to compute the stride of the buffer data."))
 
-(defgeneric associate-attributes (buffer program))
-
-;; (defgeneric bset (buffer index &rest values)
-;;   (:documentation "Set buffer value  at index to values."))
-
-(defmethod update ((buffer buffer) elapsed-seconds)
-  (declare (ignorable buffer elapsed-seconds))
-  nil)
+(defgeneric associate-attributes (buffer program)
+  (:documentation "Call gl:vertex-attrib-pointer and gl:enable-vertex-attrib-array as appropriate~
+                  to associate attribute data with shader variables."))
 
 (defmethod bind ((buffer buffer))
   (with-slots (bo target usage free pointer) buffer
@@ -54,9 +54,9 @@
       (setf bo (car (gl:gen-buffers 1)))
       (gl:bind-buffer target bo)
       (gl:buffer-data target usage pointer)
-      ;; (when (and free pointer)
-      ;;   (free-gl-array pointer)
-      ;;   (setf pointer nil))
+      (when (and free pointer)
+        (free-gl-array pointer)
+        (setf pointer nil))
       )))
 
 (defmethod show-info ((object buffer) &key (indent 0))
@@ -171,6 +171,7 @@
 (defun gl-iset (array idx value)
   (declare (optimize (speed 3))
            (type fixnum idx)
+           (type fixnum value)
            (type fixnum value)
            (type gl:gl-array array))
   (setf (gl:glaref array idx) value))
