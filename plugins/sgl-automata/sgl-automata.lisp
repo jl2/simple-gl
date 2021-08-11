@@ -2,7 +2,6 @@
 ;;
 ;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
-
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
 ;; copyright notice and this permission notice appear in all copies.
@@ -23,21 +22,43 @@
 (defclass cellular-automata (instanced-opengl-object)
   ((style :initform (make-style "automata" "sgl-automata-vertex.glsl" "point-fragment.glsl"))
    (max-instances :initform 1000 :initarg :max-instances)
-   (width :initform 50))
-  )
+   (width :initform 50 :initarg :width)
+   (current-line :initform nil :initarg :current-line :type (or null (SIMPLE-ARRAY BIT (*))))))
 
+(defun create-cellular-automata (width &key (max-instances (* width 1000)))
+  "Create a cellular automata of the specified size."
+  (make-instance 'cellular-automata
+                 :max-instances max-instances
+                 :width 100
+                 :current-line (make-array (list width) :initial-element 0 :element-type 'bit)))
 (defmethod update ((object cellular-automata) elapsed-seconds)
   (with-slots (buffers instance-count max-instances width) object
     (when (< instance-count max-instances)
       (let ((buffer (get-buffer object :obj-transform)))
         (with-slots (pointer) buffer
-          (sgl:fill-pointer-offset (vec3 (1- (/ (random width) (/ width 2.0))) (1- (/ (random width) (/ width 2.0))) 0.0)
+          (sgl:fill-pointer-offset (vec3 (1- (/ (random width) (/ width 2.0)))
+                                         (1- (/ (random width) (/ width 2.0)))
+                                         0.0)
                                    pointer
                                    (* instance-count 3)))
         (incf instance-count)
-        (reload buffer)
-        (format t "Instance-count is now ~a~%" instance-count))))
-  )
+        (reload buffer)))
+    (let ((buffer (get-buffer object :vertices))
+          (fw (random (/ 1.0f0 width))))
+      (sgl:fill-buffer buffer
+                       (list 0.0f0 0.0f0 0.0f0
+                             0.1f0 0.8f0 0.1f0 1.0f0
+                             fw 0.0f0 0.0f0
+                             0.1f0 0.8f0 0.1f0 1.0f0
+                             fw fw 0.0f0
+                             0.1f0 0.8f0 0.1f0 1.0f0
+                             0.0f0 fw 0.0f0
+                             0.8f0 0.8f0 0.1f0 1.0f0))
+      (reload buffer)
+      (sgl:set-buffer object :vertices buffer))
+
+    (format t "Instance-count is now ~a~%" instance-count)))
+
 (defmethod initialize-buffers ((object cellular-automata) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
@@ -51,21 +72,20 @@
                              :float
                              28
                              (list 0.0f0 0.0f0 0.0f0
-                                   0.1f0 0.8f0 0.1f0 1.0f0
+                               0.1f0 0.8f0 0.1f0 1.0f0
+                               fw 0.0f0 0.0f0
+                               0.1f0 0.8f0 0.1f0 1.0f0
 
-                                   fw 0.0f0 0.0f0
-                                   0.1f0 0.8f0 0.1f0 1.0f0
+                               fw fw 0.0f0
+                               0.1f0 0.8f0 0.1f0 1.0f0
 
-                                   fw fw 0.0f0
-                                   0.1f0 0.8f0 0.1f0 1.0f0
-
-                                   0.0f0 fw 0.0f0
-                                   0.8f0 0.8f0 0.1f0 1.0f0))
+                               0.0f0 fw 0.0f0
+                               0.8f0 0.8f0 0.1f0 1.0f0))
                    :stride nil
                    :attributes '(("in_position" . :vec3)
                                  ("in_color" . :vec4))
-                   :usage :static-draw
-                   :free t))))
+                   :usage :dynamic-draw
+                   :free nil))))
   (set-buffer object
               :indices
               (make-instance

@@ -21,4 +21,4 @@
         #:simple-gl
         #:3d-vectors
         #:3d-matrices)
-  (:export #:cellular-automata))
+  (:export #:create-cellular-automata))
