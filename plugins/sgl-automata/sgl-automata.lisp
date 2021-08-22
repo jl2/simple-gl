@@ -21,49 +21,106 @@
 
 (defclass cellular-automata (instanced-opengl-object)
   ((style :initform (make-style "automata" "sgl-automata-vertex.glsl" "point-fragment.glsl"))
-   (max-instances :initform 1000 :initarg :max-instances)
-   (width :initform 50 :initarg :width)
-   (current-line :initform nil :initarg :current-line :type (or null (SIMPLE-ARRAY BIT (*))))))
+   (max-instances :initform 10000 :initarg :max-instances :type fixnum)
+   (instance-count :initform 0 :type fixnum)
+   (width :initform 50 :initarg :width :type fixnum)
+   (rule :initform 90 :initarg :rule :type fixnum)
+   (current-row :initform 0 :initarg :current-row :type fixnum)
+   (current-row-data :initform nil :initarg :current-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
+   (next-row-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
+   ))
 
-(defun create-cellular-automata (width &key (max-instances (* width 1000)))
+(defun create-cellular-automata (width &key
+                                         (rule 90)
+                                         (max-instances (* width 1000))
+                                         (initial-data))
   "Create a cellular automata of the specified size."
-  (make-instance 'cellular-automata
-                 :max-instances max-instances
-                 :width 100
-                 :current-line (make-array (list width) :initial-element 0 :element-type 'bit)))
-(defmethod update ((object cellular-automata) elapsed-seconds)
-  (with-slots (buffers instance-count max-instances width) object
-    (when (< instance-count max-instances)
-      (let ((buffer (get-buffer object :obj-transform)))
-        (with-slots (pointer) buffer
-          (sgl:fill-pointer-offset (vec3 (1- (/ (random width) (/ width 2.0)))
-                                         (1- (/ (random width) (/ width 2.0)))
-                                         0.0)
-                                   pointer
-                                   (* instance-count 3)))
-        (incf instance-count)
-        (reload buffer)))
-    (let ((buffer (get-buffer object :vertices))
-          (fw (random (/ 1.0f0 width))))
-      (sgl:fill-buffer buffer
-                       (list 0.0f0 0.0f0 0.0f0
-                             0.1f0 0.8f0 0.1f0 1.0f0
-                             fw 0.0f0 0.0f0
-                             0.1f0 0.8f0 0.1f0 1.0f0
-                             fw fw 0.0f0
-                             0.1f0 0.8f0 0.1f0 1.0f0
-                             0.0f0 fw 0.0f0
-                             0.8f0 0.8f0 0.1f0 1.0f0))
-      (reload buffer)
-      (sgl:set-buffer object :vertices buffer))
+  (let* ((init-data (if (null initial-data)
+                                   (make-array (list width) :initial-element 0 :element-type 'bit)
+                                   (coerce initial-data '(simple-array bit (*)))))
+         (ret-val (make-instance 'cellular-automata
+                                 :max-instances max-instances
+                                 :width width
+                                 :rule rule
+                                 :current-row 0
+                                 :current-row-data init-data
+                                 :next-row-data (make-array (list width) :initial-element 0 :element-type 'bit))))
+    (with-slots (current-row-data next-row-data width) ret-val
+      (when (null initial-data)
+        (setf (aref current-row-data (floor (/ width 2))) 1)))
+    ret-val))
 
-    (format t "Instance-count is now ~a~%" instance-count)))
+(defun add-row-instances (object)
+  (with-slots (buffers instance-count max-instances width current-row current-row-data) object
+    (let ((buffer (get-buffer object :obj-transform))
+          (cell-size (/ 2.0 width)))
+      (with-slots (pointer) buffer
+        (loop with updated = nil
+              for x-offset from 0
+              for x-float = (- 1.0 (* cell-size x-offset))
+              for rv across current-row-data
+              for y-offset = current-row
+              for y-float = (1- (* 2 (/ (1- y-offset) width)))
+              when (= 1 rv) do
+                (sgl:fill-pointer-offset (vec3 x-float y-float 0.0)
+                                         pointer
+                                         (* instance-count 3))
+                (setf updated t)
+                (incf instance-count)
+              finally
+                 (when updated
+                   (reload buffer)))))))
+
+(declaim (inline apply-rule))
+
+(defun apply-rule (rule lb cb rb)
+  (declare (type bit lb cb rb)
+           (type fixnum rule))
+  (let ((idx (+ (* 4 lb) (* 2 cb) rb)))
+    (if (logbitp idx rule)
+        1
+        0)))
+
+(defgeneric compute-left-idx (ca idx))
+(defgeneric compute-right-idx (ca idx))
+
+(defmethod compute-left-idx ((ca cellular-automata) idx)
+  (with-slots (width) ca
+    (if (= idx 0)
+        0 ;;(1- width)
+        (1- idx))))
+
+(defmethod compute-right-idx (ca idx)
+  (with-slots (width) ca
+    (if (= idx (1- width))
+        0
+        (1+ idx))))
+
+(defun compute-next-row (object)
+  (declare (ignorable object))
+  (with-slots (instance-count rule max-instances width current-row current-row-data next-row-data) object
+    (loop for idx from 0
+          for left-bit = (aref current-row-data (compute-left-idx object idx))
+          for cur-bit across current-row-data
+          for right-bit = (aref current-row-data (compute-right-idx object idx))
+          do
+             (setf (aref next-row-data idx) (apply-rule rule left-bit cur-bit right-bit)))
+    (rotatef current-row-data next-row-data)
+    (incf current-row)))
+
+
+(defmethod update ((object cellular-automata) elapsed-seconds)
+  (declare (ignorable elapsed-seconds))
+  (with-slots (max-instances instance-count) object
+    (when (< instance-count max-instances)
+      (add-row-instances object)
+      (compute-next-row object))))
 
 (defmethod initialize-buffers ((object cellular-automata) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
   (with-slots (width) object
-    (let ((fw (/ 1.0f0 width)))
+    (let ((fw (/ 2.0f0 width)))
       (set-buffer object
                   :vertices
                   (make-instance
@@ -80,7 +137,7 @@
                                0.1f0 0.8f0 0.1f0 1.0f0
 
                                0.0f0 fw 0.0f0
-                               0.8f0 0.8f0 0.1f0 1.0f0))
+                               0.1f0 0.8f0 0.1f0 1.0f0))
                    :stride nil
                    :attributes '(("in_position" . :vec3)
                                  ("in_color" . :vec4))
