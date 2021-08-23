@@ -51,6 +51,7 @@
     ret-val))
 
 (defun add-row-instances (object)
+  "Draw the next row of automata data by adding translations to the instance buffer."
   (with-slots (buffers instance-count max-instances width current-row current-row-data) object
     (let ((buffer (get-buffer object :obj-transform))
           (cell-size (/ 2.0 width)))
@@ -61,6 +62,7 @@
               for rv across current-row-data
               for y-offset = current-row
               for y-float = (1- (* 2 (/ (1- y-offset) width)))
+              until (>= instance-count max-instances)
               when (= 1 rv) do
                 (sgl:fill-pointer-offset (vec3 x-float y-float 0.0)
                                          pointer
