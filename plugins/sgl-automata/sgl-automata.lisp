@@ -86,25 +86,27 @@
 (defgeneric compute-left-idx (ca idx))
 (defgeneric compute-right-idx (ca idx))
 
-(defmethod compute-left-idx ((ca cellular-automata) idx)
-  (with-slots (width) ca
-    (if (= idx 0)
-        0 ;;(1- width)
-        (1- idx))))
+(defmethod left-element ((ca cellular-automata) idx)
+  (with-slots (current-row-data width) ca
+    (let ((real-idx (if (= idx 0)
+                        (1- width)
+                        (1- idx))))
+      (aref current-row-data real-idx))))
 
-(defmethod compute-right-idx (ca idx)
-  (with-slots (width) ca
-    (if (= idx (1- width))
-        0
-        (1+ idx))))
+(defmethod right-element (ca idx)
+  (with-slots (current-row-data width) ca
+    (let ((real-idx (if (= idx (1- width))
+                        0
+                        (1+ idx))))
+      (aref current-row-data real-idx))))
 
 (defun compute-next-row (object)
   (declare (ignorable object))
   (with-slots (instance-count rule max-instances width current-row current-row-data next-row-data) object
     (loop for idx from 0
-          for left-bit = (aref current-row-data (compute-left-idx object idx))
+          for left-bit = (left-element object idx)
           for cur-bit across current-row-data
-          for right-bit = (aref current-row-data (compute-right-idx object idx))
+          for right-bit = (right-element object idx)
           do
              (setf (aref next-row-data idx) (apply-rule rule left-bit cur-bit right-bit)))
     (rotatef current-row-data next-row-data)
