@@ -22,4 +22,5 @@
         #:simple-gl
         #:3d-vectors
         #:3d-matrices)
-  (:export #:create-cellular-automata))
+  (:export #:create-1d-cellular-automata
+           #:create-simple-game-of-life))
