@@ -56,7 +56,7 @@
 
   (with-slots (buffers instance-count max-instances width current-row current-row-data) object
     (let ((buffer (get-buffer object :obj-transform))
-          (cell-size (/ 2.0 width)))
+          (cell-size (/ 2.0f0 width)))
       (with-slots (pointer) buffer
         ;; Loop over each cell in the data
         (loop
@@ -65,7 +65,7 @@
 
           ;; Calculate the quad location
           for x-offset fixnum from 0
-          for x-float real = (- 1.0 (* cell-size x-offset))
+          for x-float real = (- 1.0f0 (* cell-size x-offset))
           for y-offset fixnum = current-row
           for y-float real = (1- (* 2 (/ (1- y-offset) width)))
 
@@ -188,7 +188,7 @@
                                 ;; Not technically empty, but this gets overwritten immediately
                                 :pointer (to-gl-array :float
                                                       (* max-instances 3)
-                                                      (vec3 0.0 0.0 0.0))
+                                                      (vec3 0.0f0 0.0f0 0.0f0))
                                 :stride nil
                                 :attributes '(("translation" . :vec3))
                                 :usage :static-draw
