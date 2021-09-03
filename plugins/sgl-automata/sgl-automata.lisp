@@ -24,13 +24,16 @@
   ((style :initform (make-style "automata" "sgl-automata-vertex.glsl" "point-fragment.glsl"))
    (max-instances :initform 10000 :initarg :max-instances :type fixnum)
    (instance-count :initform 0 :type fixnum)
-   (width :initform 50 :initarg :width :type fixnum)
    ))
 
 (declaim (inline apply-rule left-element right-element compute-next-row add-row-instance))
 
 (defgeneric add-current-instances (object)
   (:documentation "Add instances for the current generation of an automata."))
+
+(defgeneric compute-next (object)
+  (:documentation "Compute the next instance  of the automata."))
+
 
 (defmethod update ((object cellular-automata) elapsed-seconds)
   (declare (ignorable elapsed-seconds))

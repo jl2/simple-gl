@@ -18,10 +18,12 @@
 
 (defclass 2d-cellular-automata (cellular-automata)
   ((rule :initform 90 :initarg :rule :type fixnum)
-   (current-row :initform 0 :initarg :current-row :type fixnum)
-   (current-row-data :initform nil :initarg :current-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
-   (next-row-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
+   (current-board-idx :initform 0 :initarg :current-row :type fixnum)
+   (current-board-data :initform nil :initarg :current-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
+   (next-board-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
    ))
+
+;; (sgl:display-in (sgla:create-2d-cellular-automata 256 256) (make-instance 'sgl:viewer :desired-fps 120))
 
 (defun create-game-of-life (width
                                  &key

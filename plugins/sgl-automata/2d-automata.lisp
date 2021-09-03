@@ -16,40 +16,74 @@
 
 (in-package :sgl-automata)
 
-(defclass 1d-cellular-automata (cellular-automata)
-  ((rule :initform 90 :initarg :rule :type fixnum)
-   (current-row :initform 0 :initarg :current-row :type fixnum)
-   (current-row-data :initform nil :initarg :current-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
-   (next-row-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
-   ))
+(defclass 2d-cellular-automata (cellular-automata)
+  ((width :initform 50 :initarg :width :type (unsigned-byte 32))
+   (height :initform 50 :initarg :height :type (unsigned-byte 32))
+   (current-board-idx :initform 0
+                      :initarg :current-board-idx
+                      :type fixnum)
+   (current-board-data :initform nil
+                       :initarg :current-board-data
+                       :type (or null (SIMPLE-ARRAY BIT (*))))
+   (next-board-data :initform nil
+                    :initarg :next-board-data
+                    :type (or null (SIMPLE-ARRAY BIT (*))))))
 
-(defun create-1d-cellular-automata (width
-                                 &key
-                                   (rule 90)
-                                   (max-instances (* width 1000))
-                                   (initial-data))
+(defclass game-of-life (2d-cellular-automata)
+  ())
+
+(declaim (inline count-neighbors add-current-instances compute-next))
+
+(defun create-2d-cellular-automata (width height
+                                    &key
+                                      (class 'sgl-automata:game-of-life)
+                                      (initial-data (make-array (* width height)
+                                                                :element-type 'bit
+                                                                :initial-contents (loop for i below (* width height)
+                                                                                        collecting (random 2)))))
   "Create a cellular automata of the specified size."
   (let* ((init-data (if (null initial-data)
-                        (make-array (list width) :initial-element 0 :element-type 'bit)
+                        (make-array (* width height) :initial-element 0 :element-type 'bit)
                         (coerce initial-data '(simple-array bit (*)))))
-         (ret-val (make-instance '1d-cellular-automata
-                                 :max-instances max-instances
+         (ret-val (make-instance class
                                  :width width
-                                 :rule rule
-                                 :current-row 0
-                                 :current-row-data init-data
-                                 :next-row-data (make-array (list width) :initial-element 0 :element-type 'bit))))
-    (with-slots (current-row-data next-row-data width) ret-val
+                                 :height height
+                                 :current-board-idx 0
+                                 :max-instances (* width height)
+                                 :current-board-data init-data
+                                 :next-board-data (make-array (list (* width height))
+                                                              :initial-element 0
+                                                              :element-type 'bit))))
+    (with-slots (current-board-data next-board-data width height) ret-val
       (when (null initial-data)
-        (setf (aref current-row-data (floor (/ width 2))) 1)))
+        (setf (2d-get current-board-data
+                      height
+                      (floor (/ width  2))
+                      (floor (/ height  2)))
+              1)))
     ret-val))
 
-(defmethod add-current-instances ((object 1d-cellular-automata))
-  "Draw the next row of automata data by adding translations to the instance buffer."
+(declaim (inline 2d-get (setf 2d-get)))
+(defun 2d-get (array height i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0))
+           (type (simple-array bit (*)) array)
+           (type (unsigned-byte 32) height i j))
+  (aref array (+ i (* height j) )))
 
-  (with-slots (buffers instance-count max-instances width current-row current-row-data) object
+(defun (setf 2d-get) (value array height i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0))
+           (type (simple-array bit (*)) array)
+           (type (unsigned-byte 32) height i j))
+  (setf (aref array (+ i (* height j))) value))
+
+(defmethod add-current-instances ((object 2d-cellular-automata))
+  "Draw the next row of automata data by adding translations to the instance buffer."
+  (with-slots (buffers instance-count max-instances height width current-board-idx current-board-data) object
     (let ((buffer (get-buffer object :obj-transform))
-          (cell-size (/ 2.0f0 width)))
+          (cell-width (/ 2.0f0 (coerce width 'single-float)))
+          (cell-height (/ 2.0f0 height)))
+      (declare (type single-float cell-width cell-height))
+      (setf instance-count 0)
       (with-slots (pointer) buffer
         ;; Loop over each cell in the data
         (loop
@@ -57,69 +91,103 @@
           with updated = nil
 
           ;; Calculate the quad location
-          for x-offset fixnum from 0
-          for x-float real = (- 1.0f0 (* cell-size x-offset))
-          for y-offset fixnum = current-row
-          for y-float real = (1- (* 2 (/ (1- y-offset) width)))
+          for x-offset from 0 below width
+          for x-float real = (- 1.0f0 (* cell-width x-offset))
+          do
+             (loop
+               for y-offset from 0 below height
+               for y-float real = (- 1.0f0 (* cell-height y-offset))
 
-          ;; Bail out when there's no room for a new quad.
-          until (>= instance-count max-instances)
-
-          ;; If the cell is 'on' then add a quad
-          for rv bit across current-row-data
-          when (= 1 rv) do
-                (sgl:fill-pointer-offset (vec3 x-float y-float 0.0)
-                                         pointer
-                                         (* instance-count 3))
-                (setf updated t)
-                (incf instance-count)
-
+               ;; If the cell is 'on' then add a quad
+               when (is-on object x-offset y-offset) do
+                 (sgl:fill-pointer-offset (vec3 x-float y-float 0.0)
+                                          pointer
+                                          (* instance-count 3))
+                 (setf updated t)
+                 (incf instance-count))
           finally
              ;; Copy the buffer to OpenGL if anything changed.
              (when updated
                (reload buffer)))))))
 
-(defun apply-rule (rule lb cb rb)
-  "Compute output cell value based on left, center, and right cells."
-  (declare (type bit lb cb rb)
-           (type fixnum rule))
-  (let ((idx (+ (* 4 lb) (* 2 cb) rb)))
-    (if (logbitp idx rule)
-        1
-        0)))
 
-;; Override these to simulate different board types (wrap around, etc.)
-(defgeneric left-element (ca idx)
-  (:documentation "Look up the cell value 'left' of idx."))
+(defgeneric count-neighbors (object i j)
+  (:documentation "Count neighbors at board location i j"))
 
-(defgeneric right-element (ca idx)
-  (:documentation "Look up the cell value 'right' of idx."))
+(declaim (inline is-on is-off turn-on turn-off))
 
-(defmethod left-element ((ca cellular-automata) idx)
-  (with-slots (current-row-data width) ca
-    (let ((real-idx (if (= idx 0)
-                        (1- width)
-                        (1- idx))))
-      (aref current-row-data real-idx))))
+(defun is-on (object i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0))
+           (type (unsigned-byte 32) i j)
+           (type game-of-life object))
+  (with-slots (current-board-data height) object
+    (= 1 (2d-get current-board-data height i j))))
+(defun turn-on (object i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0))
+           (type (unsigned-byte 32) i j)
+           (type game-of-life object))
+  (with-slots (next-board-data width height) object
+    (setf (2d-get next-board-data height i j) 1)))
 
-;; This implementation wraps around to the other side of the board
-(defmethod right-element ((ca cellular-automata) idx)
-  (with-slots (current-row-data width) ca
-    (let ((real-idx (if (= idx (1- width))
-                        0
-                        (1+ idx))))
-      (aref current-row-data real-idx))))
+(defun is-off (object i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0))
+           (type (unsigned-byte 32) i j)
+           (type game-of-life object))
+  (with-slots (current-board-data height) object
+    (= 0 (2d-get current-board-data height i j))))
+(defun turn-off (object i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0))
+           (type (unsigned-byte 32) i j)
+           (type game-of-life object))
+  (with-slots (next-board-data height) object
+    (setf (2d-get next-board-data height i j) 0)))
 
-(defgeneric compute-next (object)
-  (:documentation "Compute the next instance  of the automata."))
+(defmethod count-neighbors ((object 2d-cellular-automata) i j)
+  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (type (unsigned-byte 32) i j))
+  (with-slots (current-board-data width height) object
+    (declare (type (unsigned-byte 32) width height))
+    (let ((ip (if (> 0 (- i 1))
+                  (1- width)
+                  (1- i)))
+          (jp (if (> 0 (1- j))
+                  (- height 1)
+                  (- j 1)))
+          (in (if (>= i (- width 1))
+                  0
+                  (+ i 1)))
+          (jn (if (>= j (- height 1))
+                  0
+                  (+ j 1))))
+      (declare (type fixnum ip jp in jn))
+      (reduce #'+ (list
+                   (2d-get current-board-data width ip jp)
+                   (2d-get current-board-data width ip j)
+                   (2d-get current-board-data width ip jn)
+                   (2d-get current-board-data width i jp)
+                   (2d-get current-board-data width i jn)
+                   (2d-get current-board-data width in jp)
+                   (2d-get current-board-data width in j)
+                   (2d-get current-board-data width in jn))))))
 
-(defmethod compute-next ((object cellular-automata))
-  (with-slots (instance-count rule max-instances width current-row current-row-data next-row-data) object
-    (loop for idx fixnum from 0
-          for left-bit bit = (left-element object idx)
-          for cur-bit bit across current-row-data
-          for right-bit bit = (right-element object idx)
-          do
-             (setf (aref next-row-data idx) (apply-rule rule left-bit cur-bit right-bit)))
-    (rotatef current-row-data next-row-data)
-    (incf current-row)))
+(defmethod compute-next ((object game-of-life))
+  (with-slots (instance-count width height current-board-idx current-board-data next-board-data) object
+    (loop
+      ;; Calculate the quad location
+      for i fixnum from 0 below width
+      do
+         (loop
+           for j fixnum from 0 below height
+           for ncount = (count-neighbors object i j)
+           do
+              (cond ((and (is-off object i j)
+                          (= ncount 3))
+                     (turn-on object i j))
+                    ((and (is-on object i j)
+                          (or (= ncount 2)
+                              (= ncount 3)))
+                     (turn-on object i j))
+                    (t
+                     (turn-off object i j)))))
+    (rotatef next-board-data current-board-data)
+    (incf current-board-idx)))

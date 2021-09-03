@@ -26,6 +26,5 @@
                (:file "sgl-automata")
                (:file "1d-automata")
                (:file "2d-automata")
-               (:file "game-of-life")
                )
   :in-order-to ((test-op (test-op sgl-automata.test))))

@@ -17,26 +17,39 @@
 (in-package :sgl-automata)
 
 (defclass 1d-cellular-automata (cellular-automata)
-  ((rule :initform 90 :initarg :rule :type fixnum)
-   (current-row :initform 0 :initarg :current-row :type fixnum)
+  ((width :initform 50 :initarg :width :type fixnum)
+   (rule :initform 90 :initarg :rule :type fixnum)
+   (current-row-idx :initform 0 :initarg :current-row-idx :type fixnum)
    (current-row-data :initform nil :initarg :current-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
    (next-row-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
    ))
 
+(defclass 1d-cellular-automata-wrapping (1d-cellular-automata)
+  ())
+
+;; Override these to simulate different board types (wrap around, etc.)
+(defgeneric left-element (ca idx)
+  (:documentation "Look up the cell value 'left' of idx."))
+
+(defgeneric right-element (ca idx)
+  (:documentation "Look up the cell value 'right' of idx."))
+
+
 (defun create-1d-cellular-automata (width
-                                 &key
-                                   (rule 90)
-                                   (max-instances (* width 1000))
-                                   (initial-data))
+                                    &key
+                                      (class '1d-cellular-automata)
+                                      (rule 90)
+                                      (max-instances (* width 1000))
+                                      (initial-data))
   "Create a cellular automata of the specified size."
   (let* ((init-data (if (null initial-data)
                         (make-array (list width) :initial-element 0 :element-type 'bit)
                         (coerce initial-data '(simple-array bit (*)))))
-         (ret-val (make-instance '1d-cellular-automata
+         (ret-val (make-instance class
                                  :max-instances max-instances
                                  :width width
                                  :rule rule
-                                 :current-row 0
+                                 :current-row-idx 0
                                  :current-row-data init-data
                                  :next-row-data (make-array (list width) :initial-element 0 :element-type 'bit))))
     (with-slots (current-row-data next-row-data width) ret-val
@@ -44,10 +57,12 @@
         (setf (aref current-row-data (floor (/ width 2))) 1)))
     ret-val))
 
+
+
 (defmethod add-current-instances ((object 1d-cellular-automata))
   "Draw the next row of automata data by adding translations to the instance buffer."
 
-  (with-slots (buffers instance-count max-instances width current-row current-row-data) object
+  (with-slots (buffers instance-count max-instances width current-row-idx current-row-data) object
     (let ((buffer (get-buffer object :obj-transform))
           (cell-size (/ 2.0f0 width)))
       (with-slots (pointer) buffer
@@ -59,7 +74,7 @@
           ;; Calculate the quad location
           for x-offset fixnum from 0
           for x-float real = (- 1.0f0 (* cell-size x-offset))
-          for y-offset fixnum = current-row
+          for y-offset fixnum = current-row-idx
           for y-float real = (1- (* 2 (/ (1- y-offset) width)))
 
           ;; Bail out when there's no room for a new quad.
@@ -88,14 +103,9 @@
         1
         0)))
 
-;; Override these to simulate different board types (wrap around, etc.)
-(defgeneric left-element (ca idx)
-  (:documentation "Look up the cell value 'left' of idx."))
 
-(defgeneric right-element (ca idx)
-  (:documentation "Look up the cell value 'right' of idx."))
 
-(defmethod left-element ((ca cellular-automata) idx)
+(defmethod left-element ((ca 1d-cellular-automata-wrapping) idx)
   (with-slots (current-row-data width) ca
     (let ((real-idx (if (= idx 0)
                         (1- width)
@@ -103,18 +113,31 @@
       (aref current-row-data real-idx))))
 
 ;; This implementation wraps around to the other side of the board
-(defmethod right-element ((ca cellular-automata) idx)
+(defmethod right-element ((ca 1d-cellular-automata-wrapping) idx)
   (with-slots (current-row-data width) ca
     (let ((real-idx (if (= idx (1- width))
                         0
                         (1+ idx))))
       (aref current-row-data real-idx))))
 
-(defgeneric compute-next (object)
-  (:documentation "Compute the next instance  of the automata."))
 
-(defmethod compute-next ((object cellular-automata))
-  (with-slots (instance-count rule max-instances width current-row current-row-data next-row-data) object
+
+(defmethod left-element ((ca 1d-cellular-automata) idx)
+  (with-slots (current-row-data width) ca
+    (if (= idx 0)
+        0
+        (aref current-row-data (1- idx)))))
+
+;; This implementation wraps around to the other side of the board
+(defmethod right-element ((ca 1d-cellular-automata) idx)
+  (with-slots (current-row-data width) ca
+    (if (= idx (1- width))
+        0
+        (aref current-row-data (1+ idx)))))
+
+
+(defmethod compute-next ((object 1d-cellular-automata))
+  (with-slots (instance-count rule max-instances width current-row-idx current-row-data next-row-data) object
     (loop for idx fixnum from 0
           for left-bit bit = (left-element object idx)
           for cur-bit bit across current-row-data
@@ -122,4 +145,4 @@
           do
              (setf (aref next-row-data idx) (apply-rule rule left-bit cur-bit right-bit)))
     (rotatef current-row-data next-row-data)
-    (incf current-row)))
+    (incf current-row-idx)))

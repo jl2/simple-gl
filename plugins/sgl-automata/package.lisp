@@ -23,4 +23,11 @@
         #:3d-vectors
         #:3d-matrices)
   (:export #:create-1d-cellular-automata
-           #:create-simple-game-of-life))
+           #:cellular-automata
+           #:1d-cellular-automata
+           #:1d-cellular-automata-wrapping
+
+           #:create-2d-cellular-automata
+           #:2d-cellular-automata
+           #:game-of-life
+           ))
