@@ -29,40 +29,26 @@
                     :initarg :next-board-data
                     :type (or null (SIMPLE-ARRAY BIT (*))))))
 
-(defclass game-of-life (2d-cellular-automata)
-  ())
-
 (declaim (inline count-neighbors add-current-instances compute-next))
 
 (defun create-2d-cellular-automata (width height
                                     &key
                                       (class 'sgl-automata:game-of-life)
+                                      (max-instances (* width height))
                                       (initial-data (make-array (* width height)
                                                                 :element-type 'bit
                                                                 :initial-contents (loop for i below (* width height)
                                                                                         collecting (random 2)))))
   "Create a cellular automata of the specified size."
-  (let* ((init-data (if (null initial-data)
-                        (make-array (* width height) :initial-element 0 :element-type 'bit)
-                        (coerce initial-data '(simple-array bit (*)))))
-         (ret-val (make-instance class
-                                 :width width
-                                 :height height
-                                 :current-board-idx 0
-                                 :max-instances (* width height)
-                                 :current-board-data init-data
-                                 :next-board-data (make-array (list (* width height))
-                                                              :initial-element 0
-                                                              :element-type 'bit))))
-    (with-slots (current-board-data next-board-data width height) ret-val
-      (when (null initial-data)
-        (setf (2d-get current-board-data
-                      height
-                      (floor (/ width  2))
-                      (floor (/ height  2)))
-              1)))
-    ret-val))
-
+  (make-instance class
+                 :width width
+                 :height height
+                 :current-board-idx 0
+                 :max-instances max-instances
+                 :current-board-data initial-data
+                 :next-board-data (make-array (list (* width height))
+                                              :initial-element 0
+                                              :element-type 'bit)))
 (declaim (inline 2d-get (setf 2d-get)))
 (defun 2d-get (array height i j)
   (declare (optimize (speed 3) (safety 0) (debug 0))
@@ -100,7 +86,7 @@
 
                ;; If the cell is 'on' then add a quad
                when (is-on object x-offset y-offset) do
-                 (sgl:fill-pointer-offset (vec3 x-float y-float 0.0)
+                 (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0) ;(* -0.1f0 current-board-idx))
                                           pointer
                                           (* instance-count 3))
                  (setf updated t)
@@ -119,26 +105,26 @@
 (defun is-on (object i j)
   (declare (optimize (speed 3) (safety 0) (debug 0))
            (type (unsigned-byte 32) i j)
-           (type game-of-life object))
+           (type 2d-cellular-automata object))
   (with-slots (current-board-data height) object
     (= 1 (2d-get current-board-data height i j))))
 (defun turn-on (object i j)
   (declare (optimize (speed 3) (safety 0) (debug 0))
            (type (unsigned-byte 32) i j)
-           (type game-of-life object))
+           (type 2d-cellular-automata object))
   (with-slots (next-board-data width height) object
     (setf (2d-get next-board-data height i j) 1)))
 
 (defun is-off (object i j)
   (declare (optimize (speed 3) (safety 0) (debug 0))
            (type (unsigned-byte 32) i j)
-           (type game-of-life object))
+           (type 2d-cellular-automata object))
   (with-slots (current-board-data height) object
     (= 0 (2d-get current-board-data height i j))))
 (defun turn-off (object i j)
   (declare (optimize (speed 3) (safety 0) (debug 0))
            (type (unsigned-byte 32) i j)
-           (type game-of-life object))
+           (type 2d-cellular-automata object))
   (with-slots (next-board-data height) object
     (setf (2d-get next-board-data height i j) 0)))
 
@@ -160,34 +146,13 @@
                   0
                   (+ j 1))))
       (declare (type fixnum ip jp in jn))
-      (reduce #'+ (list
-                   (2d-get current-board-data width ip jp)
-                   (2d-get current-board-data width ip j)
-                   (2d-get current-board-data width ip jn)
-                   (2d-get current-board-data width i jp)
-                   (2d-get current-board-data width i jn)
-                   (2d-get current-board-data width in jp)
-                   (2d-get current-board-data width in j)
-                   (2d-get current-board-data width in jn))))))
+      (+ 
+       (2d-get current-board-data width ip jp)
+       (2d-get current-board-data width ip j)
+       (2d-get current-board-data width ip jn)
+       (2d-get current-board-data width i jp)
+       (2d-get current-board-data width i jn)
+       (2d-get current-board-data width in jp)
+       (2d-get current-board-data width in j)
+       (2d-get current-board-data width in jn)))))
 
-(defmethod compute-next ((object game-of-life))
-  (with-slots (instance-count width height current-board-idx current-board-data next-board-data) object
-    (loop
-      ;; Calculate the quad location
-      for i fixnum from 0 below width
-      do
-         (loop
-           for j fixnum from 0 below height
-           for ncount = (count-neighbors object i j)
-           do
-              (cond ((and (is-off object i j)
-                          (= ncount 3))
-                     (turn-on object i j))
-                    ((and (is-on object i j)
-                          (or (= ncount 2)
-                              (= ncount 3)))
-                     (turn-on object i j))
-                    (t
-                     (turn-off object i j)))))
-    (rotatef next-board-data current-board-data)
-    (incf current-board-idx)))
