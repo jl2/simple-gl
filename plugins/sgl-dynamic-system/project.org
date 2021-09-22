@@ -3,12 +3,6 @@
 ** About
 
 ** Example
-   #+begin_src lisp
-     (ql:quickload :sgl-dynamic-system)
-     (sgl:display-in
-      (sglds:create-dynamic-system 512 512)
-      (make-instance 'sgl:viewer))
-   #+end_src
 
    #+begin_src lisp
      (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
