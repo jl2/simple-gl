@@ -134,5 +134,7 @@
       (make-instance 'style :shaders (mapcar #'read-shader shaders) :name name)
       (make-instance 'style :name name)))
 
-(defun point-style ()
-  (make-style "point" "position-color-vertex.glsl" "point-fragment.glsl"))
+(defun point-style (&rest extra-shaders)
+  (if extra-shaders
+      (apply #'make-style "point" "position-color-vertex.glsl" "point-fragment.glsl" extra-shaders)
+      (make-style "point" "position-color-vertex.glsl" "point-fragment.glsl")))

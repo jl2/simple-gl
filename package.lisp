@@ -34,6 +34,7 @@
 
            ;; Viewer
            #:viewer
+           #:3d-mouse-nav-viewer
            #:display-in
 
            ;; OpenGL objects
@@ -41,6 +42,7 @@
            #:initialize-buffers
            #:initialize-uniforms
            #:initialize-textures
+           #:primitive-type
            #:buffers
            #:get-buffer
            #:set-buffer

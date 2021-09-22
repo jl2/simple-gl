@@ -20,7 +20,7 @@
 
 
 (let ((viewers (make-hash-table :test 'equal)))
-  (declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
+  ;;(declare (inline find-viewer add-viewer rm-viewer rm-all-viewers))
   (defun find-viewer (window)
     (gethash (cffi:pointer-address window) viewers))
 
@@ -110,6 +110,9 @@
    (front-face :initform :ccw
                :initarg :front-face
                :accessor front-face)
+   (blend :initform t
+          :initarg :blend
+          :accessor blend)
    (background-color :initform (vec4 0.04f0 0.04f0 0.04f0 1.0)
                      :initarg :background
                      :accessor background-color)
@@ -158,8 +161,9 @@
     ;; f to refill buffers
     ((and (eq key :b) (eq action :press))
      (format t "Reloading buffers ~%")
-     (initialize viewer)
-     t)
+     (with-slots (blend) viewer
+       (setf blend (not blend))
+       t))
 
     ;; i to show gl info
     ((and (eq key :i) (eq action :press))
@@ -309,6 +313,7 @@
 
            ;; The event loop
            (with-slots (previous-seconds show-fps desired-fps
+                        blend
                         cull-face front-face wire-frame background-color)
                viewer
 
@@ -352,6 +357,11 @@
                       (gl:enable :cull-face)
                       (gl:disable :cull-face))
 
+                  (cond (blend
+                         (gl:enable :blend)
+                         (gl:blend-func :src-alpha
+                                        :one-minus-src-alpha))
+                        (t (gl:disable :blend)))
                   (gl:front-face front-face)
 
                   (gl:polygon-mode :front-and-back
@@ -423,3 +433,109 @@
 (defmethod add-object (viewer object)
   (with-slots (objects) viewer
       (push object objects)))
+
+
+(defun view-matrix (radius theta gamma)
+  (let*  ((tval (* radius (cos theta)))
+          (yv (* radius (sin theta)))
+          (xv (* tval (cos gamma)))
+          (zv (* tval (sin gamma))))
+  (m* (mperspective 60.0 1.0 0.1 1000.0)
+      (mlookat (vec3 xv
+                     yv
+                     zv)
+               (vec3 0 0 0)
+               (vec3 0 1 0)))))
+
+(defclass 3d-mouse-nav-viewer (viewer)
+  ((radius :initform 1.0)
+   (theta :initform 0.0)
+   (gamma :initform 0.0)
+   (view-xform :initform (view-matrix 1.0 0.0 0.0)
+               :type mat4))
+  (:documentation "A viewer with 3d mouse camera navigation."))
+
+(defun reset-view (viewer)
+  (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
+    (setf radius pi)
+    (setf theta pi/2)
+    (setf gamma pi/3)
+    (setf view-xform (view-matrix radius theta gamma))
+    (loop
+      for object in objects
+      do
+         (set-uniform object "view_transform" view-xform :mat4))
+    (setf view-changed t)))
+
+(defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
+  (declare (ignorable window scancode mod-keys))
+  (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
+    (let* ((multiplier (if (find :shift mod-keys) 8 1))
+           (angle-inc (* multiplier (/ pi 180)))
+           (linear-inc (* multiplier 0.5)))
+
+      (cond
+
+        ((and (eq key :f5) (eq action :press))
+         (reset-view viewer)
+         (setf view-changed t)
+         t)
+
+
+        ((and (eq key :left) (find action '(:repeat :press)))
+         (setf gamma
+               (+ gamma angle-inc))
+         (setf view-changed t))
+      ((and (eq key :right) (find action '(:repeat :press)))
+       (setf gamma
+             (- gamma angle-inc))
+       (setf view-changed t))
+
+
+      ((and (eq key :up) (find action '(:repeat :press)))
+       (setf theta (min
+                    (/ pi 2)
+                    (+ theta angle-inc)))
+       (setf view-changed t))
+      ((and (eq key :down) (find action '(:repeat :press)))
+       (setf theta (max
+                    (- (/ pi 2))
+                    (- theta angle-inc)))
+       (setf view-changed t))
+
+
+       ((and (eq key :page-up) (find action '(:repeat :press)))
+        (setf radius (max 0.5 (- radius linear-inc)))
+        (setf view-changed t))
+
+       ((and (eq key :page-down) (find action '(:repeat :press)))
+         (setf radius (min 1000.0 (+ radius linear-inc)))
+         (setf view-changed t))
+      (t
+       (call-next-method)))
+    (setf view-xform (view-matrix radius theta gamma))
+    t)))
+
+(defun big-enough (val &optional (tol 0.0001))
+  (> (abs val) tol))
+
+#+spacenav
+(defmethod handle-3d-mouse-event ((viewer 3d-mouse-nav-viewer) (event sn:motion-event))
+  (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
+    (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
+      (let* ((linear-scale (/ 1.0 400))
+             (radial-scale (/ 1.0 400))
+             (linear-inc (* -1.0 linear-scale sn:z))
+             (xang (* -1.0 radial-scale sn:rx))
+             (yang (* -1.0 radial-scale sn:ry))
+             )
+        (incf gamma yang)
+        ;;(incf theta xang)
+        (setf theta (max (- (/ pi 2))
+                         (min (/ pi 2)
+                              (+ theta xang))))
+        (setf radius (max 0.5
+                          (min 1000.0
+                               (+ radius linear-inc))))
+        (setf view-xform (view-matrix radius theta gamma))
+        (setf view-changed t)))))
