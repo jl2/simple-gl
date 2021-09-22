@@ -1,0 +1,35 @@
+* sgl-dynamic-system
+
+** About
+
+** Example
+   #+begin_src lisp
+     (ql:quickload :sgl-dynamic-system)
+     (sgl:display-in
+      (sglds:create-dynamic-system 512 512)
+      (make-instance 'sgl:viewer))
+   #+end_src
+
+   #+begin_src lisp
+     (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
+     (use-package :3d-vectors)
+     (sgl:display-in
+      (sglds:create-dynamic-system 63 5 63
+                                   (vec3 (* -3 pi) (* -0.1 pi) (* -3 pi))
+                                   (vec3 (* 3 pi)  (* 0.1 pi) (* 3 pi)))
+      (make-instance 'sgl:3d-mouse-nav-viewer))
+      #+end_src
+
+      #+RESULTS:
+      
+** License
+ISC
+
+
+Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
+
+
+* Plan
+** TODO Fill in a TODO list.
