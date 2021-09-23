@@ -18,12 +18,13 @@ vec4 fpt(vec4 pt) {
 }
 
 float fx(float xv) {
-     return sin(cos(1.4 * xv) * sin(3 * xv)) + cos(xv);
+     // return sin(xv * xv + sin(3 * xv * xv)) + cos(xv);
+     return sin(xv + sin(xv * xv)) + cos(xv);
 }
 
 void main() {
      int i;
-     float h = 3.141592543 / 16;
+     float h = 3.141592543 / 512;
      vec4 pt = gl_in[0].gl_Position;
      diffuse_color = gs_in[0].color;
      gl_Position = gs_in[0].final_transform * pt;
@@ -39,8 +40,5 @@ void main() {
           oldpt = pt;
      }
 
-     // gl_Position = fpt(pt);
-     // EmitVertex();
-     // EndPrimitive();
      EndPrimitive();
 }

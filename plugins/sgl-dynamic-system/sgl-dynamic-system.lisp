@@ -55,7 +55,6 @@
                                  for k below depth
                                  for pt = (v+
                                            min-corner
-                                           (vx_z (vec3-random -0.5 0.5))
                                            (v* (vec3 i j k) step))
                                  collecting pt
                                  collecting (let* ((r (+ 0.25 (* 0.5 (abs (cos (vx pt))))))
@@ -98,7 +97,7 @@
                   :attributes '(("obj_transform" . :mat4))
                   :usage :static-draw
                    :free t))
-      (setf instance-count 3))))
+      (setf instance-count 1))))
 
 (defun create-dynamic-system (width height depth max-corner min-corner)
   (let ((dh 0.125)
@@ -108,6 +107,10 @@
                             :depth depth
                             :max-corner max-corner
                             :min-corner min-corner
-                            :style (sgl:make-style "dynamic-system" "ds-vertex.glsl" "ds-fragment.glsl" "ds-geometry.glsl"))))
+                            :style
+                            (make-instance 'style :name "dynamic-system"
+                                                  :shaders (list (sgl:read-shader "ds-vertex.glsl")
+                                                                 (sgl:read-shader "ds-fragment.glsl")
+                                                                 (sgl:read-shader "ds-geometry.glsl"))))))
     (sgl:set-uniform obj "dh" dh :float)
     obj))
