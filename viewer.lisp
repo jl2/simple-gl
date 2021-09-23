@@ -153,9 +153,10 @@
     ;; r to rebuild shaders
     ((and (eq key :r) (eq action :press))
      (format t "Rebuilding shaders...~%")
-     (with-slots (objects) viewer
+     (with-slots (objects view-changed) viewer
        (dolist (object objects)
-         (rebuild-style object)))
+         (rebuild-style object))
+       (setf view-changed t))
      t)
 
     ;; f to refill buffers
@@ -458,8 +459,8 @@
 (defun reset-view (viewer)
   (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
     (setf radius pi)
-    (setf theta pi/2)
-    (setf gamma pi/3)
+    (setf theta (/ pi 2))
+    (setf gamma (/ pi 3))
     (setf view-xform (view-matrix radius theta gamma))
     (loop
       for object in objects

@@ -69,7 +69,7 @@
            ;; Styles/shaders
            #:style
            #:gl-shader
-           #:make-style
+           #:make-style-from-files
            #:build-style
            #:simple-gl-shader
            #:read-shader

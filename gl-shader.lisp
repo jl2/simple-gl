@@ -123,8 +123,7 @@
 (defmethod cleanup ((shade gl-shader))
   (with-slots (shader) shade
     (when (> shader 0)
-      (gl:delete-shader shader))
-    (setf shader 0)))
+      (setf shader 0))))
 
 (define-condition shader-compile-error (shader-error) ())
 

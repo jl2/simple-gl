@@ -130,12 +130,17 @@
     (build-style style)))
 
 (defmethod rebuild-style ((object opengl-object))
-  (with-slots (style buffers) object
+  (bind object)
+  (with-slots (style buffers uniforms) object
     (cleanup style)
     (build-style style)
+    (use-style style)
     (loop for buffer in buffers do
       (bind (cdr buffer))
-      (associate-attributes (cdr buffer) (program style)))))
+      (associate-attributes (cdr buffer) (program style)))
+    (dolist (uniform uniforms)
+      (use-uniform (cdr uniform) (program style)))
+    ))
 
 (defmethod initialize-uniforms ((object opengl-object) &key)
   (declare (ignorable object))

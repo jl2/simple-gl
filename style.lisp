@@ -69,16 +69,17 @@
 
 (defmethod cleanup ((style style))
   (with-slots (shaders program) style
-    (when (not (zerop program))
-      (gl:delete-program program)
-      (setf program 0))
     (when shaders
       (dolist (shade shaders)
         (with-slots (shader) shade
           (when (and (not (zerop shader))
                      (not (zerop program)))
             (gl:detach-shader program shader)))
-        (cleanup shade)))))
+        (cleanup shade)))
+    (when (not (zerop program))
+      (gl:delete-program program)
+      (setf program 0))
+    ))
 
 (define-condition shader-link-error (shader-error) ())
 (define-condition shader-validate-error (shader-error) ())
@@ -95,7 +96,8 @@
       (when (and (not (zerop (shader gl-shader))) (not (zerop program)))
         (gl:detach-shader program (shader gl-shader)))
       (initialize gl-shader)
-      (gl:attach-shader program (shader gl-shader)))
+      (gl:attach-shader program (shader gl-shader))
+      (gl:delete-shader (shader gl-shader)))
 
     ;; Link
     (gl:link-program program)
@@ -129,12 +131,12 @@
     (gl:use-program program))
   t)
 
-(defun make-style (name &rest shaders)
+(defun make-style-from-files (name &rest shaders)
   (if shaders
       (make-instance 'style :shaders (mapcar #'read-shader shaders) :name name)
       (make-instance 'style :name name)))
 
 (defun point-style (&rest extra-shaders)
   (if extra-shaders
-      (apply #'make-style "point" "position-color-vertex.glsl" "point-fragment.glsl" extra-shaders)
-      (make-style "point" "position-color-vertex.glsl" "point-fragment.glsl")))
+      (apply #'make-style-from-files "point" "position-color-vertex.glsl" "point-fragment.glsl" extra-shaders)
+      (make-style-from-files "point" "position-color-vertex.glsl" "point-fragment.glsl")))

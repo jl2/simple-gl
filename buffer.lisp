@@ -48,16 +48,17 @@
 
 (defmethod bind ((buffer buffer))
   (with-slots (bo target usage free pointer) buffer
-    (when (= bo 0)
-      (when (null pointer)
-        (error "Cannot fill buffer from nil."))
-      (setf bo (car (gl:gen-buffers 1)))
-      (gl:bind-buffer target bo)
-      (gl:buffer-data target usage pointer)
-      (when (and free pointer)
-        (free-gl-array pointer)
-        (setf pointer nil))
-      )))
+    (cond ((= bo 0)
+           (when (null pointer)
+             (error "Cannot fill buffer from nil."))
+           (setf bo (car (gl:gen-buffers 1)))
+           (gl:bind-buffer target bo)
+           (gl:buffer-data target usage pointer)
+           (when (and free pointer)
+             (free-gl-array pointer)
+             (setf pointer nil)))
+          (t (format t "buffer ~a already initialized~%" bo)
+             (gl:bind-buffer target bo)))))
 
 (defmethod show-info ((object buffer) &key (indent 0))
   (let ((this-ws (indent-whitespace indent))
@@ -111,6 +112,7 @@
           for (comp-type comp-count byte-size vec4-size) = (glsl-type-info type)
           do
              (let ((entry-attrib (gl:get-attrib-location program name)))
+               (format t "entry-attrib: ~a name: ~a~%" entry-attrib name)
                (when (>= entry-attrib 0)
                  (loop for i below vec4-size
                        for attrib-idx = (+ entry-attrib i)
