@@ -2,19 +2,44 @@
 
 ** About
 
+   This is a small package for visualizing dynamical systems from the Clifford Pickover's book
+   "Computers, Pattern, Chaos and Beauty".  It's mainly a convenient way to learn about OpenGL
+   geometry shaders.
+
 ** Example
 
+   Use the arrow keys to rotate the display and PageUp and PageDown to zoom in and out.
+
+   #+begin_src lisp
+     (ql:quickload '(:simple-gl :sgl-dynamic-system))
+     (use-package :3d-vectors)
+     (sgl:display-in
+      (sglds:create-dynamic-system 63 1 63
+                                   (vec3 (* -3 pi) (* -0.0 pi) (* -3 pi))
+                                   (vec3 (* 3 pi)  (* 0.0 pi) (* 3 pi)))
+      (make-instance 'sgl:3d-mouse-nav-viewer))
+      #+end_src
+
+   If you have a 3DConnexion Space Mouse, you can use my [[https://github.com/jl2/spacenav][SpaceNav]]
+   package to enable 3D mouse navigation.
    #+begin_src lisp
      (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
      (use-package :3d-vectors)
      (sgl:display-in
-      (sglds:create-dynamic-system 63 5 63
-                                   (vec3 (* -3 pi) (* -0.1 pi) (* -3 pi))
-                                   (vec3 (* 3 pi)  (* 0.1 pi) (* 3 pi)))
+      (sglds:create-dynamic-system 63 1 63
+                                   (vec3 (* -3 pi) (* -0.0 pi) (* -3 pi))
+                                   (vec3 (* 3 pi)  (* 0.0 pi) (* 3 pi)))
       (make-instance 'sgl:3d-mouse-nav-viewer))
       #+end_src
 
-      #+RESULTS:
+** Tinkering
+
+   To change the function that's iterated, edit `fx` in [[https://github.com/jl2/sgl-dynamic-system/blob/master/shaders/ds-geometry.glsl][shaders/ds-geometry.glsl]] and type 'r' in the viewer.
+
+** Screenshots
+   [[https://photos.smugmug.com/photos/i-kQnn2Gg/0/190a8b39/O/i-kQnn2Gg.png]]
+      
+   [[https://photos.smugmug.com/photos/i-x4ZmGW8/0/19e39848/O/i-x4ZmGW8.png]]
       
 ** License
 ISC
@@ -23,7 +48,3 @@ ISC
 Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
-
-
-* Plan
-** TODO Fill in a TODO list.
