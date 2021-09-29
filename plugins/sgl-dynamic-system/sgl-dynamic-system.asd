@@ -21,7 +21,8 @@
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on (#:3d-vectors #:alexandria #:simple-gl)
+  :depends-on (#:3d-vectors #:alexandria #:simple-gl #:j-utils)
   :components ((:file "package")
-               (:file "sgl-dynamic-system"))
+               (:file "sgl-dynamic-system")
+               (:file "sgl-strange-attractor"))
   :in-order-to ((test-op (test-op sgl-dynamic-system.test))))

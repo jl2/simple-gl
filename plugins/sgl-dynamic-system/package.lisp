@@ -19,4 +19,8 @@
   (:use #:cl #:alexandria #:simple-gl #:3d-vectors #:3d-matrices)
   (:nicknames :sglds)
   (:export #:create-dynamic-system
-           #:sgl-dynamic-system))
+           #:sgl-dynamic-system
+
+           #:create-strange-attractor
+           #:sgl-strange-attractor
+           ))
