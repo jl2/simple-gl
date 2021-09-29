@@ -205,6 +205,18 @@
                             :cw))
        (format t "Front face: ~a~%" front-face)
        t))
+    ((and (eq key :f3) (eq action :press))
+     (let* ((win-size (glfw:get-window-size))
+            (width (car win-size))
+            (height(cadr win-size))
+            (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte)))
+       (zpng:write-png (make-instance 'zpng:png :color-type :truecolor-alpha
+                                                :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
+                                                                        :initial-contents data)
+                                                :width width
+                                                :height height)
+                       "/home/jeremiah/screenshots/sgl-screenshot.png")
+     t))
     (t
      (funcall #'some #'identity
               (loop for object in (objects viewer)
@@ -309,8 +321,7 @@
                       :polygon-smooth
                       :depth-test
                       )
-           (gl:depth-func :lequal
-                          )
+           (gl:depth-func :lequal)
 
            ;; The event loop
            (with-slots (previous-seconds show-fps desired-fps
@@ -325,7 +336,7 @@
 
              ;; Load objects for the first time
              (initialize viewer)
-             #+spacenav(sn:sensitivity 0.25d0)
+             #+spacenav(sn:sensitivity 0.0125d0)
              (loop
                with start-time = (glfw:get-time)
                for frame-count from 0

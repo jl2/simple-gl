@@ -32,6 +32,8 @@
                #:3d-vectors
                #:3d-matrices
 
+               #:zpng
+
                #:bordeaux-threads
                #:trivial-main-thread)
 
