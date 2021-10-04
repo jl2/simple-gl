@@ -112,7 +112,6 @@
           for (comp-type comp-count byte-size vec4-size) = (glsl-type-info type)
           do
              (let ((entry-attrib (gl:get-attrib-location program name)))
-               (format t "entry-attrib: ~a name: ~a~%" entry-attrib name)
                (when (>= entry-attrib 0)
                  (loop for i below vec4-size
                        for attrib-idx = (+ entry-attrib i)
