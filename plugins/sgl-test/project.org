@@ -1,0 +1,15 @@
+* sgl-test
+** About
+This is a project to do something.
+
+** License
+ISC
+
+
+Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
+
+
+* Plan
+** TODO Fill in a TODO list.
