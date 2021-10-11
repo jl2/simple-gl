@@ -18,6 +18,10 @@
     (with-slots (name type value modified) uniform
       (format t "~a~a ~a = ~a ~a~%" this-ws type name value (if modified "modified" "not modified")))))
 
+(defmethod print-object ((object uniform) stream)
+  (with-slots (name type value modified) object
+    (format stream "~a ~a = ~a (~a)~%" type name value (if modified "modified" "not modified"))))
+
 (defgeneric use-uniform (uniform program)
   (:documentation "Pass the uniform's value into the OpenGL program."))
 

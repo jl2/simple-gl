@@ -26,7 +26,7 @@
 
 (defmethod print-object ((shader-error shader-error) stream)
   (with-slots (status object info-log) shader-error
-    (format stream "OpenGL Compiler Error: ~a~%Info log:~%==========~%~a" status info-log)))
+    (format stream "OpenGL Compiler Error: ~a~%~%~a~%~%Info log:~%==========~%~a" status (get-source object) info-log)))
 
 (defclass gl-shader ()
   ((shader :initform 0 :type fixnum :accessor shader)

@@ -31,6 +31,14 @@
            #:cleanup
            #:update
            #:show-info
+           #:uniforms
+           #:buffers
+           #:program
+           #:uniforms
+           #:primitive-type
+           #:style
+           #:name
+           #:vao
 
            ;; Viewer
            #:viewer
@@ -47,6 +55,7 @@
            #:get-buffer
            #:set-buffer
            #:get-uniform
+           #:use-uniform
            #:set-uniform
            #:bind
            #:render
@@ -59,6 +68,7 @@
            #:buffer
            #:attribute-buffer
            #:index-buffer
+           #:idx-count
            #:instance-buffer
            #:fill-pointer-offset
            #:reload
@@ -70,6 +80,7 @@
            #:style
            #:gl-shader
            #:make-style-from-files
+           #:use-style
            #:build-style
            #:simple-gl-shader
            #:read-shader

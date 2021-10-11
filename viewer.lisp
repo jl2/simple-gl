@@ -168,6 +168,7 @@
 
     ;; i to show gl info
     ((and (eq key :i) (eq action :press))
+     (show-open-gl-info)
      (show-info viewer)
      t)
 
@@ -428,6 +429,7 @@
                    :max-vertex-uniform-components
                    :max-viewport-dims
                    :texture-binding-2d
+                   :max-patch-vertices
                    :stereo)
     do
        (format t "~a : ~a~%" field (gl:get-integer field))))
@@ -470,8 +472,8 @@
 (defun reset-view (viewer)
   (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
     (setf radius pi)
-    (setf theta (/ pi 2))
-    (setf gamma (/ pi 3))
+    (setf theta (/ pi 4))
+    (setf gamma (/ pi 6))
     (setf view-xform (view-matrix radius theta gamma))
     (loop
       for object in objects
