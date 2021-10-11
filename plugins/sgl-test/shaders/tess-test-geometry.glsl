@@ -1,7 +1,8 @@
 #version 410 core
 
 layout(triangles) in;
-layout(points, max_vertices = 128) out;
+layout(triangle, max_vertices = 128) out;
+in vec3 teNormal[];
 void main()
 {
      for(int i = 0; i < gl_in.length(); ++i)

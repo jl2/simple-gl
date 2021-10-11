@@ -30,7 +30,7 @@
                                            "tess-test-vertex.glsl"
                                            "tess-test-tess-control.glsl"
                                            "tess-test-tess-eval.glsl"
-                                           "tess-test-geometry.glsl"
+                                           ;; "tess-test-geometry.glsl"
                                            "tess-test-fragment.glsl"))))
 
 (defmethod sgl:render ((object tesselation-shader-test))
@@ -38,19 +38,19 @@
                inner outer) object
     (bind object)
 
-    ;; (set-uniform object "in_color" (vec4 0.2f0 0.9f0 0.2f0 1.0f0) :vec4)
-    ;; (dolist (uniform uniforms)
-    ;;   (use-uniform (cdr uniform) (program style)))
+    (set-uniform object "in_color" (vec4 0.2f0 0.9f0 0.2f0 1.0f0) :vec4)
+    (dolist (uniform uniforms)
+      (use-uniform (cdr uniform) (program style)))
 
     (use-style style)
 
 
-    ;; (gl:patch-parameter :patch-vertices 3)
+    (gl:patch-parameter :patch-vertices 16)
 
-    ;; (gl:polygon-mode :front-and-back :fill)
-    ;; (gl:draw-elements primitive-type
-    ;;                   (gl:make-null-gl-array :unsigned-int)
-    ;;                   :count (idx-count (assoc-value buffers :indices)))
+    (gl:polygon-mode :front-and-back :fill)
+    (gl:draw-elements primitive-type
+                      (gl:make-null-gl-array :unsigned-int)
+                      :count (idx-count (assoc-value buffers :indices)))
 
     (set-uniform object "in_color" (vec4 1.0f0 0.9f0 1.0f0 1.0f0) :vec4)
     (dolist (uniform uniforms)
@@ -66,32 +66,49 @@
 (defmethod sgl:initialize-buffers ((object tesselation-shader-test) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
-  (set-buffer object
-              :vertices
-              (make-instance
-               'attribute-buffer
-               :pointer (to-gl-array
-                         :float
-                         9
-                         (list -0.5f0 -0.5f0 0.0f0
+  (let* ((two-third (coerce (/ 2 3) 'single-float))
+        (neg-two-third (- two-third)))
+    (set-buffer object
+                :vertices
+                (make-instance
+                 'attribute-buffer
+                 :pointer (to-gl-array
+                           :float
+                           (* 16 3)
+                           (list -1.0f0 -1.0f0 0.0f0
+                                 -1.0f0 neg-two-third 0.f0
+                                 -1.0f0 two-third 0.0f0
+                                 -1.0f0 1.0f0 0.0f0
 
-                               0.5f0 -0.5f0 0.0f0
+                                 neg-two-third -1.0f0 0.0f0
+                                 neg-two-third neg-two-third -4.0f0
+                                 neg-two-third two-third 4.0f0
+                                 neg-two-third 1.0f0 0.0f0
 
-                               0.0f0 (- (sqrt (- 1.0f0 (* 0.5f0 0.5f0))) 0.5f0) 0.0f0))
-               :stride nil
-               :attributes '(("in_position" . :vec3))
-               :usage :static-draw
-               :free t))
+                                 two-third -1.0f0 0.0f0
+                                 two-third neg-two-third 4.0f0
+                                 two-third two-third -4.0f0
+                                 two-third 1.0f0 0.0f0
+
+                                 1.0f0 -1.0f0 0.0f0
+                                 1.0f0 neg-two-third 0.0f0
+                                 1.0f0 two-third 0.0f0
+                                 1.0f0 1.0f0 0.0f0
+                                 ))
+                 :stride nil
+                 :attributes '(("in_position" . :vec3))
+                 :usage :static-draw
+                 :free t)))
   (set-buffer object
               :indices
               (make-instance
                'index-buffer
-               :idx-count 3
-               :pointer (to-gl-array :unsigned-int 3 #(0 1 2))
+               :idx-count 16
+               :pointer (to-gl-array :unsigned-int 16 (loop for i below 16 collecting i))
                :stride nil
                :usage :static-draw
                :free t))
-)
+  )
 
 
 (defmethod sgl:initialize-uniforms ((object tesselation-shader-test) &key)

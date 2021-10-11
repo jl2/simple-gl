@@ -1,6 +1,6 @@
 #version 410 core
 
-layout (vertices = 3) out;
+layout (vertices = 16) out;
 uniform float inner = 8;
 uniform float outer = 8;
 
