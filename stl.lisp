@@ -81,9 +81,10 @@
             (triangle-count-buffer (make-array 4 :element-type '(unsigned-byte 8))))
         (read-sequence header inf)
         (read-sequence triangle-count-buffer inf)
-        (setf tri-count (get-u4 triangle-count-buffer 0))
         (format t "STL File has ~a triangles!~%" tri-count)
-        (values header tri-count)))))
+        (values (get-u4 triangle-count-buffer 0)
+                header
+                (babel:octets-to-string header :end (position 0 header)))))))
 
 
 (defmethod initialize-buffers ((obj stl) &key)

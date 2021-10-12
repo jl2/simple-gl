@@ -146,34 +146,42 @@
   (declare (ignorable object))
   t)
 
+(defun constant-attribute-buffer (data attributes &key (free t) (usage :static-draw))
+  (make-instance
+   'attribute-buffer
+   :pointer (to-gl-array
+             :float
+             (length data)
+             data)
+   :stride nil
+   :attributes attributes
+   :usage usage
+   :free free))
+
+(defun constant-index-buffer (count)
+  (make-instance
+   'index-buffer
+   :idx-count count
+   :pointer (to-gl-array :unsigned-int
+                         count
+                         (loop for i below count collecting count))
+   :stride nil
+   :usage :static-draw
+   :free t))
+
 (defmethod initialize-buffers ((object instanced-opengl-object) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
   (set-buffer object
               :vertices
-              (make-instance
-               'attribute-buffer
-               :pointer (to-gl-array
-                         :float
-                         9
-                         (list -0.5f0 -0.5f0 0.0f0
-
-                               0.5f0 -0.5f0 0.0f0
-
-                               0.0f0 (- (sqrt (- 1.0f0 (* 0.5f0 0.5f0))) 0.5f0)  0.0f0))
-               :stride nil
-               :attributes '(("in_position" . :vec3))
-               :usage :static-draw
-               :free t))
+              (constant-attribute-buffer
+               (list -0.5f0 -0.5f0 0.0f0
+                     0.5f0 -0.5f0 0.0f0
+                     0.0f0 0.5f0 0.0f0)
+               '(("in_position" . :vec3))))
   (set-buffer object
               :indices
-              (make-instance
-               'index-buffer
-               :idx-count 3
-               :pointer (to-gl-array :unsigned-int 3 #(0 1 2))
-               :stride nil
-               :usage :static-draw
-               :free t))
+              (constant-index-buffer 3))
   (set-buffer object
               :obj-transform (make-instance
                           'instance-buffer
