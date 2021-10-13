@@ -205,6 +205,20 @@
                           :free nil))
   (setf (slot-value object 'instance-count) 2))
 
+(defmethod initialize-buffers ((object opengl-object) &key)
+  (when (buffers object)
+    (error "Object buffers already setup!"))
+  (set-buffer object
+              :vertices
+              (constant-attribute-buffer
+               (list -0.5f0 -0.5f0 0.0f0
+                     0.5f0 -0.5f0 0.0f0
+                     0.0f0 0.5f0 0.0f0)
+               '(("in_position" . :vec3))))
+  (set-buffer object
+              :indices
+              (constant-index-buffer 3))
+)
 
 (defmethod initialize-textures ((object opengl-object) &key)
   (declare (ignorable object))
