@@ -30,7 +30,7 @@
                                            "tess-test-vertex.glsl"
                                            "tess-test-tess-control.glsl"
                                            "tess-test-tess-eval.glsl"
-                                           ;; "tess-test-geometry.glsl"
+                                           "tess-test-geometry.glsl"
                                            "tess-test-fragment.glsl"))))
 
 (defmethod sgl:render ((object tesselation-shader-test))
@@ -52,7 +52,7 @@
                       (gl:make-null-gl-array :unsigned-int)
                       :count (idx-count (assoc-value buffers :indices)))
 
-    (set-uniform object "in_color" (vec4 1.0f0 0.9f0 1.0f0 1.0f0) :vec4)
+    (set-uniform object "in_color" (vec4 0.0f0 0.0f0 0.0f0 1.0f0) :vec4)
     (dolist (uniform uniforms)
       (use-uniform (cdr uniform) (program style)))
 
@@ -81,13 +81,13 @@
                                  -1.0f0 1.0f0 0.0f0
 
                                  neg-two-third -1.0f0 0.0f0
-                                 neg-two-third neg-two-third -4.0f0
-                                 neg-two-third two-third 4.0f0
+                                 neg-two-third neg-two-third -2.0f0
+                                 neg-two-third two-third 0.0f0
                                  neg-two-third 1.0f0 0.0f0
 
                                  two-third -1.0f0 0.0f0
-                                 two-third neg-two-third 4.0f0
-                                 two-third two-third -4.0f0
+                                 two-third neg-two-third 0.0f0
+                                 two-third two-third 2.0f0
                                  two-third 1.0f0 0.0f0
 
                                  1.0f0 -1.0f0 0.0f0

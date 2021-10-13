@@ -1,7 +1,7 @@
 #version 410 core
 
 layout(triangles) in;
-layout(triangle, max_vertices = 128) out;
+layout(triangle_strip, max_vertices = 128) out;
 in vec3 teNormal[];
 void main()
 {
