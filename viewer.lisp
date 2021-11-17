@@ -14,7 +14,7 @@
 
 
 (defparameter *want-forward-context*
-  #+(or windows linux freebsd) nil
+  #+(or windows linux freebsd) t
   #+darwin t
   "Whether or not to ask for a 'forward compatible' OpenGL context.  Required for OSX.")
 
@@ -100,10 +100,6 @@
                 :initarg :desired-fps
                 :type fixnum
                 :accessor desired-fps)
-   (wire-frame :initform nil
-               :initarg :wire-frame
-               :type t
-               :accessor wire-frame-p)
    (cull-face :initform nil
               :initarg :cull-face
               :accessor cull-face)
@@ -183,13 +179,6 @@
        (setf show-fps (not show-fps))
        t))
 
-    ;; w to toggle wireframe
-    ((and (eq key :w) (eq action :press))
-     (with-slots (wire-frame) viewer
-       (setf wire-frame (if wire-frame nil t))
-       (format t "Wire-frame ~a~%" wire-frame)
-       t))
-
     ;; f1
     ((and (eq key :f1) (eq action :press))
      (with-slots (cull-face) viewer
@@ -206,17 +195,19 @@
                             :cw))
        (format t "Front face: ~a~%" front-face)
        t))
-    ((and (eq key :f3) (eq action :press))
+    ((and (eq key :f12) (eq action :press))
      (let* ((win-size (glfw:get-window-size))
             (width (car win-size))
             (height(cadr win-size))
-            (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte)))
+            (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
+            (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~4,'0d.png" (random 10000))))
+       (format t "Screenshot to: ~a~%" fname)
        (zpng:write-png (make-instance 'zpng:png :color-type :truecolor-alpha
                                                 :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
                                                                         :initial-contents data)
                                                 :width width
                                                 :height height)
-                       "/home/jeremiah/screenshots/sgl-screenshot.png")
+                       fname)
      t))
     (t
      (funcall #'some #'identity
@@ -278,6 +269,16 @@
 (defun gl-terminate ()
   (glfw:terminate))
 
+(cffi:defcallback gl-debug-callback :void ((source :int) (type :int) (id :int)
+                                           (severity :int) (length :int)
+                                           (message :string) (param :pointer))
+  (declare (ignorable param length))
+  (format t "~a ~a ~a ~a~%    ~s~%"
+          (cffi:foreign-enum-keyword '%gl:enum source)
+          (cffi:foreign-enum-keyword '%gl:enum type)
+          (cffi:foreign-enum-keyword '%gl:enum severity)
+          id
+          message))
 
 (defmethod display-in ((object t) (viewer viewer))
   "High level function to display an object or viewer."
@@ -296,14 +297,18 @@
                                      :decorated nil
                                      :opengl-profile :opengl-core-profile
                                      :context-version-major 4
-                                     :context-version-minor 0
+                                     :context-version-minor 5
+                                     :opengl-debug-context t
                                      :opengl-forward-compat *want-forward-context*
                                      :samples 0
                                      :resizable t)))
     (when (null window)
       (format t "Could not create-window!")
       (error "Could not create-window!"))
-
+    (gl:enable :debug-output-synchronous)
+    (%gl:debug-message-callback (cffi:callback gl-debug-callback)
+                                (cffi:null-pointer))
+    (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
     (unwind-protect
          (progn
            #+spacenav(sn:sn-open)
@@ -321,13 +326,13 @@
            (gl:enable :line-smooth
                       :polygon-smooth
                       :depth-test
+                      :program-point-size
                       )
            (gl:depth-func :lequal)
-
            ;; The event loop
            (with-slots (previous-seconds show-fps desired-fps
                         blend
-                        cull-face front-face wire-frame background-color)
+                        cull-face front-face background-color)
                viewer
 
              (gl:clear-color (vx background-color)
@@ -337,7 +342,7 @@
 
              ;; Load objects for the first time
              (initialize viewer)
-             #+spacenav(sn:sensitivity 0.0125d0)
+             #+spacenav(sn:sensitivity 0.125d0)
              (loop
                with start-time = (glfw:get-time)
                for frame-count from 0
@@ -376,11 +381,6 @@
                                         :one-minus-src-alpha))
                         (t (gl:disable :blend)))
                   (gl:front-face front-face)
-
-                  (gl:polygon-mode :front-and-back
-                                   (if wire-frame
-                                       :line
-                                       :fill))
 
 
                   (render viewer)
@@ -437,7 +437,7 @@
 (defmethod show-info ((viewer viewer) &key (indent 0))
   (let ((this-ws (indent-whitespace indent)))
     (show-slots this-ws viewer  '(objects view-xform aspect-ratio show-fps desired-fps
-                                  wire-frame cull-face front-face background-color
+                                  cull-face front-face background-color
                                   window previous-seconds frame-count))
     (with-slots (objects) viewer
       (dolist (object objects)
@@ -484,7 +484,7 @@
 (defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
   (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
-    (let* ((multiplier (if (find :shift mod-keys) 8 1))
+    (let* ((multiplier (if (find :shift mod-keys) 4 0.125))
            (angle-inc (* multiplier (/ pi 180)))
            (linear-inc (* multiplier 0.5)))
 
@@ -520,11 +520,13 @@
 
        ((and (eq key :page-up) (find action '(:repeat :press)))
         (setf radius (max 0.5 (- radius linear-inc)))
-        (setf view-changed t))
+        (setf view-changed t)
+        )
 
        ((and (eq key :page-down) (find action '(:repeat :press)))
-         (setf radius (min 1000.0 (+ radius linear-inc)))
-         (setf view-changed t))
+        (setf radius (min 1000.0 (+ radius linear-inc)))
+        (setf view-changed t)
+        )
       (t
        (call-next-method)))
     (setf view-xform (view-matrix radius theta gamma))

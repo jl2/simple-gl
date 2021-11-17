@@ -39,10 +39,15 @@
            #:style
            #:name
            #:vao
+           #:gl-fset
+           #:gl-get
 
            ;; Viewer
            #:viewer
            #:3d-mouse-nav-viewer
+           #:handle-3d-mouse-event
+           #:handle-key
+           #:constant-attribute-buffer
            #:display-in
 
            ;; OpenGL objects

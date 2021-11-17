@@ -57,7 +57,7 @@
            (when (and free pointer)
              (free-gl-array pointer)
              (setf pointer nil)))
-          (t (format t "buffer ~a already initialized~%" bo)
+          (t
              (gl:bind-buffer target bo)))))
 
 (defmethod show-info ((object buffer) &key (indent 0))
@@ -104,6 +104,7 @@
 
 
 (defmethod associate-attributes ((buffer attribute-buffer) program)
+  ;; (format t "~a~%" buffer)
   (with-slots (attributes) buffer
     (loop
           with stride = (compute-stride buffer)
@@ -112,17 +113,36 @@
           for (comp-type comp-count byte-size vec4-size) = (glsl-type-info type)
           do
              (let ((entry-attrib (gl:get-attrib-location program name)))
+               ;; (format t "entry-attrib: ~a program ~a name ~a~%" entry-attrib program name)
                (when (>= entry-attrib 0)
                  (loop for i below vec4-size
                        for attrib-idx = (+ entry-attrib i)
                        do
-                          (gl:vertex-attrib-pointer attrib-idx
-                                                    comp-count
-                                                    comp-type
-                                                    :false
-                                                    stride
-                                                    (+ offset (* comp-count 4 i)))
+                          (if (eq comp-type :int)
+                              (gl:vertex-attrib-ipointer attrib-idx
+                                                         comp-count
+                                                         comp-type
+                                                         stride
+                                                         (+ offset (* comp-count 4 i)))
+                              (gl:vertex-attrib-pointer attrib-idx
+                                                        comp-count
+                                                        comp-type
+                                                        :false
+                                                        stride
+                                                        (+ offset (* comp-count 4 i))))
                           (gl:enable-vertex-attrib-array attrib-idx)
+                          ;; (format t "attrib-idx ~a~%~
+                          ;;                           comp-count ~a~%~
+                          ;;                           comp-type ~a~%~
+                          ;;                           :false ~a~%~
+                          ;;                           stride ~a~%~
+                          ;;                           (+ offset (* comp-count 4 i)) ~a~%"
+                          ;;         attrib-idx
+                          ;;         comp-count
+                          ;;         comp-type
+                          ;;         :false
+                          ;;         stride
+                          ;;         (+ offset (* comp-count 4 i)))
                        )))))
   t)
 
@@ -139,12 +159,19 @@
                  (loop for i below vec4-size
                        for attrib-idx = (+ entry-attrib i)
                        do
-                          (gl:vertex-attrib-pointer attrib-idx
-                                                    (min comp-count 4)
-                                                    comp-type
-                                                    :false
-                                                    stride
-                                                    (+ offset (* 4 4 i)))
+                          (if (eq comp-type :int)
+                              (gl:vertex-attrib-ipointer attrib-idx
+                                                         comp-count
+                                                         comp-type
+                                                         stride
+                                                         (+ offset (* comp-count 4 i)))
+
+                              (gl:vertex-attrib-pointer attrib-idx
+                                                        (min comp-count 4)
+                                                        comp-type
+                                                        :false
+                                                        stride
+                                                        (+ offset (* 4 4 i))))
                           (gl:enable-vertex-attrib-array attrib-idx)
                           (%gl:vertex-attrib-divisor attrib-idx 1)
                        )))))
@@ -173,16 +200,14 @@
   (declare (optimize (speed 3))
            (type fixnum idx)
            (type fixnum value)
-           (type fixnum value)
            (type gl:gl-array array))
   (setf (gl:glaref array idx) value))
 
 (defun gl-fset (array idx value)
   (declare (optimize (speed 3))
            (type fixnum idx)
-           (type single-float value)
            (type gl:gl-array array))
-  (setf (gl:glaref array idx) value))
+  (setf (gl:glaref array idx) (coerce value 'single-float)))
 
 (defun gl-dset (array idx value)
   (declare (optimize (speed 3))

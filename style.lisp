@@ -17,7 +17,10 @@
    (shaders :initform nil
            :type (or null list)
            :accessor shaders
-            :initarg :shaders)))
+            :initarg :shaders)
+   (poly-mode :initform :fill
+              :accessor poly-mode
+              :initarg :poly-mode)))
 
 (defmethod update ((style style) elapsed-seconds)
   (declare (ignorable style elapsed-seconds))
@@ -49,9 +52,9 @@
                         :transform-feedback-buffer-mode
                         :transform-feedback-varyings
                         :transform-feedback-varying-max-length
-                        ;; :geometry-vertices-out
-                        ;; :geometry-input-type
-                        ;; :geometry-output-type
+                        :geometry-vertices-out
+                        :geometry-input-type
+                        :geometry-output-type
                         ))
         (format t "~a~a : ~a~%" plus-plus-ws attrib (gl:get-program program attrib)))
       (dotimes (idx (gl:get-program program :active-attributes))
@@ -125,9 +128,9 @@
   (:documentation "Apply style settings."))
 
 (defmethod use-style ((style style))
-  (with-slots (program) style
+  (with-slots (program poly-mode) style
     (gl:polygon-mode :front-and-back
-                     :fill)
+                     poly-mode)
     (gl:use-program program))
   t)
 
