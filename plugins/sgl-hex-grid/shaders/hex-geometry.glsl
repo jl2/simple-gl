@@ -9,18 +9,22 @@ in VS_OUT {
 } gs_in[];
 
 uniform mat4 obj_transform = mat4(1);
-uniform mat4 view_transform = mat4(1);;
+uniform mat4 view_transform = mat4(1);
+uniform float offset_angle = 0.0;
 
 uniform vec4 color0 = vec4(1.0, 0.0, 0.0, 1.0);
 uniform vec4 color1 = vec4(0.0, 1.0, 0.0, 1.0);
+uniform vec4 color2 = vec4(0.0, 0.0, 1.0, 1.0);
 
 flat out vec4 diffuse_color;
 
 vec4 poly_vert(vec2 center, float radius, float angle0, int sides, int num) {
      float this_theta = angle0 + num * 2 * 3.141592654 / sides;
-     return vec4(center.xy + vec2( 0.9 * radius * cos(this_theta),
-                                  0.9 * radius * sin(this_theta)),
+     vec2 pt = center + vec2( 0.95 * radius * cos(this_theta),
+                              0.95 * radius * sin(this_theta));
+     return vec4(pt.x,
                  0,
+                 pt.y,
                  1);
 }
 
@@ -33,16 +37,18 @@ void main() {
      int sides = 6;
      float this_theta;
 
-     float angle0 = 0.737;
+     float angle0 = 0;
      vec4 hex_color = vec4(1,1,1,1);
      if (state == 0) {
           hex_color = color0;
-     } else {
+     } else if (state == 1) {
           hex_color = color1;
+     } else {
+          hex_color = color2;
      }
      for (int i = 0; i < 6; ++i) {
           diffuse_color = hex_color;
-          gl_Position = final_transform * vec4(center, 0, 1);
+          gl_Position = final_transform * vec4(center.x, 0, center.y, 1);
           EmitVertex();
 
           diffuse_color = hex_color;
@@ -57,7 +63,7 @@ void main() {
      }
 
      diffuse_color = hex_color;
-     gl_Position = final_transform * vec4(0, 0, 0, 1);
+     gl_Position = final_transform * vec4(center.x, 0, center.y, 1);
      EmitVertex();
 
      diffuse_color = hex_color;

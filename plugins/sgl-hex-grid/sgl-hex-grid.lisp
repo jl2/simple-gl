@@ -97,6 +97,7 @@
   ((radius :initform 1.0 :initarg :radius)
    (primitive-type :initform :points)
    (hex-type :initform :flat :initarg :hex-type)
+   (hex-radius :initform 1.0f0 :initarg :hex-radius)
    (style :initarg :style
           :initform (make-instance
                      'style :name "hexagons"
@@ -124,29 +125,31 @@
   (when (buffers object)
     (error "Object buffers already setup!"))
   (with-slots (radius) object
-    (let* ((coords (list (vec2 0.0 0.0))
-              ;; (concatenate 'list
+    (let* ((coords ;;(list (vec2 0.0 0.0))
+              (apply #'concatenate 'list
               ;;              (list (shg:center (axial-address 0 0)))
               ;;              (mapcar #'shg:center (shg:neighbors (axial-address 0 0))))
-              ;; (loop
-              ;;   for i from (- radius) below (1+ radius)
-              ;;   collecting (loop for j from (- radius) below (1+ radius)
-              ;;                    collecting
-              ;;                    (shg:center (axial-address i j))))
+              (loop
+                for i from (- radius) below (1+ radius)
+                collecting (loop for j from (- radius)  below (1+ radius)
+                                 when (< (+ (* i i) (* j j))
+                                        (* radius radius))
+                                   collect
+                                   (center (axial-address i j)))))
               )
            (radii (loop
                     for i below (length coords)
                     collecting 1.0))
            (states (loop
                      for i below (length coords)
-                     collecting 3))
+                     collecting (mod (logand i (+ 2 (* i i))) 3)))
            (indices (loop
                       for i below (length coords)
                       collecting i))
 
            (c-pointer (sgl:to-gl-array
                              :float
-                             (* 3 (length coords))
+                             (* 2 (length coords))
                              coords))
 
            (s-pointer (sgl:to-gl-array
