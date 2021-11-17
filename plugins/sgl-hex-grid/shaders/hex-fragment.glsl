@@ -1,4 +1,4 @@
-#version 450 core
+#version 410 core
 
 uniform mat4 view_transform;
 uniform vec3 camera_position=vec3(20.0, 20.0, 20.0);

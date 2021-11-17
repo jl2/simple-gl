@@ -1,4 +1,4 @@
-#version 450 core
+#version 410 core
 layout(location = 0) in vec2 in_position;
 layout(location = 1) in float radius;
 layout(location = 2) in int state;
