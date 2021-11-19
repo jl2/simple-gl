@@ -27,8 +27,15 @@
         #:simple-gl)
 
   (:export #:hex-grid
-           #:pointy-hex-grid
-           #:flat-hex-grid
+           #:hex-count
+           #:hex-radius
+           #:hex-type
+           #:radius
+           #:flat
+           #:pointy
+           #:default-state
+           #:center-address
+           #:center-coord
 
            #:axial-address
            #:q-coord
