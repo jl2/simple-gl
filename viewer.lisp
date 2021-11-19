@@ -32,9 +32,9 @@
 
   (defun rm-all-viewers ()
     (loop
-      for window being the hash-keys of viewers
-        using (hash-value viewer)
-      do
+      :for window :being :the :hash-keys :of viewers
+        :using (hash-value viewer)
+      :do
          (cleanup viewer)
          (glfw:destroy-window window))
     (setf viewers (make-hash-table :test 'equal))))
@@ -96,19 +96,28 @@
              :initarg :show-fps
              :type t
              :accessor show-fps)
+
    (desired-fps :initform 60
                 :initarg :desired-fps
                 :type fixnum
                 :accessor desired-fps)
+
+   (last-update-time :initform 0)
+
+   (seconds-between-updates :initform 0.5
+                            :initarg :seconds-between-updates)
+
    (cull-face :initform nil
               :initarg :cull-face
               :accessor cull-face)
    (front-face :initform :ccw
                :initarg :front-face
                :accessor front-face)
+
    (blend :initform t
           :initarg :blend
           :accessor blend)
+
    (background-color :initform (vec4 0.04f0 0.04f0 0.04f0 1.0)
                      :initarg :background
                      :accessor background-color)
@@ -121,16 +130,16 @@
 (defmethod initialize ((viewer viewer) &key)
   (with-slots (objects view-xform) viewer
     (loop
-      for object in objects
-      do
+      :for object :in objects
+      :do
          (initialize object)
          (set-uniform object "view_transform" view-xform :mat4))))
 
 
 (defmethod cleanup ((viewer viewer))
   (loop
-    for object in (objects viewer)
-    do
+    :for object :in (objects viewer)
+    :do
        (cleanup object)))
 
 #+spacenav
@@ -211,8 +220,9 @@
      t))
     (t
      (funcall #'some #'identity
-              (loop for object in (objects viewer)
-                    collect (handle-key object window key scancode action mod-keys))))))
+              (loop :for object :in (objects viewer)
+                    :collect
+                    (handle-key object window key scancode action mod-keys))))))
 
 
 (defmethod handle-resize ((viewer viewer) window width height)
@@ -223,41 +233,47 @@
               (/ height width 1.0)
               (/ width height 1.0))))
   (loop
-    for object in (objects viewer)
-    do
+    :for object :in (objects viewer)
+    :do
        (handle-resize object window width height)))
 
 (defmethod handle-click ((viewer viewer) window click-info)
   (loop
-    for object in (objects viewer)
-    do
+    :for object :in (objects viewer)
+    :do
        (handle-click object window click-info)))
 
 (defmethod handle-scroll ((viewer viewer) window cpos x-scroll y-scroll)
   (loop
-    for object in (objects viewer)
-    do
+    :for object :in (objects viewer)
+    :do
        (handle-scroll object window cpos x-scroll y-scroll)))
 
 
 
 (defmethod update ((viewer viewer) elapsed-seconds)
 
-  (with-slots (objects view-xform view-changed camera-position) viewer
+  (with-slots (objects view-xform view-changed camera-position
+               last-update-time seconds-between-updates) viewer
     (loop
-      for object in objects
-      when view-changed do
-        (set-uniform object "camera_position" camera-position :vec3)
-        (set-uniform object "view_transform" view-xform :mat4)
-      do
-         (update object elapsed-seconds))
+      :for object :in objects
+      :do
+         (set-uniform object "time" elapsed-seconds :float)
+      :when view-changed
+        :do
+           (set-uniform object "camera_position" camera-position :vec3)
+           (set-uniform object "view_transform" view-xform :mat4)
+      :when (> (- elapsed-seconds last-update-time) seconds-between-updates)
+        :do
+           (setf last-update-time elapsed-seconds)
+           (update object elapsed-seconds))
     (setf view-changed nil)))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer
     (loop
-      for object in objects
-      do
+      :for object :in objects
+      :do
          (render object))))
 
 (defgeneric display-in (object viewer)
@@ -344,28 +360,28 @@
              (initialize viewer)
              #+spacenav(sn:sensitivity 0.125d0)
              (loop
-               with start-time = (glfw:get-time)
-               for frame-count from 0
-               until (glfw:window-should-close-p window)
+               :with start-time = (glfw:get-time)
+               :for frame-count from 0
+               :until (glfw:window-should-close-p window)
 
-               for current-seconds = (glfw:get-time)
-               for elapsed-seconds = (- current-seconds previous-seconds)
-               for elapsed-time = (- current-seconds start-time)
+               :for current-seconds = (glfw:get-time)
+               :for elapsed-seconds = (- current-seconds previous-seconds)
+               :for elapsed-time = (- current-seconds start-time)
 
-               when (and show-fps (> elapsed-seconds 0.25))
-                 do
+               :when (and show-fps (> elapsed-seconds 0.25))
+                 :do
                     (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
                     (setf previous-seconds current-seconds)
                     (setf frame-count 0)
 
                     ;; This do is important...
-               do (progn
+               :do (progn
                     (glfw:swap-buffers window)
                     #+spacenav
                     (when-let (ev (sn:poll-event))
                       (sn:remove-events :motion)
                       (handle-3d-mouse-event viewer ev)))
-               do
+               :do
                   ;; Update for next frame
                   (update viewer elapsed-time)
                   ;; Apply viewer-wide drawing settings
@@ -385,8 +401,8 @@
 
                   (render viewer)
 
-               do (glfw:poll-events)
-               do (let* ((now (glfw:get-time))
+               :do (glfw:poll-events)
+               :do (let* ((now (glfw:get-time))
                          (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
                                       now)))
                     ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
@@ -405,33 +421,33 @@
 (defun show-gl-state ()
   "Print debug information about the OpenGL state."
   (loop
-    for field in '(:active-texture
-                   :array-buffer-binding
-                   :blend
-                   :current-program
-                   :line-width
-                   :vertex-array-binding
-                   :viewport)
-    do
+    :for field :in '(:active-texture
+                     :array-buffer-binding
+                     :blend
+                     :current-program
+                     :line-width
+                     :vertex-array-binding
+                     :viewport)
+    :do
        (format t "~a : ~a~%" field (gl:get-integer field))))
 
 (defun show-open-gl-info ()
   "Print OpenGL limits"
   (loop
-    for field in '(:max-combined-texture-image-units
-                   :max-cube-map-texture-size
-                   :max-draw-buffers
-                   :max-fragment-uniform-components
-                   :max-texture-size
-                   ;; :max-varying-floats
-                   :max-vertex-attribs
-                   :max-vertex-texture-image-units
-                   :max-vertex-uniform-components
-                   :max-viewport-dims
-                   :texture-binding-2d
-                   :max-patch-vertices
-                   :stereo)
-    do
+    :for field :in '(:max-combined-texture-image-units
+                     :max-cube-map-texture-size
+                     :max-draw-buffers
+                     :max-fragment-uniform-components
+                     :max-texture-size
+                     ;; :max-varying-floats
+                     :max-vertex-attribs
+                     :max-vertex-texture-image-units
+                     :max-vertex-uniform-components
+                     :max-viewport-dims
+                     :texture-binding-2d
+                     :max-patch-vertices
+                     :stereo)
+    :do
        (format t "~a : ~a~%" field (gl:get-integer field))))
 
 (defmethod show-info ((viewer viewer) &key (indent 0))
@@ -476,8 +492,8 @@
     (setf gamma (/ pi 6))
     (setf view-xform (view-matrix radius theta gamma))
     (loop
-      for object in objects
-      do
+      :for object :in objects
+      :do
          (set-uniform object "view_transform" view-xform :mat4))
     (setf view-changed t)))
 

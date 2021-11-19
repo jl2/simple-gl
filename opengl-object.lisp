@@ -301,6 +301,9 @@
     (bind buffer)
     (associate-attributes buffer (program style))))
 
+(defun get-buffer (object buffer-name)
+  (assoc-value (buffers object) buffer-name))
+
 (defun set-style (object new-style)
   (declare (type opengl-object object)
            (type style new-style))
@@ -308,9 +311,6 @@
     (when style
       (cleanup style))
     (setf style new-style)))
-
-(defun get-buffer (object buffer-name)
-  (assoc-value (buffers object) buffer-name))
 
 (defun add-texture (object texture)
   (declare (type opengl-object object)
