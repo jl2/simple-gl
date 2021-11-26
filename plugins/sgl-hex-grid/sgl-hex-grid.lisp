@@ -2,7 +2,6 @@
 ;;
 ;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
-
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
 ;; copyright notice and this permission notice appear in all copies.
@@ -20,87 +19,19 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-hex-grid "shaders/") sgl:*shader-dirs*))
 
-(deftype axial-address () '(cons number number))
-(setf (symbol-function 'q-coord) #'car)
-(setf (symbol-function 'r-coord) #'cdr)
-(setf (symbol-function 'axial-address) #'cons)
-
-(declaim (ftype (function (axial-address axial-address) (values axial-address &optional)) axial-add))
-(defun axial-add (a b)
-  (declare (type axial-address a b))
-  (axial-address (+ (q-coord a)
-                    (q-coord b))
-                 (+ (r-coord a)
-                    (r-coord b))))
-
-(defclass hex-grid ()
-  ((hex-radius :initform 1.0f0 :initarg :hex-radius)
-   (radius :initform 1.0 :initarg :radius)
-   (hex-type :initform :flat :initarg :hex-type)
-   (hex-count :initform 0)
-   (default-state :initform 0 :initarg :default-state)
-   (center-address :initform (axial-address 0 0) :initarg :center-address)
-   (center-coord :initform (vec2 0.0 0.0) :initarg :center-coord)))
-
-(defgeneric state (hg qr)
-  (:documentation "Return the state of cell qr."))
-
-(defmethod state ((hg hex-grid) addr)
-  (declare (ignorable addr))
-  (slot-value hg 'default-state))
-
-(defparameter *axial-offsets* #((1 . 0) (1 . -1) (0 . -1)
-                                (-1 . 0) (-1 . 1) (0 . 1)))
-
-(defun neighbor (address i)
-  (declare (type axial-address address)
-           (type (integer 0 6) i))
-  (axial-add address (aref *axial-offsets* i)))
-
-(defun neighbors (address)
-  (declare (type axial-address address))
-    (map 'array (curry #'axial-add address) *axial-offsets*))
-
-
-(defgeneric center-coordinate (hg qr)
-  )
-
-(defgeneric vertices (hg qr))
-
-(defun center (address &optional (hex-radius 1.0) (hex-type :flat))
-  (declare (type axial-address address))
-  (let ((q (q-coord address))
-        (r (r-coord address)))
-
-    (if (eq :flat hex-type)
-
-        (vec2 (* hex-radius (/ 3 2) q)
-              (* hex-radius (+ (* (/ (sqrt 3) 2) q)
-                               (* (sqrt 3) r))))
-
-        (vec2 (* hex-radius (+ (* (sqrt 3) q)
-                               (* (/ (sqrt 3) 2) r)))
-              (* hex-radius (/ 3 2) r)))))
-
-(defun hex-vert (center radius angle num)
-  (let ((this-theta (+ angle
-                       (/ (* num 2 pi) 6))))
-    (v+ center
-        (vec2 (* radius (cos this-theta))
-              (* radius (sin this-theta))))))
-
 (defclass sgl-hex-grid (opengl-object)
-  ((hex-grid :initform (make-instance 'hex-grid) :initarg :hex-grid)
+  ((hex-grid :initform (make-instance 'hg:hex-grid) :initarg :hex-grid)
    (primitive-type :initform :points)
    (style :initarg :style
           :initform (make-instance
                      'style :name "hexagons"
-                     ;; :shaders (list (sgl:read-shader "dumb-vertex.glsl")
-                     ;;                (sgl:read-shader "dumb-geometry.glsl")
-                     ;;                (sgl:read-shader "dumb-fragment.glsl"))
                             :shaders (list (sgl:read-shader "hex-vertex.glsl")
                                            (sgl:read-shader "hex-geometry.glsl")
                                            (sgl:read-shader "hex-fragment.glsl"))
+                            ;; :shaders (list (sgl:read-shader "dumb-vertex.glsl")
+                            ;;                (sgl:read-shader "dumb-geometry.glsl")
+                            ;;                (sgl:read-shader "dumb-fragment.glsl"))
+
                             :poly-mode :fill))))
 
 (defmethod initialize-uniforms ((object sgl-hex-grid) &key)
@@ -116,11 +47,11 @@
 (defmethod update ((object sgl-hex-grid) elapsed-seconds)
   (declare (ignorable elapsed-seconds))
   (with-slots (hex-grid) object
-    (with-slots (hex-count) hex-grid
+    (with-slots (hg:hex-count) hex-grid
       (let ((buffer (get-buffer object :states)))
         (with-slots (pointer) buffer
           (loop
-            :for i :below hex-count
+            :for i :below hg:hex-count
             :do
                (setf (gl:glaref pointer i)
                      (mod (logand i (+ (random 5) (* i i))) 3))))
@@ -130,19 +61,19 @@
   (when (buffers object)
     (error "Object buffers already setup!"))
   (with-slots (hex-grid) object
-    (with-slots (radius hex-count) hex-grid
+    (with-slots (hg:radius hg:hex-count) hex-grid
       (let* ((coords
                (apply
                 #'concatenate 'list
                 (loop
-                  :for i :from (- radius) :below (1+ radius)
+                  :for i :from (- hg:radius) :below (1+ hg:radius)
                   :collecting
                   (loop
-                    :for j :from (- radius) :below (1+ radius)
+                    :for j :from (- hg:radius) :below (1+ hg:radius)
                     :when (< (+ (* i i) (* j j))
-                             (* radius radius))
+                             (* hg:radius hg:radius))
                       :collect
-                      (center (axial-address i j))))))
+                      (hg:center (hg:to-axial (hg:oddr :col i :row j)))))))
              (radii
                (loop
                  :for i :below (length coords)
@@ -161,7 +92,7 @@
              (r-pointer (sgl:to-gl-array :float (length radii) radii))
              (i-pointer (to-gl-array :unsigned-int (length indices) indices)))
 
-        (setf hex-count (length coords))
+        (setf hg:hex-count (length coords))
 
         (set-buffer object
                     :vertices
