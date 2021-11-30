@@ -21,7 +21,7 @@
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on (#:alexandria #:j-utils #:simple-gl)
+  :depends-on (#:alexandria #:j-utils #:simple-gl #:hex-grid)
   :components ((:file "package")
                (:file "sgl-hex-grid"))
   :in-order-to ((test-op (test-op sgl-hex-grid.test))))

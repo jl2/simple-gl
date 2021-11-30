@@ -8,13 +8,12 @@ out VS_OUT {
      flat int hex_state;
 } vs_out;
 
-
 uniform mat4 obj_transform;
 uniform mat4 view_transform;
 
 void main()
 {
      gl_Position = vec4(in_position.xy, 0, 1.0);
-     vs_out.hex_radius = radius;
      vs_out.hex_state = state;
+     vs_out.hex_radius = radius;
 }

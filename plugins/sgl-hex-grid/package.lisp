@@ -26,19 +26,5 @@
         #:3d-matrices
         #:simple-gl)
 
-  (:export #:hex-grid
-           #:pointy-hex-grid
-           #:flat-hex-grid
-
-           #:axial-address
-           #:q-coord
-           #:r-coord
-           #:axial-add
-
-           #:center
-           #:vertices
-           #:neighbors
-           #:state
-
-           #:sgl-hex-grid
-           ))
+  (:export
+   #:sgl-hex-grid))

@@ -11,8 +11,8 @@ in VS_OUT {
 uniform mat4 obj_transform = mat4(1);
 uniform mat4 view_transform = mat4(1);
 uniform float offset_angle = 0.0;
-
-uniform vec4 color0 = vec4(1.0, 0.0, 0.0, 1.0);
+uniform float y_coordinate = 0.0;
+uniform vec4 color0 = vec4(0.4, 0.0, 0.0, 1.0);
 uniform vec4 color1 = vec4(0.0, 1.0, 0.0, 1.0);
 uniform vec4 color2 = vec4(0.0, 0.0, 1.0, 1.0);
 
@@ -23,7 +23,7 @@ vec4 poly_vert(vec2 center, float radius, float angle0, int sides, int num) {
      vec2 pt = center + vec2( 0.95 * radius * cos(this_theta),
                               0.95 * radius * sin(this_theta));
      return vec4(pt.x,
-                 0,
+                 y_coordinate,
                  pt.y,
                  1);
 }
@@ -32,7 +32,7 @@ void main() {
      mat4 final_transform = view_transform * obj_transform;
      vec2 center = gl_in[0].gl_Position.xy;
 
-     float radius = gs_in[0].hex_radius;
+     float hex_radius = gs_in[0].hex_radius;
      int state = gs_in[0].hex_state;
      int sides = 6;
      float this_theta;
@@ -48,30 +48,30 @@ void main() {
      }
      for (int i = 0; i < 6; ++i) {
           diffuse_color = hex_color;
-          gl_Position = final_transform * vec4(center.x, 0, center.y, 1);
+          gl_Position = final_transform * vec4(center.x, y_coordinate, center.y, 1);
           EmitVertex();
 
           diffuse_color = hex_color;
-          gl_Position =  final_transform * poly_vert(center, radius, angle0, sides, i);
+          gl_Position =  final_transform * poly_vert(center, hex_radius, angle0, sides, i);
           EmitVertex();
 
           diffuse_color = hex_color;
-          gl_Position = final_transform * poly_vert(center, radius, angle0, sides, i+1);
+          gl_Position = final_transform * poly_vert(center, hex_radius, angle0, sides, i+1);
           EmitVertex();
 
           EndPrimitive();
      }
 
      diffuse_color = hex_color;
-     gl_Position = final_transform * vec4(center.x, 0, center.y, 1);
+     gl_Position = final_transform * vec4(center.x, y_coordinate, center.y, 1);
      EmitVertex();
 
      diffuse_color = hex_color;
-     gl_Position =  final_transform * poly_vert(center, radius, angle0, sides, sides-1);
+     gl_Position =  final_transform * poly_vert(center, hex_radius, angle0, sides, sides-1);
      EmitVertex();
 
      diffuse_color = hex_color;
-     gl_Position = final_transform * poly_vert(center, radius, angle0, sides, 0);
+     gl_Position = final_transform * poly_vert(center, hex_radius, angle0, sides, 0);
      EmitVertex();
 
      EndPrimitive();
