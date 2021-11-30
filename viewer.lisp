@@ -313,7 +313,7 @@
                                      :decorated nil
                                      :opengl-profile :opengl-core-profile
                                      :context-version-major 4
-                                     :context-version-minor 5
+                                     :context-version-minor 0
                                      :opengl-debug-context t
                                      :opengl-forward-compat *want-forward-context*
                                      :samples 0
@@ -321,11 +321,13 @@
     (when (null window)
       (format t "Could not create-window!")
       (error "Could not create-window!"))
-    (gl:enable :debug-output-synchronous)
-    (%gl:debug-message-callback (cffi:callback gl-debug-callback)
-                                (cffi:null-pointer))
-    (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
+;;    (gl:enable :debug-output-synchronous)
+    ;; (%gl:debug-message-callback (cffi:callback gl-debug-callback)
+    ;;                             (cffi:null-pointer))
+    ;; (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
+
     (unwind-protect
+         (handler-case
          (progn
            #+spacenav(sn:sn-open)
            ;; GLFW Initialization
@@ -408,7 +410,8 @@
                     ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
                     (when (> rem-time 0)
                       (sleep rem-time))))))
-
+           (t (err)
+             (format t "Caught ~a~%" err)))
       (progn
         ;; Cleanup before exit
         (cleanup viewer)
