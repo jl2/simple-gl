@@ -14,9 +14,10 @@
   "Directory containing simple-gl shaders.")
 
 (defun simple-gl-shader (fname)
-  (loop for path in *shader-dirs*
-        until (probe-file (merge-pathnames fname path))
-        finally (return (merge-pathnames fname path))))
+  (loop
+    :for path :in *shader-dirs*
+    :until (probe-file (merge-pathnames fname path))
+    :finally (return (merge-pathnames fname path))))
 
 ;; Shader
 (define-condition shader-error (error)

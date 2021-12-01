@@ -9,7 +9,7 @@
   (declare
    (optimize (speed 3) (space 0) (safety 3) (debug 3))
    (type (simple-array (unsigned-byte 8)) arr))
-  (the (unsigned-byte 32) (+ (* (aref arr (+ 1 idx)) 256) (aref arr idx))))
+  (the (unsigned-byte 32) (+ (* (aref arr (1+ idx)) 256) (aref arr idx))))
 
 (defun get-u4 (arr idx)
   "Interpret the four bytes in arr as an '(unsigned-byte 32)"
@@ -102,28 +102,29 @@
           (format t "STL File has ~a triangles!~%" tri-count)
           (setf vertices (allocate-gl-array :float (* tri-count (* 3 6))))
           (setf indices (allocate-gl-array :unsigned-int (* tri-count 2 3)))
-          (loop for idx below tri-count
-                for last-idx = (read-sequence buffer inf)
-                while (= last-idx  *triangle-byte-size*)
-                do
-                   (multiple-value-bind
-                         (norm p1 p2 p3) (read-triangle buffer 0)
+          (loop
+            :for idx :below tri-count
+            :for last-idx = (read-sequence buffer inf)
+            :while (= last-idx  *triangle-byte-size*)
+            :do
+               (multiple-value-bind
+                     (norm p1 p2 p3) (read-triangle buffer 0)
 
-                     (when (v- (vec3 0 0 0) norm)
-                       (setf norm (vunit (vc (v- p1 p2) (v- p1 p3) ))))
+                 (when (v- (vec3 0 0 0) norm)
+                   (setf norm (vunit (vc (v- p1 p2) (v- p1 p3) ))))
 
 
-                     (setf cur-offset (fill-buffer p1 vertices cur-offset))
+                 (setf cur-offset (fill-buffer p1 vertices cur-offset))
 
-                     (setf cur-offset (fill-buffer norm vertices cur-offset))
+                 (setf cur-offset (fill-buffer norm vertices cur-offset))
 
-                     (setf cur-offset (fill-buffer p2 vertices cur-offset))
+                 (setf cur-offset (fill-buffer p2 vertices cur-offset))
 
-                     (setf cur-offset (fill-buffer norm vertices cur-offset))
+                 (setf cur-offset (fill-buffer norm vertices cur-offset))
 
-                     (setf cur-offset (fill-buffer p3 vertices cur-offset))
+                 (setf cur-offset (fill-buffer p3 vertices cur-offset))
 
-                     (setf cur-offset (fill-buffer norm vertices cur-offset))))))
+                 (setf cur-offset (fill-buffer norm vertices cur-offset))))))
       (fill-buffer (loop for i below (* 2 3 tri-count) collecting i) indices 0)
       (set-buffer obj :vertices (make-instance 'attribute-buffer
                                                :pointer vertices
