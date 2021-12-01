@@ -21,7 +21,6 @@
 
 (defclass sgl-hex-grid (opengl-object)
   ((hex-grid :initform (hg:make-hex-grid) :initarg :hex-grid)
-   (min-coord :initform (vec2 -1.0 -1.0) :initarg :min-coord)
    (primitive-type :initform :points)
    (y-coord :initform 0.0 :initarg :y-coord)
    (style :initarg :style
