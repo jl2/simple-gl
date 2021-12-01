@@ -4,7 +4,6 @@
 
 (in-package #:simple-gl)
 
-(declaim (inline handle-key handle-resize handle-click handle-scroll handle-3d-mouse-event update))
 
 (defclass opengl-object ()
   ((vao :initform 0 :type fixnum)

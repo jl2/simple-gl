@@ -12,7 +12,7 @@
    (time :initarg :time))
   (:documentation "Mouse click information."))
 
-
+(declaim (inline handle-key handle-resize handle-click handle-scroll handle-3d-mouse-event update))
 (defparameter *want-forward-context*
   #+(or windows linux freebsd) t
   #+darwin t
@@ -114,6 +114,8 @@
                      :accessor background-color)
 
    (window :initform nil)
+   (initial-height :initform 800 :initarg :initial-height)
+   (initial-width :initform 800 :initarg :initial-width)
    (previous-seconds :initform 0.0)
    (frame-count :initform 1))
   (:documentation "A collection of objects and a viewport."))
@@ -292,9 +294,9 @@
     (setf objects (ensure-list object)))
 
   (let* ((window (glfw:create-window :title "OpenGL Viewer"
-                                     :width 1000
-                                     :height 1000
-                                     :decorated nil
+                                     :width (slot-value viewer 'initial-width)
+                                     :height (slot-value viewer 'initial-height)
+                                     :decorated t
                                      :opengl-profile :opengl-core-profile
                                      :context-version-major 4
                                      :context-version-minor 0
@@ -305,95 +307,95 @@
     (when (null window)
       (format t "Could not create-window!")
       (error "Could not create-window!"))
-;;    (gl:enable :debug-output-synchronous)
+    ;;    (gl:enable :debug-output-synchronous)
     ;; (%gl:debug-message-callback (cffi:callback gl-debug-callback)
     ;;                             (cffi:null-pointer))
     ;; (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
 
     (unwind-protect
          (handler-case
-         (progn
-           #+spacenav(sn:sn-open)
-           ;; GLFW Initialization
-           (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
+             (progn
+               #+spacenav(sn:sn-open)
+               ;; GLFW Initialization
+               (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
 
-           (add-viewer window viewer)
+               (add-viewer window viewer)
 
-           (glfw:set-key-callback 'keyboard-handler window)
-           (glfw:set-mouse-button-callback 'mouse-handler window)
-           (glfw:set-scroll-callback 'scroll-handler window)
-           (glfw:set-framebuffer-size-callback 'resize-handler window)
+               (glfw:set-key-callback 'keyboard-handler window)
+               (glfw:set-mouse-button-callback 'mouse-handler window)
+               (glfw:set-scroll-callback 'scroll-handler window)
+               (glfw:set-framebuffer-size-callback 'resize-handler window)
 
-           ;; Initialize OpenGL state
-           (gl:enable :line-smooth
-                      :polygon-smooth
-                      :depth-test
-                      :program-point-size
-                      )
-           (gl:depth-func :lequal)
-           ;; The event loop
-           (with-slots (previous-seconds show-fps desired-fps
-                        blend
-                        cull-face front-face background-color)
-               viewer
+               ;; Initialize OpenGL state
+               (gl:enable :line-smooth
+                          :polygon-smooth
+                          :depth-test
+                          :program-point-size
+                          )
+               (gl:depth-func :lequal)
+               ;; The event loop
+               (with-slots (previous-seconds show-fps desired-fps
+                            blend
+                            cull-face front-face background-color)
+                   viewer
 
-             (gl:clear-color (vx background-color)
-                             (vy background-color)
-                             (vz background-color)
-                             (vw background-color))
+                 (gl:clear-color (vx background-color)
+                                 (vy background-color)
+                                 (vz background-color)
+                                 (vw background-color))
 
-             ;; Load objects for the first time
-             (initialize viewer)
-             #+spacenav(sn:sensitivity 0.125d0)
-             (loop
-               with start-time = (glfw:get-time)
-               for frame-count from 0
-               until (glfw:window-should-close-p window)
+                 ;; Load objects for the first time
+                 (initialize viewer)
+                 #+spacenav(sn:sensitivity 0.125d0)
+                 (loop
+                   with start-time = (glfw:get-time)
+                   for frame-count from 0
+                   until (glfw:window-should-close-p window)
 
-               for current-seconds = (glfw:get-time)
-               for elapsed-seconds = (- current-seconds previous-seconds)
-               for elapsed-time = (- current-seconds start-time)
+                   for current-seconds = (glfw:get-time)
+                   for elapsed-seconds = (- current-seconds previous-seconds)
+                   for elapsed-time = (- current-seconds start-time)
 
-               when (and show-fps (> elapsed-seconds 0.25))
-                 do
-                    (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
-                    (setf previous-seconds current-seconds)
-                    (setf frame-count 0)
+                   when (and show-fps (> elapsed-seconds 0.25))
+                     do
+                        (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
+                        (setf previous-seconds current-seconds)
+                        (setf frame-count 0)
 
-                    ;; This do is important...
-               do (progn
-                    (glfw:swap-buffers window)
-                    #+spacenav
-                    (when-let (ev (sn:poll-event))
-                      (sn:remove-events :motion)
-                      (handle-3d-mouse-event viewer ev)))
-               do
-                  ;; Update for next frame
-                  (update viewer elapsed-time)
-                  ;; Apply viewer-wide drawing settings
-                  (gl:clear :color-buffer :depth-buffer)
+                        ;; This do is important...
+                   do (progn
+                        (glfw:swap-buffers window)
+                        #+spacenav
+                        (when-let (ev (sn:poll-event))
+                          (sn:remove-events :motion)
+                          (handle-3d-mouse-event viewer ev)))
+                   do
+                      ;; Update for next frame
+                      (update viewer elapsed-time)
+                      ;; Apply viewer-wide drawing settings
+                      (gl:clear :color-buffer :depth-buffer)
 
-                  (if cull-face
-                      (gl:enable :cull-face)
-                      (gl:disable :cull-face))
+                      (if cull-face
+                          (gl:enable :cull-face)
+                          (gl:disable :cull-face))
 
-                  (cond (blend
-                         (gl:enable :blend)
-                         (gl:blend-func :src-alpha
-                                        :one-minus-src-alpha))
-                        (t (gl:disable :blend)))
-                  (gl:front-face front-face)
+                      (cond (blend
+                             (gl:enable :blend)
+                             (gl:blend-func :src-alpha
+                                            :one-minus-src-alpha))
+                            (t (gl:disable :blend)))
+                      (gl:front-face front-face)
 
 
-                  (render viewer)
+                      (render viewer)
 
-               do (glfw:poll-events)
-               do (let* ((now (glfw:get-time))
-                         (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
-                                      now)))
-                    ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
-                    (when (> rem-time 0)
-                      (sleep rem-time))))))
+                   do (glfw:poll-events)
+                   do (let* ((now (glfw:get-time))
+                             (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
+                                          now)))
+                        ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
+                        (when (> rem-time 0)
+                          (sleep rem-time))))))
            (t (err)
              (format t "Caught ~a~%" err)))
       (progn
@@ -457,26 +459,30 @@
           (yv (* radius (sin theta)))
           (xv (* tval (cos gamma)))
           (zv (* tval (sin gamma))))
-  (m* (mperspective 60.0 1.0 0.1 1000.0)
+  (m* (mperspective 50.0 1.0 0.1 1000.0)
       (mlookat (vec3 xv
                      yv
                      zv)
                (vec3 0 0 0)
                (vec3 0 1 0)))))
 
+(defparameter *default-radius* 128.0)
+(defparameter *default-theta* (/ pi 2))
+(defparameter *default-gamma* (/ pi 6))
+
 (defclass 3d-mouse-nav-viewer (viewer)
-  ((radius :initform 1.0)
-   (theta :initform 0.0)
-   (gamma :initform 0.0)
-   (view-xform :initform (view-matrix 1.0 0.0 0.0)
+  ((radius :initform *default-radius*)
+   (theta :initform *default-theta*)
+   (gamma :initform *default-gamma*)
+   (view-xform :initform (view-matrix *default-radius* *default-theta* *default-gamma*)
                :type mat4))
   (:documentation "A viewer with 3d mouse camera navigation."))
 
 (defun reset-view (viewer)
   (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
-    (setf radius pi)
-    (setf theta (/ pi 4))
-    (setf gamma (/ pi 6))
+    (setf radius *default-radius*)
+    (setf theta *default-theta*)
+    (setf gamma *default-gamma*)
     (setf view-xform (view-matrix radius theta gamma))
     (loop
       for object in objects
@@ -487,7 +493,7 @@
 (defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
   (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
-    (let* ((multiplier (if (find :shift mod-keys) 4 0.125))
+    (let* ((multiplier (if (find :shift mod-keys) 4 1.25))
            (angle-inc (* multiplier (/ pi 180)))
            (linear-inc (* multiplier 0.5)))
 

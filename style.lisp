@@ -108,6 +108,7 @@
     ;; Check for errors and validate program
     (let ((status (gl:get-program program :link-status)))
       (when (not (eq t status))
+        (format t "~a ~a ~a~%" status program (gl:get-program-info-log program))
         (error 'shader-link-error
                :status status
                :object program
