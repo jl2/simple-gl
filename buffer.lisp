@@ -292,3 +292,10 @@
 (defmethod fill-pointer-offset ((data real) ptr offset)
   (gl-fset ptr offset data)
   (1+ offset))
+
+(defun show-gl-array (ptr count)
+  (loop
+    :for i :below count
+    :do
+       (format t "~a " (gl:glaref ptr i)))
+  (terpri))

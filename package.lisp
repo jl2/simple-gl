@@ -80,6 +80,7 @@
            #:pointer
            #:to-gl-array
            #:fill-buffer
+           #:show-gl-array
 
            ;; Styles/shaders
            #:style
