@@ -565,7 +565,7 @@
 (defmethod handle-3d-mouse-event ((viewer 3d-mouse-nav-viewer) (event sn:motion-event))
   (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
     (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
-      (let* ((linear-scale (/ 1.0 400))
+      (let* ((linear-scale (/ 1.0 (/ radius 4)))
              (radial-scale (/ 1.0 400))
              (linear-inc (* -1.0 linear-scale sn:z))
              (xang (* -1.0 radial-scale sn:rx))
@@ -577,7 +577,6 @@
                          (min (/ pi 2)
                               (+ theta xang))))
         (setf radius (max 0.5
-                          (min 1000.0
-                               (+ radius linear-inc))))
+                          (+ radius linear-inc)))
         (setf view-xform (view-matrix radius theta gamma))
         (setf view-changed t)))))

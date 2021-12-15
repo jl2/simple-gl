@@ -4,14 +4,11 @@
 
 (in-package #:simple-gl)
 
-(deftype point ()
-  'vec3)
+(deftype point () 'vec3)
 
-(deftype normal ()
-  'vec3)
+(deftype normal () 'vec3)
 
-(deftype color ()
-  'vec4)
+(deftype color () 'vec4)
 
 (defgeneric initialize (object &key)
   (:documentation "Initialize an OpenGL object.  Default implementation calls the initialize-* methods."))

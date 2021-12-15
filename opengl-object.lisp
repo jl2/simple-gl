@@ -24,15 +24,14 @@
              :type (or null list)
              :accessor uniforms
              :initarg :uniforms)
-   (primitive-type :initform :triangles)
-   )
+   (primitive-type :initform :triangles))
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
 (defclass instanced-opengl-object (opengl-object)
   ((instance-count :initform 1 :initarg :instance-count)))
 
 (defgeneric build-style (object)
-  (:documentation "Build this object's shader programs.  Binding correct VAO is handled by before and after methods."))
+  (:documentation "Bind the correct VAO and build object's shader programs."))
 
 
 (defun indent-whitespace (n)
@@ -138,8 +137,7 @@
       (bind (cdr buffer))
       (associate-attributes (cdr buffer) (program style)))
     (dolist (uniform uniforms)
-      (use-uniform (cdr uniform) (program style)))
-    ))
+      (use-uniform (cdr uniform) (program style)))))
 
 (defmethod initialize-uniforms ((object opengl-object) &key)
   (declare (ignorable object))
@@ -203,6 +201,10 @@
                           :usage :static-draw
                           :free nil))
   (setf (slot-value object 'instance-count) 2))
+
+(defmethod initialize-uniforms ((object instanced-opengl-object) &key)
+  (declare (ignorable object))
+  t)
 
 (defmethod initialize-buffers ((object opengl-object) &key)
   (when (buffers object)

@@ -53,9 +53,14 @@
         (get-float arr (+ idx *float-byte-size*))
         (get-float arr (+ idx (* 2 *float-byte-size*)))))
 
-(defparameter *float-byte-size* 4                                 "Size of an STL float in bytes.")
-(defparameter *point-byte-size* (* 3 *float-byte-size*)           "Size of an STL point in bytes.")
-(defparameter *triangle-byte-size* (+ 2 (* 4 *point-byte-size*))  "Size of an STL triangle in bytes.")
+(defparameter *float-byte-size* 4
+  "Size of an STL float in bytes.")
+
+(defparameter *point-byte-size* (* 3 *float-byte-size*)
+  "Size of an STL point in bytes.")
+
+(defparameter *triangle-byte-size* (+ 2 (* 4 *point-byte-size*))
+  "Size of an STL triangle in bytes.")
 
 (defun read-triangle (arr idx)
   "Read a triangle from arr."
@@ -100,8 +105,8 @@
           (read-sequence triangle-count-buffer inf)
           (setf tri-count (get-u4 triangle-count-buffer 0))
           (format t "STL File has ~a triangles!~%" tri-count)
-          (setf vertices (allocate-gl-array :float (* tri-count (* 3 6))))
-          (setf indices (allocate-gl-array :unsigned-int (* tri-count 2 3)))
+          (setf vertices (gl:alloc-gl-array :float (* tri-count (* 3 6))))
+          (setf indices (gl:alloc-gl-array :unsigned-int (* tri-count 2 3)))
           (loop
             :for idx :below tri-count
             :for last-idx = (read-sequence buffer inf)

@@ -55,7 +55,7 @@
            (gl:bind-buffer target bo)
            (gl:buffer-data target usage pointer)
            (when (and free pointer)
-             (free-gl-array pointer)
+             (gl:free-gl-array pointer)
              (setf pointer nil)))
           (t
              (gl:bind-buffer target bo)))))
@@ -78,7 +78,7 @@
       (gl:delete-buffers (list bo))
       (setf bo 0)
       (when pointer
-        (free-gl-array pointer))
+        (gl:free-gl-array pointer))
       (setf pointer nil))))
 
 (defmethod compute-stride ((buffer buffer))
@@ -103,7 +103,6 @@
 
 
 (defmethod associate-attributes ((buffer attribute-buffer) program)
-  ;; (format t "~a~%" buffer)
   (with-slots (attributes) buffer
     (loop
       :with stride = (compute-stride buffer)
@@ -112,7 +111,6 @@
       :for (comp-type comp-count byte-size vec4-size) = (glsl-type-info type)
       :do
          (let ((entry-attrib (gl:get-attrib-location program name)))
-           ;; (format t "entry-attrib: ~a program ~a name ~a~%" entry-attrib program name)
            (when (>= entry-attrib 0)
              (loop
                :for i :below vec4-size
@@ -131,18 +129,6 @@
                                                     stride
                                                     (+ offset (* comp-count 4 i))))
                   (gl:enable-vertex-attrib-array attrib-idx)
-                  ;; (format t "attrib-idx ~a~%~
-                  ;;                           comp-count ~a~%~
-                  ;;                           comp-type ~a~%~
-                  ;;                           :false ~a~%~
-                  ;;                           stride ~a~%~
-                  ;;                           (+ offset (* comp-count 4 i)) ~a~%"
-                  ;;         attrib-idx
-                  ;;         comp-count
-                  ;;         comp-type
-                  ;;         :false
-                  ;;         stride
-                  ;;         (+ offset (* comp-count 4 i)))
                )))))
   t)
 
@@ -184,18 +170,9 @@
     (gl:buffer-sub-data target pointer)))
 
 
-(declaim (inline allocate-gl-array free-gl-array gl-fset gl-iset gl-get to-gl-float-array to-gl-array fill-pointer-offset))
-(defun allocate-gl-array (type count)
-  (declare (optimize (speed 3))
-           (type fixnum count))
-  (gl:alloc-gl-array type count))
-
-(defun free-gl-array (array)
-  (declare (optimize (speed 3))
-           (type gl:gl-array array))
-  (gl:free-gl-array array))
-
+(declaim (inline gl-fset gl-iset gl-get to-gl-float-array to-gl-array fill-pointer-offset fill-buffer))
 (defun gl-iset (array idx value)
+  "Set array position idx to value. value must be a fixnum"
   (declare (optimize (speed 3))
            (type fixnum idx)
            (type fixnum value)
@@ -203,39 +180,45 @@
   (setf (gl:glaref array idx) value))
 
 (defun gl-fset (array idx value)
+  "Set array position idx to value. value is coerced to a single-float."
   (declare (optimize (speed 3))
            (type fixnum idx)
            (type gl:gl-array array))
+  (when (> idx (gl::gl-array-size array))
+    (error "~a is outside of bounds for array." idx))
   (setf (gl:glaref array idx) (coerce value 'single-float)))
 
 (defun gl-dset (array idx value)
+  "Set array position idx to value. value is coerced to a double-float."
   (declare (optimize (speed 3))
            (type fixnum idx)
-           (type double-float value)
+           (type number value)
            (type gl:gl-array array))
-  (setf (gl:glaref array idx) value))
+  (setf (gl:glaref array idx) (coerce value 'double-float)))
 
 (defun gl-get (array idx)
+  "Return the array value at idx."
   (declare (optimize (speed 3))
            (type fixnum idx)
            (type gl:gl-array array))
   (gl:glaref array idx))
 
 
-(defun to-gl-array (gl-type size arr)
-  "Create an OpenGL array of the specified type, initialized with the contents of arr."
+(defun to-gl-array (gl-type size data)
+  "Create an OpenGL array of the specified type and size, initialized with the contents of arr.  If data is"
   (declare (optimize (speed 3)))
-  (let* ((gl-array (allocate-gl-array gl-type size)))
-    (fill-pointer-offset arr gl-array 0)
+  (let* ((gl-array (gl:alloc-gl-array gl-type size)))
+    (fill-pointer-offset data gl-array 0)
     gl-array))
 
 
 (defun fill-buffer (buffer data)
+  "Fill buffer with data."
   (with-slots (pointer) buffer
     (fill-pointer-offset data pointer 0)))
 
 (defgeneric fill-pointer-offset (data ptr offset)
-  (:documentation "Low-level function for filling a C buffer using a pointer and offset."))
+  (:documentation "Low-level function for filling an OpenGL buffer using a pointer and offset."))
 
 (defmethod fill-pointer-offset ((data vec2) ptr offset)
   (gl-fset ptr (+ 0 offset) (vx data))
@@ -293,9 +276,10 @@
   (gl-fset ptr offset data)
   (1+ offset))
 
-(defun show-gl-array (ptr count)
+(defun show-gl-array (array count)
+  "Print the contents of array to standard out."
   (loop
     :for i :below count
     :do
-       (format t "~a " (gl:glaref ptr i)))
+       (format t "~a " (gl:glaref array i)))
   (terpri))
