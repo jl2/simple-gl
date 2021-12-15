@@ -33,19 +33,13 @@
                      :shaders (list (sgl:read-shader "hex-vertex.glsl")
                                     (sgl:read-shader "hex-geometry.glsl")
                                     (sgl:read-shader "hex-fragment.glsl"))
-                     :poly-mode :fill))))
+                     :poly-mode :fill)))
+  (:documentation "A simple-gl hexagon grid."))
 
 (defmethod initialize-uniforms ((object sgl-hex-grid) &key)
   (with-slots (y-coord) object
     (set-uniform object "obj_transform" (meye 4) :mat4)
     (set-uniform object "y_coordinate" y-coord :float)))
-
-(defun show-gl-array (ptr count)
-  (loop
-    :for i :below count
-    :do
-       (format t "~a " (gl:glaref ptr i)))
-  (terpri))
 
 (defmethod update ((object sgl-hex-grid) elapsed-seconds )
   (set-uniform object "time" elapsed-seconds :float)
@@ -77,25 +71,19 @@
                          (neighbors (hg:neighbors coord))
                          (stat (loop
                                  :for neigh :across neighbors
-                                 :summing 
+                                 :summing
                                  (if (= 1 (hg:state hg state-idx neigh))
                                      1
                                      0))))
 
-                    (cond 
+                    (cond
                       ((and (or (zerop cur) (= 2 cur))
                             (= 2 stat))
-                       (setf (hg:state hg next-state-idx coord) 1)
-                       (let ((diff (- 0.05 (random 0.10))))
-                         (setf (gl:glaref radii-ptr cur-idx)
-                               (+ (gl:glaref radii-ptr cur-idx) diff))))
+                       (setf (hg:state hg next-state-idx coord) 1))
                       ((and (= 1 cur)
                             (or
                              (= 3 stat)
                              (= 4 stat)))
-                       (let ((diff (- 0.08 (random 0.16))))
-                         (setf (gl:glaref radii-ptr cur-idx)
-                               (+ (gl:glaref radii-ptr cur-idx) diff)))
                        (setf (hg:state hg next-state-idx coord) 1))
                       ((= 1 cur)
                        (setf (hg:state hg next-state-idx coord) 2))
@@ -130,7 +118,7 @@
                do
                   (setf (hg:state hg state-idx coord) (random 2))
                   (setf (gl:glaref indices cur-idx) cur-idx)
-                  (setf (gl:glaref radii cur-idx) (+ 0.4 (random 0.65)))
+                  (setf (gl:glaref radii cur-idx) 1.0)
                   (setf (gl:glaref coords (* 2 cur-idx)) (vx pt))
                   (setf (gl:glaref coords (1+ (* 2 cur-idx))) (vy pt))
                   (setf (gl:glaref states cur-idx) (hg:state hg state-idx coord))
@@ -141,7 +129,6 @@
                     :vertices
                     (make-instance
                      'attribute-buffer
-
                      :pointer coords
                      :stride nil
                      :attributes '(("in_position" . :vec2))
@@ -181,26 +168,28 @@
 
 (defmethod handle-key ((object sgl-hex-grid) window key scancode action mod-keys)
   (declare (ignorable object window key scancode action mod-keys))
-  (when (and (eq key :9) (eq action :press))
-    (with-slots ((hg hex-grid)) object
-      (with-slots ((state-idx hg:state-idx)) hg
-        (let* ((state-buffer (sgl:get-buffer object :states))
-               (state-ptr (if state-buffer
-                              (slot-value state-buffer 'pointer)
-                              nil))
-               (coord (copy-structure (hg:min-hex hg)))
-               (cur-idx 0))
-          (loop
-            :while (< (hg:oddr-col coord) (hg:max-col hg))
-            :do
-               (setf (hg:oddr-row coord) (hg:min-row hg))
-               (loop
-                 :while (< (hg:oddr-row coord) (hg:max-row hg))
-                 :for pt = (hg:center coord)
-                 :do
-                    (setf (hg:state hg state-idx coord) (random 3))
-                    (setf (gl:glaref state-ptr cur-idx) (hg:state hg state-idx coord))
-                    (incf (hg:oddr-row coord))
-                    (incf cur-idx))
-               (incf (hg:oddr-col coord)))
-          t)))))
+  (cond
+    ((and (eq key :9) (eq action :press))
+     (with-slots ((hg hex-grid)) object
+       (with-slots ((state-idx hg:state-idx)) hg
+         (let* ((state-buffer (sgl:get-buffer object :states))
+                (state-ptr (if state-buffer
+                               (slot-value state-buffer 'pointer)
+                               nil))
+                (coord (copy-structure (hg:min-hex hg)))
+                (cur-idx 0))
+           (loop
+             :while (< (hg:oddr-col coord) (hg:max-col hg))
+             :do
+                (setf (hg:oddr-row coord) (hg:min-row hg))
+                (loop
+                  :while (< (hg:oddr-row coord) (hg:max-row hg))
+                  :for pt = (hg:center coord)
+                  :do
+                     (setf (hg:state hg state-idx coord) (random 3))
+                     (setf (gl:glaref state-ptr cur-idx) (hg:state hg state-idx coord))
+                     (incf (hg:oddr-row coord))
+                     (incf cur-idx))
+                (incf (hg:oddr-col coord)))
+           t))))
+    (t nil)))
