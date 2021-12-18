@@ -39,12 +39,15 @@
 
   :components ((:file "package")
                (:file "viewer")
+               (:file "3d-mouse-nav-viewer")
                (:file "texture")
-               (:file "opengl-object")
-               (:file "buffer")
-               (:file "common")
                (:file "gl-shader")
                (:file "style")
+               (:file "buffer")
+               (:file "opengl-object")
+               (:file "instanced-opengl-object")
+
+               (:file "common")
                (:file "uniforms")
 
 

@@ -49,7 +49,7 @@
 ;;   (format stream "(make-instance 'simple-gl:gl-file-shader :source-file ~s )" (source-file shader)))
 
 (defparameter *glsl-type-db*
-  ;; gl-type, component type,  component count, byte size
+  ;; gl-type, component type,  component count, byte size, vec4 sizae
   `(
     (:float   :float   1  ,(cffi:foreign-type-size :float) 1)
     (:int     :int     1  ,(cffi:foreign-type-size :int) 1)
@@ -76,7 +76,7 @@
                          *glsl-type-db*)))
     (cadddr val)))
 
-(defun glsl- (tname)
+(defun glsl-component-count (tname)
   (when-let ((val (assoc tname
                          *glsl-type-db*)))
     (caddr val)))

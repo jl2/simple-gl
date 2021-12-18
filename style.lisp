@@ -52,23 +52,22 @@
                         :transform-feedback-buffer-mode
                         :transform-feedback-varyings
                         :transform-feedback-varying-max-length
-                        :geometry-vertices-out
-                        :geometry-input-type
-                        :geometry-output-type
+                        ;; :geometry-vertices-out
+                        ;; :geometry-input-type
+                        ;; :geometry-output-type
                         ))
         (format t "~a~a : ~a~%" plus-plus-ws attrib (gl:get-program program attrib)))
       (dotimes (idx (gl:get-program program :active-attributes))
         (multiple-value-bind (size type name) (gl:get-active-attrib program idx)
           (format t "~aAttrib ~a ~a size ~a~%" plus-plus-ws name type size)))
 
-
       (let ((gl-shaders (gl:get-attached-shaders program)))
         (format t "~aOpenGL Shaders: ~a~%" plus-ws gl-shaders)
         (dolist (shader gl-shaders)
-        (format t "~aShader ~a~%" plus-ws shader)
-        (dolist (attrib '(:shader-type
-                          :delete-status :compile-status :info-log-length :shader-source-length))
-          (format t "~a~a : ~a~%" plus-plus-ws attrib (gl:get-shader shader attrib))))))))
+          (format t "~aShader ~a~%" plus-ws shader)
+          (dolist (attrib '(:shader-type
+                            :delete-status :compile-status :info-log-length :shader-source-length))
+            (format t "~a~a : ~a~%" plus-plus-ws attrib (gl:get-shader shader attrib))))))))
 
 (defmethod cleanup ((style style))
   (with-slots (shaders program) style
@@ -81,8 +80,7 @@
         (cleanup shade)))
     (when (not (zerop program))
       (gl:delete-program program)
-      (setf program 0))
-    ))
+      (setf program 0))))
 
 (define-condition shader-link-error (shader-error) ())
 (define-condition shader-validate-error (shader-error) ())
@@ -137,10 +135,16 @@
 
 (defun make-style-from-files (name &rest shaders)
   (if shaders
-      (make-instance 'style :shaders (mapcar #'read-shader shaders) :name name)
-      (make-instance 'style :name name)))
+      (make-instance 'style :name name
+                            :shaders (mapcar #'read-shader shaders))
+      (error "No shaders for program ~a" name)))
 
 (defun point-style (&rest extra-shaders)
   (if extra-shaders
       (apply #'make-style-from-files "point" "position-color-vertex.glsl" "point-fragment.glsl" extra-shaders)
       (make-style-from-files "point" "position-color-vertex.glsl" "point-fragment.glsl")))
+
+(defun point-style-instanced (&rest extra-shaders)
+  (if extra-shaders
+      (apply #'make-style-from-files "point-instanced" "position-color-transform-vertex.glsl" "point-fragment.glsl" extra-shaders)
+      (make-style-from-files "point-instanced" "position-color-transform-vertex.glsl" "point-fragment.glsl")))

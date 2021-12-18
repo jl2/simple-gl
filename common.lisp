@@ -65,7 +65,8 @@
 (defgeneric show-info (object &key indent)
   (:documentation "Show OpenGL information for an object."))
 
-
+(defun indent-whitespace (n)
+  (make-string (* 2 n) :initial-element #\space))
 
 #+spacenav
 (defgeneric handle-3d-mouse-event (object event)
