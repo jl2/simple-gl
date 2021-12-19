@@ -57,10 +57,10 @@
                                            min-corner
                                            (v* (vec3 i j k) step))
                                  collecting pt
-                                 collecting (let* ((r (+ 0.25 (* 0.5 (abs (cos (vx pt))))))
-                                                   (g (+ 0.25 (* 0.75 (abs (cos (vy pt))))))
-                                                   (b (+ 0.25 (* 0.5 (abs (cos (vz pt))))))
-                                                   (alpha 0.125))
+                                 collecting (let* ((r (random 1.0))
+                                                   (g (+ 0.5 (random 0.5)))
+                                                   (b (random 1.0))
+                                                   (alpha 0.5))
                                               (vec4 r g b alpha))))))
            (indices (loop for i below (* width height depth)
                           collecting i)))

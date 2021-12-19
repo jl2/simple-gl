@@ -11,7 +11,7 @@
    Use the arrow keys to rotate the display and PageUp and PageDown to zoom in and out.
 
    #+begin_src lisp
-     (ql:quickload '(:simple-gl :sgl-dynamic-system))
+     (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
      (use-package :3d-vectors)
      (sgl:display-in
       (sglds:create-dynamic-system 63 1 63
@@ -31,6 +31,8 @@
                                    (vec3 (* 3 pi)  (* 0.0 pi) (* 3 pi)))
       (make-instance 'sgl:3d-mouse-nav-viewer))
       #+end_src
+
+      #+RESULTS:
 
 ** Tinkering
 
