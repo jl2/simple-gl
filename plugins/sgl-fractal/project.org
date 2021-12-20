@@ -1,0 +1,31 @@
+
+* sgl-fractal
+** About
+This is a project to do something.
+** Example
+#+begin_src lisp
+  (ql:quickload '(:spacenav :sgl-fractal :3d-vectors :alexandria))
+  (use-package :3d-vectors)
+  (sgl-fractal:mandelbrot-viewer)
+  (sgl-fractal:burning-ship-viewer)
+  (sgl-fractal:bs-js-viewer :imag -0.4609143758687352d0 :real -1.5057239992026854d0)
+  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+    (sgl-fractal:julia-set-viewer :real real :imag imag))
+  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+    (sgl-fractal:bs-js-viewer :real real :imag imag))
+  
+#+end_src
+
+#+RESULTS:
+
+** License
+ISC
+
+
+Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
+
+
+* Plan
+** TODO Fill in a TODO list.
