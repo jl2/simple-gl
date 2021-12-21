@@ -22,11 +22,9 @@ vec4 bsJsColor(int maxIter, vec2 pos) {
 
      for (iter = 0; iter < maxIterations; iter++)
      {
-          float xtemp = zx*zx - zy*zy;
-          zy = 2 * abs(zx * zy);
-          zx = abs(xtemp);
-          zx += cReal;
-          zy += cImag;
+          float xtemp = abs(zx*zx*zx) - abs(3 * zx * zy * zy) + cReal;
+          zy = (abs(3 * zx * zx * zy) - abs(zy * zy * zy)) + cImag;
+          zx = xtemp;
           r2 = (zx * zx) + (zy * zy);
           if (r2 >= 4)
                break;

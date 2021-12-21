@@ -25,7 +25,7 @@
 
 (defun julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
-                                 :style (make-style-from-files "mandelbrot"
+                                 :style (make-style-from-files "julia-set"
                                            "complex-vertex.glsl"
                                            "julia-set-fragment.glsl")))
         (viewer (make-instance 'complex-fractal-viewer)))
@@ -36,16 +36,33 @@
 
 (defun burning-ship-viewer ()
   (sgl:display-in (make-instance 'complex-window
-                                 :style (make-style-from-files "mandelbrot"
+                                 :style (make-style-from-files "burning-ship"
                                            "complex-vertex.glsl"
                                            "burning-ship-fragment.glsl"))
                   (make-instance 'complex-fractal-viewer)))
 
+(defun cubic-burning-ship-viewer ()
+  (sgl:display-in (make-instance 'complex-window
+                                 :style (make-style-from-files "cubic-burning-ship"
+                                           "complex-vertex.glsl"
+                                           "cubic-burning-ship-fragment.glsl"))
+                  (make-instance 'complex-fractal-viewer)))
+
 (defun bs-js-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
-                           :style (make-style-from-files "mandelbrot"
+                           :style (make-style-from-files "burning-ship-julia-set"
                                                          "complex-vertex.glsl"
                                                          "bs-js-fragment.glsl")))
+        (viewer (make-instance 'complex-fractal-viewer)))
+    (sgl:set-uniform cw "cReal" real :float)
+    (sgl:set-uniform cw "cImag" imag :float)
+    (sgl:display-in cw viewer)))
+
+(defun cubic-bs-js-viewer (&key (real 0.324f0) (imag -0.2345))
+  (let ((cw (make-instance 'complex-window
+                           :style (make-style-from-files "cubic-burning-ship-julia-set"
+                                                         "complex-vertex.glsl"
+                                                         "cubic-bs-js-fragment.glsl")))
         (viewer (make-instance 'complex-fractal-viewer)))
     (sgl:set-uniform cw "cReal" real :float)
     (sgl:set-uniform cw "cImag" imag :float)

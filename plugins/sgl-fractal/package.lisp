@@ -26,6 +26,8 @@
            #:mandelbrot-viewer
            #:julia-set-viewer
            #:burning-ship-viewer
+           #:cubic-burning-ship-viewer
            #:bs-js-viewer
+           #:cubic-bs-js-viewer
            ))
            

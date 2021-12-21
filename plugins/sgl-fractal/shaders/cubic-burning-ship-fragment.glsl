@@ -20,9 +20,12 @@ vec4 burningShipColor(int maxIter, vec2 pos) {
 
      for (iter = 0; iter < maxIterations; iter++)
      {
-          float xtemp = zx*zx - zy*zy + ox;
-          zy = 2 * abs(zx) * abs(zy) + oy;
+          float xtemp = abs(zx*zx*zx) - abs(3 * zx * zy * zy) + ox;
+          zy = (abs(3 * zx * zx * zy) - abs(zy * zy * zy)) + oy;
           zx = xtemp;
+          // float xtemp = zx*zx - zy*zy + ox;
+          // zy = 2 * abs(zx * zy) + oy;
+          // zx = xtemp;
           r2 = (zx * zx) + (zy * zy);
           if (r2 >= 4)
                break;
