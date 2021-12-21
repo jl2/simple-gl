@@ -1,6 +1,18 @@
 * sgl-automata
 ** About
-This is a project to do something.
+Automota animations in OpenGL.
+
+** Examples
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :3d-vectors :sgl-automata))
+  (use-package :3d-vectors)
+  (sgl:display-in (sgla:create-game-of-life 512 512
+                                            :max-instances (* 512 512))
+                  (make-instance 'sgl:3d-mouse-nav-viewer
+                                 :seconds-between-updates (/ 1.0 10)))
+
+#+end_src
 
 ** License
 ISC

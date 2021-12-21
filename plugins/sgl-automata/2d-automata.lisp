@@ -17,8 +17,12 @@
 (in-package :sgl-automata)
 
 (defclass 2d-cellular-automata (cellular-automata)
-  ((width :initform 50 :initarg :width :type (unsigned-byte 32))
-   (height :initform 50 :initarg :height :type (unsigned-byte 32))
+  ((width :initform 50
+          :initarg :width
+          :type fixnum)
+   (height :initform 50
+           :initarg :height
+           :type fixnum)
    (current-board-idx :initform 0
                       :initarg :current-board-idx
                       :type fixnum)

@@ -37,7 +37,6 @@
 (defclass game-of-life (2d-cellular-automata)
   ())
 
-
 (defun create-game-of-life (width height
                             &key
                               (max-instances (* width height))
