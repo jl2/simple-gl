@@ -24,7 +24,7 @@ vec4 bsJsColor(int maxIter, vec2 pos) {
      {
           float xtemp = zx*zx - zy*zy;
           zy = 2 * abs(zx * zy);
-          zx = abs(xtemp);
+          zx = xtemp;
           zx += cReal;
           zy += cImag;
           r2 = (zx * zx) + (zy * zy);

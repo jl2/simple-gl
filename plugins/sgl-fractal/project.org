@@ -10,6 +10,8 @@ This is a project to do something.
   (sgl-fractal:burning-ship-viewer)
   (sgl-fractal:bs-js-viewer :real -1.5057239992026854d0 :imag -0.4609143758687352d0)
   (sgl-fractal:cubic-bs-js-viewer :real 0.5292035989496411d0 :imag -0.5279432657162864d0)
+  (sgl-fractal:bs-js-viewer :real -0.328528436850382d0 :imag 0.18830130447285628d0)
+  (sgl-fractal:bs-js-viewer :real -1.2979205493836528d0 :imag -0.025842545896878462d0)
   (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
     (format t "location: ~a~%" (complex real imag))
     (sgl-fractal:julia-set-viewer :real real :imag imag))
