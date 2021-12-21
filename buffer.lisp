@@ -3,7 +3,7 @@
 ;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 (in-package #:simple-gl)
-
+(declaim (optimize (speed 1)))
 (defclass buffer ()
   ((bo :initform 0 :initarg :bo)
    (pointer :initarg :pointer :accessor pointer)
@@ -69,7 +69,7 @@
     (show-slots next-ws object '(bo pointer target usage stride free))
     (with-slots (pointer) object
       (when pointer
-        (show-gl-array pointer 3)))))
+        (show-gl-array pointer)))))
 
 (defmethod show-info ((object attribute-buffer) &key (indent 0))
   (call-next-method)
@@ -140,18 +140,26 @@
                :for attrib-idx = (+ entry-attrib i)
                :for this-offset = (+ offset (* this-comp-count 4 i))
                :do
-                  (if (eq comp-type :int)
+                  (cond ((eq comp-type :int)
                           (gl:vertex-attrib-ipointer attrib-idx
                                                      this-comp-count
                                                      comp-type
                                                      stride
-                                                     this-offset)
-                          (gl:vertex-attrib-pointer attrib-idx
-                                                    this-comp-count
-                                                    comp-type
-                                                    :false
-                                                    stride
-                                                    this-offset))
+                                                     this-offset))
+                        ;; ((eq comp-type :double)
+                        ;;   (gl:vertex-attrib-lpointer attrib-idx
+                        ;;                              this-comp-count
+                        ;;                              comp-type
+                        ;;                              :false
+                        ;;                              stride
+                        ;;                              this-offset))
+                        (t
+                         (gl:vertex-attrib-pointer attrib-idx
+                                                   this-comp-count
+                                                   comp-type
+                                                   :false
+                                                   stride
+                                                   this-offset)))
                   (gl:enable-vertex-attrib-array attrib-idx)
                   ;; (format t "attrib-idx ~a~%~
                   ;;                           comp-count ~a~%~

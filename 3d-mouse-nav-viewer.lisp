@@ -22,9 +22,9 @@
 (defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
   (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
-    (let* ((multiplier (if (find :shift mod-keys) 4 1.25))
-           (angle-inc (* multiplier (/ pi 180)))
-           (linear-inc (* multiplier 8.5)))
+    (let* ((multiplier (if (find :shift mod-keys) 4 1.0))
+           (angle-inc (* multiplier (/ pi 270)))
+           (linear-inc (* multiplier 0.5)))
 
       (cond
 
@@ -74,8 +74,8 @@
 (defmethod handle-3d-mouse-event ((viewer 3d-mouse-nav-viewer) (event sn:motion-event))
   (with-slots (aspect-ratio view-xform radius theta gamma view-changed) viewer
     (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
-      (let* ((linear-scale (/ 1.0 (/ radius 4)))
-             (radial-scale (/ 1.0 400))
+      (let* ((linear-scale (/ 1.0 (/ radius 8)))
+             (radial-scale (/ 1.0 600))
              (linear-inc (* -1.0 linear-scale sn:z))
              (xang (* -1.0 radial-scale sn:rx))
              (yang (* -1.0 radial-scale sn:ry))
