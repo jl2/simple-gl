@@ -5,13 +5,18 @@ This is a project to do something.
 
 ** Example
 #+begin_src lisp
-  (ql:quickload '(:spacenav :sgl-hex-grid :hex-grid :3d-vectors))
-  (use-package :3d-vectors)
-  (sgl:display-in (make-instance 'shg:sgl-hex-grid :hex-grid
-                                            (hg:make-hex-grid :min-hex (hg:oddr :col -60 :row -60)
-                                                              :max-hex (hg:oddr :row 60 :col 60)))
-                             (make-instance 'sgl:3d-mouse-nav-viewer
-                                            :seconds-between-updates (/ 1.0 10)))
+    (ql:quickload '(:spacenav :sgl-hex-grid :hex-grid :3d-vectors))
+    (use-package :3d-vectors)
+
+    (sgl:display-in
+
+     (shg:make-sgl-hex-grid
+      :initial-hex-grid
+      (hg:make-hex-grid :min-hex (hg:oddr :col -60 :row -60)
+                        :max-hex (hg:oddr :row 60 :col 60)))
+     (make-instance
+      'sgl:3d-mouse-nav-viewer
+      :seconds-between-updates (/ 1.0 15)))
 
 #+end_src
 

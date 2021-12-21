@@ -24,7 +24,8 @@
         #:alexandria
         #:3d-vectors
         #:3d-matrices
-        #:simple-gl)
+        #:simple-gl
+        #:hex-grid)
 
   (:export
-   #:sgl-hex-grid))
+   #:make-sgl-hex-grid))
