@@ -39,6 +39,7 @@
 
   :components ((:file "package")
                (:file "viewer")
+               (:file "offscreen-viewer")
                (:file "3d-mouse-nav-viewer")
                (:file "texture")
                (:file "gl-shader")

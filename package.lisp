@@ -44,6 +44,10 @@
 
            ;; Viewer
            #:viewer
+           #:offscreen-viewer
+           #:output-directory
+           #:initial-height
+           #:initial-width
            #:3d-mouse-nav-viewer
            #:handle-3d-mouse-event
            #:handle-key

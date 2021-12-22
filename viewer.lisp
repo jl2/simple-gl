@@ -118,7 +118,7 @@
           :initarg :blend
           :accessor blend)
 
-   (background-color :initform (vec4 0.04f0 0.04f0 0.04f0 1.0)
+   (background-color :initform (vec4 0.08f0 0.08f0 0.08f0 1.0)
                      :initarg :background
                      :accessor background-color)
 
@@ -318,10 +318,11 @@
     (when (null window)
       (format t "Could not create-window!")
       (error "Could not create-window!"))
-    ;;    (gl:enable :debug-output-synchronous)
-    ;; (%gl:debug-message-callback (cffi:callback gl-debug-callback)
-    ;;                             (cffi:null-pointer))
-    ;; (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
+
+    (gl:enable :debug-output-synchronous)
+    (%gl:debug-message-callback (cffi:callback gl-debug-callback)
+                                (cffi:null-pointer))
+    (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
 
     (unwind-protect
          (handler-case
