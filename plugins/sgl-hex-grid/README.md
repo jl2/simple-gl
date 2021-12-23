@@ -1,7 +1,7 @@
 # sgl-hex-grid
 ### _Jeremiah LaRocco <jeremiah_larocco@fastmail.com>_
 
-This is a project to do ... something.
+See project.org for more info.
 
 ## License
 
