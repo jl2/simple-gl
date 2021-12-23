@@ -28,6 +28,7 @@
    (state-idx :initform 0)
    (primitive-type :initform :points)
    (y-coord :initform 0.0 :initarg :y-coord)
+   (hex-radius :initform 1.0 :initarg :hex-radius)
    (style :initarg :style
           :initform (make-instance
                      'style
@@ -51,12 +52,12 @@
 
 (defun make-sgl-hex-grid (&key
                             (initial-hex-grid (hg:make-hex-grid))
-                            (y-coord 0.0))
-  (with-slots (hg:hex-radius hg:hex-type hg:default-state hg:min-hex hg:max-hex hg:width) initial-hex-grid
+                            (y-coord 0.0)
+                            (hex-radius 1.0))
+  (with-slots (hg:hex-type hg:default-state hg:min-hex hg:max-hex hg:width) initial-hex-grid
     (let ((hg-copy (hg:make-hex-grid :min-hex hg:min-hex
                                      :max-hex hg:max-hex
                                      :hex-type hg:hex-type
-                                     :hex-radius hg:hex-radius
                                      :default-state hg:default-state)))
       (make-instance 'sgl-hex-grid
                      :hex-grids (make-array 2
@@ -64,6 +65,7 @@
                                             :initial-contents
                                             (list initial-hex-grid
                                                   hg-copy))
+                     :hex-radius hex-radius
                      :y-coord y-coord))))
 
 (defmethod initialize-uniforms ((object sgl-hex-grid) &key)
@@ -84,7 +86,6 @@
            (radii-ptr (if radii-buffer
                           (slot-value radii-buffer 'pointer)
                           nil))
-           (next-state-idx (mod (1+ state-idx) 2))
            (coord (copy-structure (hg:min-hex cur-grid)))
            (cur-idx 0))
       (unless (and state-ptr radii-ptr)
@@ -132,7 +133,7 @@
 (defmethod initialize-buffers ((object sgl-hex-grid) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
-  (with-slots (state-idx hex-grids) object
+  (with-slots (state-idx hex-grids hex-radius) object
     (let* ((cur-grid (aref hex-grids state-idx))
            (coords (gl:alloc-gl-array :float (* 2 (hg:hex-count cur-grid))))
            (states (gl:alloc-gl-array :int (hg:hex-count cur-grid)))
@@ -146,11 +147,11 @@
            (setf (hg:oddr-row coord) (hg:min-row cur-grid))
            (loop
              :while (< (hg:oddr-row coord) (hg:max-row cur-grid))
-             :for pt = (hg:center coord)
+             :for pt = (hg:center coord hex-radius)
              :do
                 (setf (hg:state cur-grid coord) (random 2))
                 (setf (gl:glaref indices cur-idx) cur-idx)
-                (setf (gl:glaref radii cur-idx) 1.0)
+                (setf (gl:glaref radii cur-idx) hex-radius)
                 (setf (gl:glaref coords (* 2 cur-idx)) (vx pt))
                 (setf (gl:glaref coords (1+ (* 2 cur-idx))) (vy pt))
                 (setf (gl:glaref states cur-idx) (hg:state cur-grid coord))
