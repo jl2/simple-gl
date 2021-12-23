@@ -253,8 +253,11 @@
   (with-slots (objects view-xform view-changed camera-position
                last-update-time seconds-between-updates) viewer
     (loop
+      :for idx :from 0
       :for object :in objects
+      :with updated = nil
       :do
+         ;; (format t "idx: ~a updating ~a~%" idx object)
          (set-uniform object "time" elapsed-seconds :float)
       :when view-changed
         :do
@@ -262,8 +265,10 @@
            (set-uniform object "view_transform" view-xform :mat4)
       :when (> (- elapsed-seconds last-update-time) seconds-between-updates)
         :do
-           (setf last-update-time elapsed-seconds)
-           (update object elapsed-seconds))
+           (setf updated t)
+           (update object elapsed-seconds)
+      :finally (when updated
+                 (setf last-update-time elapsed-seconds)))
     (setf view-changed nil)))
 
 (defmethod render ((viewer viewer))
