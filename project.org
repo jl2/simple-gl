@@ -38,8 +38,10 @@ This is a high level library for using OpenGL.
 #+end_src
 
 ** interaction-refactor branch
+*** Goal
 The goal of this refactoring is to improve REPL interactivity with viewers and opengl-objects.
 
+*** Example REPL code
 This is an example of how it will be used from a REPL:
 
 #+begin_src lisp
@@ -55,10 +57,16 @@ This is an example of how it will be used from a REPL:
     ;; Do something...
     )
   (sgl:rm-object *viewer* :second-object)
-  (when (sgl:viewer-displayed-p *viewer*)
+  (when (sgl:viewer-isplayed-p *viewer*)
     (sgl:hide-viewer *viewer*))
 
 #+end_src
+
+*** Plan
+TODO: Add mutex to viewer class
+TODO: Remove add-viewer, rm-viewer, find-viewer, etc.
+TODO: Add methods and functions that lock viewer's mutex and manipulate viewer state.
+TODO: 
 
 ** License
 ISC
