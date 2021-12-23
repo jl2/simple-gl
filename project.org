@@ -15,19 +15,50 @@ This is a high level library for using OpenGL.
      (sgl:display-in (make-instance 'sgl:instanced-opengl-object) (make-instance 'sgl:viewer))
    #+end_src
 
+   #+RESULTS:
+
    To create more complicated graphics, create a subclass of `opengl-object`, or `instanced-opengl-object` and overload the 'initialize-buffers' method.
 
-   (defmethod handle-key ((object opengl-object) window key scancode action mod-keys)
-   (defmethod handle-resize ((object opengl-object) window width height)
-   (defmethod handle-click ((object opengl-object) window click-info)
-   (defmethod handle-scroll ((object opengl-object) window cpos x-scroll y-scroll)
-   (defmethod handle-3d-mouse-event ((object opengl-object) (event sn:motion-event))
-   
-   (defmethod initialize-uniforms ((object opengl-object) &key)
-   (defmethod initialize-buffers ((object instanced-opengl-object) &key)
-   (defmethod cleanup ((object opengl-object))
+#+begin_src lisp
+  (defclass my-gl-object (sgl:opengl-object)
+    ((sgl:primitive-type :initform :lines)))
 
+  (defmethod sgl:initialize-uniforms ((object my-gl-object) &key)
+    (call-next-method)
+    ;; Initialize uniforms
+    )
+  (defmethod sgl:initialize-buffers ((object instanced-my-gl-object) &key)j
+    (call-next-method)
+    ;; Calls to (add-buffer ...)
+    )
+  (defmethod sgl:cleanup ((object my-gl-object))
+    (call-next-method)
+    ;; Cleanup any OpenGL resources
+    )
+#+end_src
 
+** interaction-refactor branch
+The goal of this refactoring is to improve REPL interactivity with viewers and opengl-objects.
+
+This is an example of how it will be used from a REPL:
+
+#+begin_src lisp
+  (ql:quickload :simple-gl)
+  (defparameter *viewer* (make-instance 'sgl:viewer))
+  (sgl:display *viewer*)
+  (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))e
+  (sgl:hide-viewer *viewer*)
+  (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
+  (sgl:show-viewer *viewer*)
+  (sgl:add-object *viewer* :third-object (make-instance 'sgl:opengl-object))
+  (sgl:with-viewer-lock () *viewer*
+    ;; Do something...
+    )
+  (sgl:rm-object *viewer* :second-object)
+  (when (sgl:viewer-displayed-p *viewer*)
+    (sgl:hide-viewer *viewer*))
+
+#+end_src
 
 ** License
 ISC
