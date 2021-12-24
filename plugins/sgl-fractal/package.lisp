@@ -24,10 +24,11 @@
            #:complex-window
            #:complex-fractal-viewer
            #:mandelbrot-viewer
+           #:cubic-mandelbrot-viewer
            #:julia-set-viewer
+           #:cubic-julia-set-viewer
            #:burning-ship-viewer
            #:cubic-burning-ship-viewer
            #:bs-js-viewer
            #:cubic-bs-js-viewer
            ))
-           

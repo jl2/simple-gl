@@ -20,10 +20,9 @@ vec4 juliaSetColor(int maxIter, vec2 pos) {
      for (iter = 0; iter < maxIterations; iter++)
      {
           // z = z^2 + c
-          tempzx = zx;
-          tempzy = zy;
-          zx = (tempzx * tempzx) - (tempzy * tempzy);
-          zy = 2 * tempzx * tempzy;
+          float xtemp = zx*zx*zx - 3 * zx * zy * zy;
+          zy = 3 * zx * zx * zy - zy * zy * zy;
+          zx = xtemp;
           zx += cReal;
           zy += cImag;
           r2 = (zx * zx) + (zy * zy);

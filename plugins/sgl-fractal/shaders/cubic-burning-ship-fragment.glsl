@@ -36,10 +36,13 @@ vec4 burningShipColor(int maxIter, vec2 pos) {
      float tmpval, tmpval2, red, green, blue, pi, fi;
      pi = 3.141592654;
 
-     fi = (0.5 + sin(pi * (iter/200.0))) / 2.0;
-     red =   clamp(pow((1.0 - fi), (zx*zy)), 0.0, 1.0);
-     green = clamp(pow(fi, abs(sin(fi+zy))), 0.0, 1.0);
-     blue =  clamp(abs(tan(fi - sin(fi + zx))), 0.0, 1.0);
+     red = clamp(abs(sin(20*pi*iter/maxIterations)), 0.0, 1.0);
+     green = clamp(abs(cos(zx*20*iter/maxIterations)), 0.0, 1.0);
+     blue = clamp(abs(cos(zy*20*iter/maxIterations)), 0.0, 1.0);
+     // fi = (0.5 + sin(pi * (iter/200.0))) / 2.0;
+     // red =   clamp(pow((1.0 - fi), (zx*zy)), 0.0, 1.0);
+     // green = clamp(pow(fi, abs(sin(fi+zy))), 0.0, 1.0);
+     // blue =  clamp(abs(tan(fi - sin(fi + zx))), 0.0, 1.0);
 
           return vec4(red, green, blue, 1.0);
 }

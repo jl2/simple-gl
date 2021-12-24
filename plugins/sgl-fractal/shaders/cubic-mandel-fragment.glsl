@@ -19,12 +19,9 @@ vec4 mandelbrotColor(int maxIter, vec2 pos) {
      float oy = zy;
      for (iter = 0; iter < maxIter; iter++)
      {
-          tempzx = zx;
-          tempzy = zy;
-          zx = (tempzx * tempzx) - (tempzy * tempzy);
-          zy = 2 * tempzx * tempzy;
-          zx += ox;
-          zy += oy;
+          float xtemp = zx*zx*zx - 3 * zx * zy * zy + ox;
+          zy = 3 * zx * zx * zy - zy * zy * zy + oy;
+          zx = xtemp;
           r2 = r2 * r2;
           r2 = (zx * zx) + (zy * zy);
           if (r2 >= 4)
@@ -90,9 +87,9 @@ vec4 mandelbrotColor(int maxIter, vec2 pos) {
           // // green = clamp(, 0.0, 1.0);
           // // blue =  clamp(, 0.0, 1.0);
 
-     red = clamp((1.0 * iter)/maxIterations, 0.0, 1.0);
-     green = clamp(abs(cos(zx*zy*iter/maxIterations)), 0.0, 1.0);
-     blue = clamp(abs(cos(zy*zy*iter/maxIterations)), 0.0, 1.0);
+     red = clamp(abs(sin(20*pi*iter/maxIterations)), 0.0, 1.0);
+     green = clamp(abs(cos(zx*20*iter/maxIterations)), 0.0, 1.0);
+     blue = clamp(abs(cos(zy*20*iter/maxIterations)), 0.0, 1.0);
           // red = clamp(zx * fi, 0.0, 1.0);
           // green = clamp(abs(sin(zy * fi)), 0.0, 1.0) ;
           // blue = clamp(abs(sin(zx * zy * fi)), 0.0, 1.0);

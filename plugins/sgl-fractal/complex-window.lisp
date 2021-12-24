@@ -22,12 +22,28 @@
                                            "complex-vertex.glsl"
                                            "mandel-fragment.glsl"))
                   (make-instance 'complex-fractal-viewer)))
-
+(defun cubic-mandelbrot-viewer ()
+  (sgl:display-in (make-instance 'complex-window
+                                 :style (make-style-from-files "mandelbrot"
+                                           "complex-vertex.glsl"
+                                           "cubic-mandel-fragment.glsl"))
+                  (make-instance 'complex-fractal-viewer)))
 (defun julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
                                  :style (make-style-from-files "julia-set"
                                            "complex-vertex.glsl"
                                            "julia-set-fragment.glsl")))
+        (viewer (make-instance 'complex-fractal-viewer)))
+  (sgl:set-uniform cw "cReal" real :float)
+  (sgl:set-uniform cw "cImag" imag :float)
+  (sgl:display-in cw
+                  viewer)))
+
+(defun cubic-julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
+  (let ((cw (make-instance 'complex-window
+                                 :style (make-style-from-files "julia-set"
+                                           "complex-vertex.glsl"
+                                           "cubic-julia-set-fragment.glsl")))
         (viewer (make-instance 'complex-fractal-viewer)))
   (sgl:set-uniform cw "cReal" real :float)
   (sgl:set-uniform cw "cImag" imag :float)
