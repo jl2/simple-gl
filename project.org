@@ -63,10 +63,11 @@ This is an example of how it will be used from a REPL:
 #+end_src
 
 *** Plan
-TODO: Add mutex to viewer class
-TODO: Remove add-viewer, rm-viewer, find-viewer, etc.
-TODO: Add methods and functions that lock viewer's mutex and manipulate viewer state.
-TODO: 
+**** DONE Add mutex to viewer class
+**** TODO Remove add-viewer, rm-viewer, find-viewer, etc.
+**** TODO Add display method that runs in the main thread and displays the viewer
+**** TODO Add methods and functions that lock viewer's mutex and manipulate viewer state (from any thread).
+
 
 ** License
 ISC
@@ -77,5 +78,7 @@ Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
 
-* TODO
+* Other TODO Items
+** TODO Refactor glfw out of viewer base class and into glfw-viewer
+** TODO offscreen-viewer classes
 ** TODO Make rebuilding styles safer.  Right now, rebuilding with a syntax error causes a crash.
