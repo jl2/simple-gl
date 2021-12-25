@@ -52,7 +52,9 @@
            #:handle-3d-mouse-event
            #:handle-key
            #:constant-attribute-buffer
-           #:display-in
+           #:display
+           #:*viewers*
+           #:find-viewer
 
            ;; OpenGL objects
            #:opengl-object
