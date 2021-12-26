@@ -17,7 +17,7 @@
   #+darwin t
   "Whether or not to ask for a 'forward compatible' OpenGL context.  Required for OSX.")
 
-(defparameter *viewers* (make-hash-table :test 'equal))
+(defvar *viewers* (make-hash-table :test 'equal))
 (declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
 (defun find-viewer (window)
   (gethash (cffi:pointer-address window) *viewers*))
@@ -60,7 +60,6 @@
 (glfw:def-scroll-callback scroll-handler (window x-scroll y-scroll)
   (when-let (viewer (find-viewer window))
     (let ((cpos (glfw:get-cursor-position window)))
-      (format t "scroll ~a ~a ~a ~a~%" window cpos x-scroll y-scroll)
       (handle-scroll viewer window cpos x-scroll y-scroll))))
 
 ;; Resize event handler
@@ -125,6 +124,8 @@
                      :initarg :background
                      :accessor background-color)
 
+   (discarded-objects :initform nil)
+
    (initial-height :initform 800 :initarg :initial-height)
    (initial-width :initform 800 :initarg :initial-width)
    (previous-seconds :initform 0.0)
@@ -140,9 +141,10 @@
 
 (defmethod initialize ((viewer viewer) &key)
   (with-viewer-lock (viewer)
-    (with-slots (objects view-xform) viewer
+    (with-slots (last-update-time objects view-xform) viewer
+      (setf last-update-time 0)
       (loop
-        :for object :in objects
+        :for (nil . object) :in objects
         :do
            (initialize object)
            (set-uniform object "view_transform" view-xform :mat4)))))
@@ -150,10 +152,22 @@
 
 (defmethod cleanup ((viewer viewer))
   (with-viewer-lock (viewer)
+    (clean-discarded viewer)
     (loop
-      :for object :in (objects viewer)
+      :for (nil . object) :in (objects viewer)
       :do
          (cleanup object))))
+
+(defun clean-discarded (viewer)
+  (with-slots (discarded-objects) viewer
+    (loop
+      :for (nil . object) :in discarded-objects
+      :do
+         (cleanup object))
+    (setf discarded-objects nil)))
+
+(defgeneric reset-view (viewer)
+  (:documentation "Reset view to its initial conditions."))
 
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
@@ -168,7 +182,8 @@
      (format t "Rebuilding shaders...~%")
      (with-viewer-lock (viewer)
        (with-slots (objects view-changed) viewer
-         (dolist (object objects)
+         (loop :for (nil . object) :in objects :do
+           (ensure-initialized object)
            (rebuild-style object))
          (setf view-changed t)))
      t)
@@ -183,9 +198,8 @@
 
     ;; i to show gl info
     ((and (eq key :i) (eq action :press))
-     (with-viewer-lock (viewer)
-       (show-open-gl-info)
-       (show-info viewer))
+     (show-open-gl-info)
+     (show-info viewer)
      t)
 
     ;; s to show gl state
@@ -237,7 +251,7 @@
     (t
      (with-viewer-lock (viewer)
        (funcall #'some #'identity
-                (loop :for object :in (objects viewer)
+                (loop :for (nil . object) :in (objects viewer)
                       :collect
                       (handle-key object window key scancode action mod-keys)))))))
 
@@ -251,34 +265,35 @@
                 (/ height width 1.0)
                 (/ width height 1.0))))
     (loop
-      :for object :in (objects viewer)
+      :for (nil . object) :in (objects viewer)
       :do
          (handle-resize object window width height))))
 
 (defmethod handle-click ((viewer viewer) window click-info)
   (with-viewer-lock (viewer)
     (loop
-      :for object :in (objects viewer)
+      :for (nil . object) :in (objects viewer)
       :do
          (handle-click object window click-info))))
 
 (defmethod handle-scroll ((viewer viewer) window cpos x-scroll y-scroll)
   (with-viewer-lock (viewer)
     (loop
-      :for object :in (objects viewer)
+      :for (nil . object) :in (objects viewer)
       :do
          (handle-scroll object window cpos x-scroll y-scroll))))
 
-
-
 (defmethod update ((viewer viewer) elapsed-seconds)
-  (with-viewer-lock (viewer)
     (with-slots (objects view-xform view-changed camera-position
                  last-update-time seconds-between-updates) viewer
       (loop
         :for idx :from 0
-        :for object :in objects
+        :for (nil . object) :in objects
         :with updated = nil
+        :when (not (initialized-p object))
+          :do
+             (initialize object)
+             (setf updated t)
         :do
            ;; (format t "idx: ~a updating ~a~%" idx object)
            (set-uniform object "time" elapsed-seconds :float)
@@ -292,15 +307,15 @@
              (update object elapsed-seconds)
         :finally (when updated
                    (setf last-update-time elapsed-seconds)))
-      (setf view-changed nil))))
+      (setf view-changed nil)))
 
 (defmethod render ((viewer viewer))
-  (with-viewer-lock (viewer)
-    (with-slots (objects) viewer
-      (loop
-        :for object :in objects
-        :do
-           (render object)))))
+  (with-slots (objects) viewer
+    (loop
+      :for (nil . object) :in objects
+      :do
+         (ensure-initialized object)
+         (render object))))
 
 (defgeneric display-in (object viewer)
   (:documentation "Display object in a viewer."))
@@ -409,28 +424,32 @@
                              (sn:remove-events :motion)
                              (handle-3d-mouse-event viewer ev)))
                      :do
-                        ;; Update for next frame
-                        (update viewer elapsed-time)
-                        ;; Apply viewer-wide drawing settings
-                        (gl:clear-color (vx background-color)
-                                        (vy background-color)
-                                        (vz background-color)
-                                        (vw background-color))
-                        (gl:clear :color-buffer :depth-buffer)
+                        (with-viewer-lock (viewer)
 
-                        (if cull-face
-                            (gl:enable :cull-face)
-                            (gl:disable :cull-face))
+                          (clean-discarded viewer)
 
-                        (cond (blend
-                               (gl:enable :blend)
-                               (gl:blend-func :src-alpha
-                                              :one-minus-src-alpha))
-                              (t (gl:disable :blend)))
-                        (gl:front-face front-face)
+                          ;; Update for next frame
+                          (update viewer elapsed-time)
+                          ;; Apply viewer-wide drawing settings
+                          (gl:clear-color (vx background-color)
+                                          (vy background-color)
+                                          (vz background-color)
+                                          (vw background-color))
+                          (gl:clear :color-buffer :depth-buffer)
+
+                          (if cull-face
+                              (gl:enable :cull-face)
+                              (gl:disable :cull-face))
+
+                          (cond (blend
+                                 (gl:enable :blend)
+                                 (gl:blend-func :src-alpha
+                                                :one-minus-src-alpha))
+                                (t (gl:disable :blend)))
+                          (gl:front-face front-face)
 
 
-                        (render viewer)
+                          (render viewer))
 
                      :do (glfw:poll-events)
                      :do (let* ((now (glfw:get-time))
@@ -488,18 +507,27 @@
       (show-slots this-ws viewer  '(objects view-xform aspect-ratio show-fps desired-fps
                                     cull-face front-face background-color
                                     window previous-seconds frame-count))
-      (with-slots (objects) viewer
-        (dolist (object objects)
-          (show-info object :indent (1+ indent)))))))
+      (loop for (nil . object) in (objects viewer) :do
+        (show-info object :indent (1+ indent))))))
 
-(defgeneric add-object (viewer object))
-(defmethod add-object (viewer object)
+(defgeneric add-object (viewer name object))
+(defmethod add-object (viewer name object)
   (with-viewer-lock (viewer)
     (with-slots (objects) viewer
-      (push object objects))))
+      (when (null (assoc name objects))
+        (push (cons name object) objects)))))
 
-
-
+(defgeneric rm-object (viewer name))
+(defmethod rm-object (viewer name)
+  (with-viewer-lock (viewer)
+    (with-slots (objects discarded-objects) viewer
+      (when (assoc name objects)
+        (push (assoc name objects) discarded-objects)
+        (remove name objects :key #'car)))))
 
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
+
+(defun pause (viewer timeout)
+  (sgl::with-viewer-lock (viewer)
+    (sleep timeout)))

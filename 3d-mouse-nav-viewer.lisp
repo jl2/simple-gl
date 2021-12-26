@@ -20,19 +20,6 @@
                (vec3 0 0 0)
                (vec3 0 1 0)))))
 
-(defun reset-view (viewer)
-  (with-viewer-lock (viewer)
-    (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
-      (setf radius *default-radius*)
-      (setf theta *default-theta*)
-      (setf gamma *default-gamma*)
-      (setf view-xform (view-matrix radius theta gamma))
-      (loop
-        :for object :in objects
-        :do
-           (set-uniform object "view_transform" view-xform :mat4))
-      (setf view-changed t))))
-
 (defclass 3d-mouse-nav-viewer (viewer)
   ((radius :initform *default-radius*)
    (theta :initform *default-theta*)
@@ -42,12 +29,29 @@
   (:documentation "A viewer with 3d mouse camera navigation."))
 
 
-#+spacenav
-(defmethod handle-3d-mouse-event ((viewer viewer) (event sn:motion-event))
+(defmethod reset-view ((viewer 3d-mouse-nav-viewer))
   (with-viewer-lock (viewer)
-    (with-slots (objects) viewer
-      (dolist (object objects)
-        (handle-3d-mouse-event object event)))))
+    (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
+      (setf radius *default-radius*)
+      (setf theta *default-theta*)
+      (setf gamma *default-gamma*)
+      (setf view-xform (view-matrix radius theta gamma))
+      (loop
+        :for (nil . object) :in objects
+        :do
+           (ensure-initialized object)
+           (set-uniform object "view_transform" view-xform :mat4))
+      (setf view-changed t))))
+
+
+#+spacenav
+(defmethod handle-3d-mouse-event ((viewer 3d-mouse-nav-viewer) (event sn:motion-event))
+  (with-viewer-lock (viewer)
+    (loop
+      :for (nil . object) :in (objects viewer)
+      :do
+         (ensure-initialized object)
+         (handle-3d-mouse-event object event))))
 
 (defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
@@ -94,12 +98,13 @@
 
           ((and (eq key :page-down) (find action '(:repeat :press)))
            (setf radius (min 1000.0 (+ radius linear-inc)))
-           (setf view-changed t))
+           (setf view-changed t)))
+        (setf view-xform (view-matrix radius theta gamma)))))
 
-          (t
-           (call-next-method)))
-        (setf view-xform (view-matrix radius theta gamma))
-        t))))
+  ;; TODO: Figure out a way to avoid locking the mutex a second time here,
+  ;;       preferably without using a recursive lock.
+  (call-next-method))
+
 
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-mouse-nav-viewer) (event sn:motion-event))

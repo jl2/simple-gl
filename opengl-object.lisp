@@ -30,8 +30,19 @@
    (primitive-type :initform :triangles))
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
+(defgeneric initialized-p (object)
+  (:documentation "Returns nil if object is not initialized, non-nil otherwise."))
+
 (defgeneric build-style (object)
   (:documentation "Bind the correct VAO and build object's shader programs."))
+
+(defmethod initialized-p ((object opengl-object))
+  (with-slots (buffers) object
+    (not (null buffers))))
+
+(defun ensure-initialized (object)
+  (when (not (initialized-p object))
+    (initialize object)))
 
 (defmethod show-info ((object opengl-object) &key (indent 0))
   (let ((this-ws (indent-whitespace indent))
@@ -205,18 +216,16 @@
 
       (gl:bind-vertex-array 0)
       (gl:delete-vertex-arrays (list vao))
+      (setf buffers nil)
+      (setf uniforms nil)
+      (setf textures nil)
       (setf vao 0))))
 
 (defmethod bind ((object opengl-object))
   (with-slots (vao buffers textures) object
     (if (= vao 0)
         (error "Trying to bind an uninitialized opengl-object!")
-        (gl:bind-vertex-array vao))
-    ;; (dolist (buffer buffers)
-    ;;   (bind (cdr buffer)))
-    ;; (dolist (texture textures)
-    ;;   (bind texture))
-    ))
+        (gl:bind-vertex-array vao))))
 
 (defmethod render ((object opengl-object))
   (with-slots (buffers uniforms primitive-type style) object

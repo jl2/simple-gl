@@ -55,6 +55,10 @@
            #:display
            #:*viewers*
            #:find-viewer
+           #:add-object
+           #:rm-object
+           #:objects
+           #:pause
 
            ;; OpenGL objects
            #:opengl-object
