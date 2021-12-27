@@ -31,7 +31,7 @@
 
                #:3d-vectors
                #:3d-matrices
-
+               #:ieee-floats
                #:zpng
 
                #:bordeaux-threads
@@ -47,6 +47,7 @@
                (:file "buffer")
                (:file "opengl-object")
                (:file "instanced-opengl-object")
+               (:file "stl")
 
                (:file "common")
                (:file "uniforms")

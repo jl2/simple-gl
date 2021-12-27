@@ -75,6 +75,7 @@
            #:get-value
            #:bind
            #:render
+           #:stl-file
 
            ;; Instanced OpenGL objects (inherits from opengl-object)
            #:instanced-opengl-object

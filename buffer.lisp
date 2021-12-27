@@ -194,18 +194,26 @@
                :for attrib-idx = (+ entry-attrib i)
                :for this-offset = (+ offset (* this-comp-count 4 i))
                :do
-                  (if (eq comp-type :int)
-                      (gl:vertex-attrib-ipointer attrib-idx
-                                                 this-comp-count
-                                                 comp-type
-                                                 stride
-                                                 this-offset)
-                      (gl:vertex-attrib-pointer attrib-idx
-                                                this-comp-count
-                                                comp-type
-                                                :false
-                                                stride
-                                                this-offset))
+                  (cond ((eq comp-type :int)
+                         (gl:vertex-attrib-ipointer attrib-idx
+                                                    this-comp-count
+                                                    comp-type
+                                                    stride
+                                                    this-offset))
+                        ;; ((eq comp-type :double)
+                        ;;   (gl:vertex-attrib-lpointer attrib-idx
+                        ;;                              this-comp-count
+                        ;;                              comp-type
+                        ;;                              :false
+                        ;;                              stride
+                        ;;                              this-offset))
+                        (t
+                         (gl:vertex-attrib-pointer attrib-idx
+                                                   this-comp-count
+                                                   comp-type
+                                                   :false
+                                                   stride
+                                                   this-offset)))
                   (gl:enable-vertex-attrib-array attrib-idx)
                   ;; (format t "attrib-idx ~a~%~
                   ;;                           comp-count ~a~%~

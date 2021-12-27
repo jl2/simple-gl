@@ -4,6 +4,11 @@
 
 (in-package #:simple-gl)
 
+(defclass stl-file (instanced-opengl-object)
+  ((file-name :initarg :file-name)
+   (tri-count :initform 0)))
+
+
 (defun get-u2 (arr idx)
   "Interpret two bytes in arr as an '(unsigned-byte 32)"
   (declare
@@ -92,10 +97,9 @@
                 (babel:octets-to-string header :end (position 0 header)))))))
 
 
-(defmethod initialize-buffers ((obj stl) &key)
+(defmethod initialize-buffers ((obj stl-file) &key)
   (with-slots (file-name tri-count) obj
     (let ((vertices )
-          (indices )
           (buffer (make-array *triangle-byte-size* :element-type '(unsigned-byte 8)))
           (cur-offset 0))
       (with-open-file (inf file-name :element-type '(unsigned-byte 8))
@@ -106,46 +110,41 @@
           (setf tri-count (get-u4 triangle-count-buffer 0))
           (format t "STL File has ~a triangles!~%" tri-count)
           (setf vertices (gl:alloc-gl-array :float (* tri-count (* 3 6))))
-          (setf indices (gl:alloc-gl-array :unsigned-int (* tri-count 2 3)))
           (loop
             :for idx :below tri-count
             :for last-idx = (read-sequence buffer inf)
             :while (= last-idx  *triangle-byte-size*)
             :do
-               (multiple-value-bind
-                     (norm p1 p2 p3) (read-triangle buffer 0)
+               (multiple-value-bind (norm p1 p2 p3) (read-triangle buffer 0)
 
-                 (when (v- (vec3 0 0 0) norm)
+                 (when (v= (vec3 0 0 0) norm)
+;;                   (format t "Found 0 normal! ~a ~a ~a~%" p1 p2 p3)
                    (setf norm (vunit (vc (v- p1 p2) (v- p1 p3) ))))
 
 
-                 (setf cur-offset (fill-buffer p1 vertices cur-offset))
+                 (setf cur-offset (fill-pointer-offset p1 vertices cur-offset))
 
-                 (setf cur-offset (fill-buffer norm vertices cur-offset))
+                 (setf cur-offset (fill-pointer-offset norm vertices cur-offset))
 
-                 (setf cur-offset (fill-buffer p2 vertices cur-offset))
+                 (setf cur-offset (fill-pointer-offset p2 vertices cur-offset))
 
-                 (setf cur-offset (fill-buffer norm vertices cur-offset))
+                 (setf cur-offset (fill-pointer-offset norm vertices cur-offset))
 
-                 (setf cur-offset (fill-buffer p3 vertices cur-offset))
+                 (setf cur-offset (fill-pointer-offset p3 vertices cur-offset))
 
-                 (setf cur-offset (fill-buffer norm vertices cur-offset))))))
-      (fill-buffer (loop for i below (* 2 3 tri-count) collecting i) indices 0)
+                 (setf cur-offset (fill-pointer-offset norm vertices cur-offset))))))
       (set-buffer obj :vertices (make-instance 'attribute-buffer
                                                :pointer vertices
                                                :attributes '(("in_position" . :vec3)
                                                              ("in_normal" . :vec3))
                                                :free t))
-      (set-buffer obj :indices (make-instance 'index-buffer
-                                              :idx-count (* 3 tri-count)
-                                              :pointer indices
-                                              :free t))
-      (with-slots (matrices colors instance-count) obj
-        (setf instance-count (length matrices))
+      (set-buffer obj :indices (constant-index-buffer (* 3 tri-count)))
+      (with-slots (instance-count) obj
+        (setf instance-count 1)
         (set-buffer obj :colors (make-instance 'instance-buffer
-                                               :pointer (to-gl-array :float (* 4 instance-count) colors)
+                                               :pointer (to-gl-array :float (* 4 instance-count) (vec4 0.4 0.8 0.4 1.0))
                                                :attributes '(("in_color" . :vec4))
                                                :free t))
         (set-buffer obj :transforms (make-instance 'instance-buffer
-                                                   :pointer (to-gl-array :float (* 16 instance-count) matrices)
+                                                   :pointer (to-gl-array :float (* 16 instance-count) (meye 4))
                                                    :free t))))))
