@@ -523,7 +523,7 @@
     (with-slots (objects discarded-objects) viewer
       (when (assoc name objects)
         (push (assoc name objects) discarded-objects)
-        (remove name objects :key #'car)))))
+        (setf objects (remove name objects :key #'car))))))
 
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))

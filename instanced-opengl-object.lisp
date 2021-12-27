@@ -53,8 +53,7 @@
                           :pointer (to-gl-array :float (* 4 4)
                                                 (list (vec4 0.8 0.1 0.1 1.0)
                                                       (vec4 0.1 0.8 0.1 1.0)
-                                                      (vec4 0.1 0.1 0.8 1.0))
-                                                )
+                                                      (vec4 0.1 0.1 0.8 1.0)))
                           :stride nil
                           :attributes '(("in_color" . :vec4))
                           :usage :static-draw

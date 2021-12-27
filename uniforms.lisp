@@ -102,5 +102,12 @@
       (setf type new-type))
     (setf modified t)))
 
+(defgeneric get-value (uniform)
+  (:documentation "Set a generic's value and optionally type."))
+
+(defmethod get-value (uniform)
+  (with-slots (value modified type) uniform
+    value))
+
 (defmethod cleanup ((uniform uniform))
   t)

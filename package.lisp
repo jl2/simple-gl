@@ -72,6 +72,7 @@
            #:get-uniform
            #:use-uniform
            #:set-uniform
+           #:get-value
            #:bind
            #:render
 
