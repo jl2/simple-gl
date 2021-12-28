@@ -5,10 +5,10 @@
 (in-package #:simple-gl)
 
 (defclass instanced-opengl-object (opengl-object)
-  ((style :initform (point-style-instanced)
-          :type style
-          :accessor style
-          :initarg :style)
+  ((styles :initform (list (cons :instanced-point-style (point-style-instanced)))
+           :type (or null list)
+           :accessor styles
+           :initarg :styles)
    (instance-count :initform 3 :initarg :instance-count)))
 
 (defmethod show-info ((object instanced-opengl-object) &key (indent 0))
@@ -17,17 +17,18 @@
     (show-slots plus-ws object '(instance-count))))
 
 (defmethod render ((object instanced-opengl-object))
-  (with-slots (buffers uniforms primitive-type instance-count style) object
+  (with-slots (buffers uniforms primitive-type instance-count styles) object
     (bind object)
-    (use-style style)
-    (dolist (uniform uniforms)
-      (use-uniform (cdr uniform) (program style)))
+    (loop :for (nil . style) :in styles :do
+      (use-style style)
+      (loop :for (nil . uniform) :in uniforms :do
+        (use-uniform uniform (program style)))
 
-    (when (> instance-count 0)
-      (gl:draw-elements-instanced  primitive-type
-                                   (gl:make-null-gl-array :unsigned-int)
-                                   instance-count
-                                   :count (idx-count (assoc-value buffers :indices))))))
+      (when (> instance-count 0)
+        (gl:draw-elements-instanced primitive-type
+                                    (gl:make-null-gl-array :unsigned-int)
+                                    instance-count
+                                    :count (idx-count (assoc-value buffers :indices)))))))
 
 (defmethod initialize-buffers ((object instanced-opengl-object) &key)
   (when (buffers object)

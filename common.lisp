@@ -68,6 +68,7 @@
 (defun indent-whitespace (n)
   (make-string (* 2 n) :initial-element #\space))
 
+
 #+spacenav
 (defgeneric handle-3d-mouse-event (object event)
   (:documentation "Handle a spacenav 3D mouse event."))

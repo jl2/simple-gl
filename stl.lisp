@@ -8,28 +8,36 @@
   ((file-name :initarg :file-name)
    (tri-count :initform 0)))
 
-
+(declaim (ftype (function
+                 ((simple-array (unsigned-byte 8)) fixnum) (unsigned-byte 16)) get-u2)
+         (inline get-u2))
 (defun get-u2 (arr idx)
   "Interpret two bytes in arr as an '(unsigned-byte 32)"
   (declare
-   (optimize (speed 3) (space 0) (safety 3) (debug 3))
+   (optimize (speed 3) (space 0) (safety 0) (debug 0))
    (type (simple-array (unsigned-byte 8)) arr))
-  (the (unsigned-byte 32) (+ (* (aref arr (1+ idx)) 256) (aref arr idx))))
+  (the (unsigned-byte 16) (+ (* (aref arr (1+ idx)) 256) (aref arr idx))))
 
+(declaim (ftype (function
+                 ((simple-array (unsigned-byte 8)) fixnum) (unsigned-byte 32)) get-u4)
+         (inline get-u4))
 (defun get-u4 (arr idx)
   "Interpret the four bytes in arr as an '(unsigned-byte 32)"
   (declare
-   (optimize (speed 3) (space 0) (safety 3) (debug 3))
+   (optimize (speed 3) (space 0) (safety 0) (debug 0))
    (type (simple-array (unsigned-byte 8)) arr))
   (the (unsigned-byte 32) (+ (* (+ (* (+ (* (aref arr (+ 3 idx)) 256)
                                          (aref arr (+ 2 idx))) 256)
                                    (aref arr (+ 1 idx))) 256)
                              (aref arr idx))))
 
+(declaim (ftype (function
+                 ((simple-array (unsigned-byte 8)) fixnum) (signed-byte 32)) get-u4)
+         (inline get-s4))
 (defun get-s4 (arr idx)
   "Interpret four bytes in arr as an '(signed-byte 32)"
   (declare
-   (optimize (speed 3) (space 0) (safety 3) (debug 3))
+   (optimize (speed 3) (space 0) (safety 0) (debug 0))
    (type (simple-array (unsigned-byte 8)) arr))
   (the (signed-byte 32) (+ (* (+ (* (+ (* (aref arr (+ 3 idx)) 256)
                                        (aref arr (+ 2 idx))) 256)
@@ -39,7 +47,7 @@
 (defun get-float (arr idx)
   "Interpret four bytes in arr as a single-float."
   (declare
-   (optimize (speed 3) (space 0) (safety 3) (debug 3))
+   (optimize (speed 3) (space 0) (safety 0) (debug 0))
    (type (simple-array (unsigned-byte 8)) arr))
   (let ((x (get-u4 arr idx)))
     #+(and :little-endian :ieee-floating-point :sbcl)
@@ -52,7 +60,7 @@
 (defun get-point (arr idx)
   "Create a point using x, y, and z values read from arr."
   (declare
-   (optimize (speed 3) (space 0) (safety 3) (debug 3))
+   (optimize (speed 3) (space 0) (safety 0) (debug 0))
    (type (simple-array (unsigned-byte 8) *) arr))
   (vec3 (get-float arr idx)
         (get-float arr (+ idx *float-byte-size*))
@@ -70,7 +78,7 @@
 (defun read-triangle (arr idx)
   "Read a triangle from arr."
   (declare
-   (optimize (speed 3) (space 0) (safety 3) (debug 3))
+   (optimize (speed 3) (space 0) (safety 0) (debug 0))
    (type (simple-array (unsigned-byte 8)) arr))
   (values
    ;; Point 0
@@ -85,6 +93,8 @@
    (coerce (get-u2 arr (+ (* 4 *point-byte-size*) idx)) 'single-float)))
 
 (defun get-stl-info (stl-obj)
+  (declare
+   (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (with-slots (file-name tri-count) stl-obj
     (with-open-file (inf file-name :element-type '(unsigned-byte 8))
       (let ((header (make-array 80 :element-type '(unsigned-byte 8)))
@@ -98,6 +108,8 @@
 
 
 (defmethod initialize-buffers ((obj stl-file) &key)
+  (declare
+   (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (with-slots (file-name tri-count) obj
     (let ((vertices )
           (buffer (make-array *triangle-byte-size* :element-type '(unsigned-byte 8)))

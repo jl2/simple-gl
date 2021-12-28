@@ -47,20 +47,30 @@ This is an example of how it will be used from a REPL:
 #+begin_src lisp
   (ql:quickload :simple-gl)
   (defparameter *viewer* (make-instance 'sgl:viewer))
-  (sgl:display *viewer*)
-  (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))e
-  (sgl:hide-viewer *viewer*)
-  (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
-  (sgl:show-viewer *viewer*)
-  (sgl:add-object *viewer* :third-object (make-instance 'sgl:opengl-object))
-  (sgl:with-viewer-lock () *viewer*
-    ;; Do something...
-    )
-  (sgl:rm-object *viewer* :second-object)
-  (when (sgl:viewer-isplayed-p *viewer*)
-    (sgl:hide-viewer *viewer*))
+  (sgl:add-object *my-viewer*
+                  :torus-thing (make-instance
+                                'sgl:stl-file
+                                :file-name "/home/jeremiah/data/3d-models/torus-thing.stl"))
+  #+end_src lisp
+
+  #+begin_src lisp
+     (ql:quickload :simple-gl)
+     (defparameter *viewer* (make-instance 'sgl:viewer))
+     (sgl:display *viewer*)
+     (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))e
+     (sgl:hide-viewer *viewer*)
+     (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
+     (sgl:show-viewer *viewer*)
+     (sgl:add-object *viewer* :third-object (make-instance 'sgl:opengl-object))
+     (sgl:with-viewer-lock () *viewer*
+       ;; Do something...
+       )
+     (sgl:rm-object *viewer* :second-object)
+     (when (sgl:viewer-isplayed-p *viewer*)
+       (sgl:hide-viewer *viewer*))
 
 #+end_src
+
 
 *** Plan
 **** DONE Add mutex to viewer class

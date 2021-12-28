@@ -241,19 +241,21 @@
             (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
             (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~4,'0d.png" (random 10000))))
        (format t "Screenshot to: ~a~%" fname)
-       (zpng:write-png (make-instance 'zpng:png :color-type :truecolor-alpha
-                                                :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
-                                                                        :initial-contents data)
-                                                :width width
-                                                :height height)
-                       fname)
-     t))
+       (zpng:write-png
+        (make-instance 'zpng:png :color-type :truecolor-alpha
+                                 :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
+                                                                                 :initial-contents data)
+                                 :width width
+                                 :height height)
+        fname)
+       t))
     (t
      (with-viewer-lock (viewer)
        (funcall #'some #'identity
-                (loop :for (nil . object) :in (objects viewer)
-                      :collect
-                      (handle-key object window key scancode action mod-keys)))))))
+                (loop
+                  :for (nil . object) :in (objects viewer)
+                  :collect
+                  (handle-key object window key scancode action mod-keys)))))))
 
 
 (defmethod handle-resize ((viewer viewer) window width height)
@@ -460,7 +462,8 @@
                              (sleep rem-time))))))
 
              (t (err)
-               (format t "Caught ~a~%" err)))
+               (format t "Caught:  ~a~%" err)
+               (inspect err)))
         (progn
           ;; Cleanup before exit
           (cleanup viewer)
