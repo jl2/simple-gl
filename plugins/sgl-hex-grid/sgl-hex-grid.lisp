@@ -29,8 +29,8 @@
    (primitive-type :initform :points)
    (y-coord :initform 0.0 :initarg :y-coord)
    (hex-radius :initform 1.0 :initarg :hex-radius)
-   (style :initarg :style
-          :initform (make-instance
+   (styles :initarg :styles
+           :initform (list (make-instance
                      'style
                      :name "hexagons"
                      ;; :shaders (list (sgl:read-shader "dumb-vertex.glsl")
@@ -39,7 +39,7 @@
                      :shaders (list (sgl:read-shader "hex-vertex.glsl")
                                     (sgl:read-shader "hex-geometry.glsl")
                                     (sgl:read-shader "hex-fragment.glsl"))
-                     :poly-mode :fill)))
+                     :poly-mode :fill))))
   (:documentation "A simple-gl hexagon grid."))
 
 (defun next-state-idx (shg)
