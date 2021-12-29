@@ -21,7 +21,7 @@
 
 
 (defclass cellular-automata (instanced-opengl-object)
-  ((style :initform (sgl:make-style-from-files "automata" "sgl-automata-vertex.glsl" "point-fragment.glsl"))
+  ((styles :initform (sgl:make-style-from-files "automata" "sgl-automata-vertex.glsl" "point-fragment.glsl"))
    (max-instances :initform 10000 :initarg :max-instances :type fixnum)
    (instance-count :initform 0 :type fixnum)))
 
