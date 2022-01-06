@@ -30,16 +30,16 @@
    (y-coord :initform 0.0 :initarg :y-coord)
    (hex-radius :initform 1.0 :initarg :hex-radius)
    (styles :initarg :styles
-           :initform (list (make-instance
-                     'style
-                     :name "hexagons"
-                     ;; :shaders (list (sgl:read-shader "dumb-vertex.glsl")
-                     ;;                (sgl:read-shader "dumb-geometry.glsl")
-                     ;;                (sgl:read-shader "dumb-fragment.glsl"))
-                     :shaders (list (sgl:read-shader "hex-vertex.glsl")
-                                    (sgl:read-shader "hex-geometry.glsl")
-                                    (sgl:read-shader "hex-fragment.glsl"))
-                     :poly-mode :fill))))
+           :initform (list (cons :hex-grid
+                                 (make-instance
+                                  'style
+                                  ;; :shaders (list (sgl:read-shader "dumb-vertex.glsl")
+                                  ;;                (sgl:read-shader "dumb-geometry.glsl")
+                                  ;;                (sgl:read-shader "dumb-fragment.glsl"))
+                                  :shaders (list (sgl:read-shader "hex-vertex.glsl")
+                                                 (sgl:read-shader "hex-geometry.glsl")
+                                                 (sgl:read-shader "hex-fragment.glsl"))
+                                 :poly-mode :fill)))))
   (:documentation "A simple-gl hexagon grid."))
 
 (defun next-state-idx (shg)
