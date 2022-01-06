@@ -7,6 +7,14 @@
 (defclass complex-fractal-viewer (viewer)
   ())
 
+#+spacenav
+(defmethod sgl:handle-3d-mouse-event ((viewer complex-fractal-viewer) (event sn:motion-event))
+  (with-slots (sgl:objects) viewer
+    (loop
+      :for (nil . object) :in (objects viewer)
+      :do
+         (handle-3d-mouse-event object event))))
+
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-fractal "shaders/") sgl:*shader-dirs*))
 
@@ -20,9 +28,11 @@
   (let ((viewer (make-instance 'complex-fractal-viewer)))
     (sgl:add-object viewer
                     :mandelbrot (make-instance 'complex-window
-                                               :styles (list (make-style-from-files "mandelbrot"
-                                                                                    "complex-vertex.glsl"
-                                                                                    "mandel-fragment.glsl"))))
+                                               :styles (list
+                                                        (cons :mandelbrot
+                                                              (make-style-from-files
+                                                               "complex-vertex.glsl"
+                                                               "mandel-fragment.glsl")))))
     viewer))
 
 (defun cubic-mandelbrot-viewer ()
@@ -30,16 +40,20 @@
     (sgl:add-object viewer
                     :cubic-mandelbrot
                     (make-instance 'complex-window
-                                   :styles (list (make-style-from-files "mandelbrot"
-                                                                        "complex-vertex.glsl"
-                                                                        "cubic-mandel-fragment.glsl"))))
+                                   :styles (list
+                                            (cons :cubic-mandelbrot
+                                                  (make-style-from-files
+                                                   "complex-vertex.glsl"
+                                                   "cubic-mandel-fragment.glsl")))))
     viewer))
 
 (defun julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
-                           :styles (list (make-style-from-files "julia-set"
-                                                         "complex-vertex.glsl"
-                                                         "julia-set-fragment.glsl"))))
+                           :styles (list
+                                    (cons :julia-set
+                                          (make-style-from-files
+                                           "complex-vertex.glsl"
+                                           "julia-set-fragment.glsl")))))
         (viewer (make-instance 'complex-fractal-viewer)))
     (sgl:set-uniform cw "cReal" real :float)
     (sgl:set-uniform cw "cImag" imag :float)
@@ -48,9 +62,11 @@
 
 (defun cubic-julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
-                           :styles (list (make-style-from-files "julia-set"
-                                                                "complex-vertex.glsl"
-                                                                "cubic-julia-set-fragment.glsl"))))
+                           :styles (list
+                                    (cons :cubic-julia-set
+                                          (make-style-from-files
+                                           "complex-vertex.glsl"
+                                           "cubic-julia-set-fragment.glsl")))))
         (viewer (make-instance 'complex-fractal-viewer)))
     (sgl:set-uniform cw "cReal" real :float)
     (sgl:set-uniform cw "cImag" imag :float)
@@ -61,25 +77,31 @@
   (let ((viewer (make-instance 'complex-fractal-viewer)))
     (sgl:add-object viewer :burning-ship
                     (make-instance 'complex-window
-                                   :styles (list (make-style-from-files "burning-ship"
-                                                                        "complex-vertex.glsl"
-                                                                        "burning-ship-fragment.glsl"))))
+                                   :styles (list
+                                            (cons :burning-ship
+                                                  (make-style-from-files
+                                                   "complex-vertex.glsl"
+                                                   "burning-ship-fragment.glsl")))))
     viewer))
 
 (defun cubic-burning-ship-viewer ()
   (let ((viewer (make-instance 'complex-fractal-viewer)))
     (sgl:add-object viewer :cubic-burning-ship
                     (make-instance 'complex-window
-                                   :styles (list (make-style-from-files "cubic-burning-ship"
-                                                                        "complex-vertex.glsl"
-                                                                        "cubic-burning-ship-fragment.glsl"))))
+                                   :styles (list
+                                            (cons :cubic-burning-ship
+                                                  (make-style-from-files
+                                                   "complex-vertex.glsl"
+                                                   "cubic-burning-ship-fragment.glsl")))))
     viewer))
 
 (defun bs-js-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
-                           :styles (list (make-style-from-files "burning-ship-julia-set"
-                                                                "complex-vertex.glsl"
-                                                                "bs-js-fragment.glsl"))))
+                           :styles (list
+                                    (cons :burning-ship-julia-set
+                                          (make-style-from-files
+                                           "complex-vertex.glsl"
+                                           "bs-js-fragment.glsl")))))
         (viewer (make-instance 'complex-fractal-viewer)))
     (sgl:set-uniform cw "cReal" real :float)
     (sgl:set-uniform cw "cImag" imag :float)
@@ -88,9 +110,11 @@
 
 (defun cubic-bs-js-viewer (&key (real 0.324f0) (imag -0.2345))
   (let ((cw (make-instance 'complex-window
-                           :styles (list (make-style-from-files "cubic-burning-ship-julia-set"
-                                                                "complex-vertex.glsl"
-                                                                "cubic-bs-js-fragment.glsl"))))
+                           :styles (list
+                                    (cons :cubic-burning-ship-julia-set
+                                          (make-style-from-files
+                                           "complex-vertex.glsl"
+                                           "cubic-bs-js-fragment.glsl")))))
         (viewer (make-instance 'complex-fractal-viewer)))
     (sgl:set-uniform cw "cReal" real :float)
     (sgl:set-uniform cw "cImag" imag :float)
@@ -203,19 +227,20 @@
     (complex real-mouse imag-mouse)))
 
 (defun zoom-complex-fractal-window (scale cpos fractal)
-    (with-slots (center radius) fractal
-      (let* ((new-radius (* radius scale))
-             (new-center (cursor-position-to-complex cpos fractal)))
-        (setf center new-center
-              radius new-radius))))
+  (with-slots (center radius) fractal
+    (let* ((new-radius (* radius scale))
+           (new-center (cursor-position-to-complex cpos fractal)))
+      (setf center new-center
+            radius new-radius))))
 
 (defun pan-complex-fractal-window (offset-percent fractal)
-    (with-slots (radius center) fractal
-      (incf center (complex (* (realpart radius) (realpart offset-percent))
-                            (* (imagpart radius) (imagpart offset-percent))))))
+  (with-slots (radius center) fractal
+    (incf center (complex (* (realpart radius) (realpart offset-percent))
+                          (* (imagpart radius) (imagpart offset-percent))))))
 
 
-#+spacenav(defmethod sgl:handle-3d-mouse-event ((object complex-window) (event sn:motion-event))
+#+spacenav
+(defmethod sgl:handle-3d-mouse-event ((object complex-window) (event sn:motion-event))
   (with-slots (sn:x sn:z sn:y) event
     (let ((zoom-in-percent (+ 1.0f0 (/ sn:y 5000.0)))
           (xm (/ sn:x 5000.0))
@@ -235,100 +260,100 @@
          (window-center (mapcar (rcurry #'/ 2.0) (glfw:get-window-size)))
          (shift-down (find :shift mod-keys))
          (need-reload
-          (cond ((and (eq key :f5) (eq action :press))
-                 (with-slots (center radius) object
-                   (setf center  #C(0.0f0 0.0f0))
-                   (setf radius  #C(4.0f0 4.0f0))))
+           (cond ((and (eq key :f5) (eq action :press))
+                  (with-slots (center radius) object
+                    (setf center  #C(0.0f0 0.0f0))
+                    (setf radius  #C(4.0f0 4.0f0))))
 
-                ((and (eq key :page-down)  (or (eq action :press) (eq action :repeat)))
-                 (zoom-complex-fractal-window zoom-in-percent window-center object))
+                 ((and (eq key :page-down)  (or (eq action :press) (eq action :repeat)))
+                  (zoom-complex-fractal-window zoom-in-percent window-center object))
 
-                ((and (eq key :page-down)  (eq action :release))
-                 (zoom-complex-fractal-window zoom-in-percent window-center object))
+                 ((and (eq key :page-down)  (eq action :release))
+                  (zoom-complex-fractal-window zoom-in-percent window-center object))
 
-                ((and (eq key :page-up)  (or (eq action :press) (eq action :repeat)))
-                 (zoom-complex-fractal-window zoom-out-percent window-center object))
+                 ((and (eq key :page-up)  (or (eq action :press) (eq action :repeat)))
+                  (zoom-complex-fractal-window zoom-out-percent window-center object))
 
-                ((and (eq key :page-up) (eq action :release))
-                 (zoom-complex-fractal-window zoom-out-percent window-center object))
-
-
-
-
-                ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
-                 (when (get-uniform object "cImag")
-                   (let* ((uni (get-uniform object "cImag"))
-                          (univ (get-value uni)))
-                     (set-uniform object "cImag" (- univ (* 0.001 univ)) :float))))
-
-
-                ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
-                 (when (get-uniform object "cImag")
-                   (let* ((uni (get-uniform object "cImag"))
-                          (univ (get-value uni)))
-                     (set-uniform object "cImag" (+ univ (* 0.001 univ)) :float))))
-
-
-                ((and shift-down (eq key :left) (or (eq action :press) (eq action :repeat)))
-                 (when (get-uniform object "cReal")
-                   (let* ((uni (get-uniform object "cReal"))
-                          (univ (get-value uni)))
-                     (set-uniform object "cReal" (- univ (* 0.001 univ)) :float))))
-
-
-                ((and shift-down (eq key :right) (or (eq action :press) (eq action :repeat)))
-                 (when (get-uniform object "cReal")
-                   (let* ((uni (get-uniform object "cReal"))
-                          (univ (get-value uni)))
-                     (set-uniform object "cReal" (+ univ (* 0.001 univ)) :float))))
+                 ((and (eq key :page-up) (eq action :release))
+                  (zoom-complex-fractal-window zoom-out-percent window-center object))
 
 
 
-                ;; ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
-                ;;  (when (get-uniform object "cImag")
-                ;;    (format t "spanning~%")
-                ;;    (set-uniform object "cImag" (- (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
-                ;;    (set-uniform object "cReal" (- (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
 
-                ;; ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
-                ;;  (when (get-uniform object "cImag")
-                ;;    (format t "spanning~%")
-                ;;    (set-uniform object "cImag" (+ (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
-                ;;    (set-uniform object "cReal" (+ (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
+                 ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
+                  (when (get-uniform object "cImag")
+                    (let* ((uni (get-uniform object "cImag"))
+                           (univ (get-value uni)))
+                      (set-uniform object "cImag" (- univ (* 0.001 univ)) :float))))
 
 
-                ((and shift-down (eq key :left) (or (eq action :press) (eq action :repeat)))
-                 (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
+                 ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
+                  (when (get-uniform object "cImag")
+                    (let* ((uni (get-uniform object "cImag"))
+                           (univ (get-value uni)))
+                      (set-uniform object "cImag" (+ univ (* 0.001 univ)) :float))))
 
-                ((and shift-down (eq key :right) (or (eq action :press) (eq action :repeat)))
-                 (pan-complex-fractal-window (complex pan-offset 0.0) object))
+
+                 ((and shift-down (eq key :left) (or (eq action :press) (eq action :repeat)))
+                  (when (get-uniform object "cReal")
+                    (let* ((uni (get-uniform object "cReal"))
+                           (univ (get-value uni)))
+                      (set-uniform object "cReal" (- univ (* 0.001 univ)) :float))))
 
 
-                ((and (eq key :down) (or (eq action :press) (eq action :repeat)))
-                 (pan-complex-fractal-window (complex 0.0 (- pan-offset)) object))
+                 ((and shift-down (eq key :right) (or (eq action :press) (eq action :repeat)))
+                  (when (get-uniform object "cReal")
+                    (let* ((uni (get-uniform object "cReal"))
+                           (univ (get-value uni)))
+                      (set-uniform object "cReal" (+ univ (* 0.001 univ)) :float))))
 
-                ((and (eq key :up) (or (eq action :press) (eq action :repeat)))
-                 (pan-complex-fractal-window (complex 0.0 pan-offset) object))
 
-                ((and (eq key :left) (or (eq action :press) (eq action :repeat)))
-                 (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
 
-                ((and (eq key :right) (or (eq action :press) (eq action :repeat)))
-                 (pan-complex-fractal-window (complex pan-offset 0.0) object))
+                 ;; ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
+                 ;;  (when (get-uniform object "cImag")
+                 ;;    (format t "spanning~%")
+                 ;;    (set-uniform object "cImag" (- (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
+                 ;;    (set-uniform object "cReal" (- (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
 
-                ((and (eq key :equal) (or (eq action :press) (eq action :repeat)))
-                 (with-slots ( max-iterations ) object
-                   (setf max-iterations (max 1 (1+ (floor (* max-iterations iter-up-percent)))))
-                   (set-uniform object "maxIterations" max-iterations :int)))
+                 ;; ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
+                 ;;  (when (get-uniform object "cImag")
+                 ;;    (format t "spanning~%")
+                 ;;    (set-uniform object "cImag" (+ (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
+                 ;;    (set-uniform object "cReal" (+ (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
 
-                ((and (eq key :minus) (or (eq action :press) (eq action :repeat)))
-                 (with-slots ( max-iterations ) object
-                   (setf max-iterations (max 1 (floor (* max-iterations iter-down-percent))))
-                   (set-uniform object "maxIterations" max-iterations :int)))
 
-                (t
-                 (call-next-method)
-                 nil))))
+                 ((and shift-down (eq key :left) (or (eq action :press) (eq action :repeat)))
+                  (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
+
+                 ((and shift-down (eq key :right) (or (eq action :press) (eq action :repeat)))
+                  (pan-complex-fractal-window (complex pan-offset 0.0) object))
+
+
+                 ((and (eq key :down) (or (eq action :press) (eq action :repeat)))
+                  (pan-complex-fractal-window (complex 0.0 (- pan-offset)) object))
+
+                 ((and (eq key :up) (or (eq action :press) (eq action :repeat)))
+                  (pan-complex-fractal-window (complex 0.0 pan-offset) object))
+
+                 ((and (eq key :left) (or (eq action :press) (eq action :repeat)))
+                  (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
+
+                 ((and (eq key :right) (or (eq action :press) (eq action :repeat)))
+                  (pan-complex-fractal-window (complex pan-offset 0.0) object))
+
+                 ((and (eq key :equal) (or (eq action :press) (eq action :repeat)))
+                  (with-slots ( max-iterations ) object
+                    (setf max-iterations (max 1 (1+ (floor (* max-iterations iter-up-percent)))))
+                    (set-uniform object "maxIterations" max-iterations :int)))
+
+                 ((and (eq key :minus) (or (eq action :press) (eq action :repeat)))
+                  (with-slots ( max-iterations ) object
+                    (setf max-iterations (max 1 (floor (* max-iterations iter-down-percent))))
+                    (set-uniform object "maxIterations" max-iterations :int)))
+
+                 (t
+                  (call-next-method)
+                  nil))))
     (when need-reload
       (update-bounds object)
       t)))
