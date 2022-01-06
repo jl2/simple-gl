@@ -13,26 +13,28 @@
    #+begin_src lisp
      (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
      (use-package :3d-vectors)
-     (sgl:display-in
-      (sglds:create-dynamic-system 63 1 63
-                                   (vec3 (* -3 pi) (* -0.0 pi) (* -3 pi))
-                                   (vec3 (* 3 pi)  (* 0.0 pi) (* 3 pi)))
-      (make-instance 'sgl:3d-mouse-nav-viewer))
+     (let ((ds (sglds:create-dynamic-system 63 3 63
+                                            (vec3 (* -3 pi) (* -2.0 pi) (* -3 pi))
+                                            (vec3 (* 3 pi)  (* 2.0 pi) (* 3 pi))))
+           (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
+       (sgl:add-object viewer :dynamic-system ds)
+       (sgl:display viewer)
+       viewer)
       #+end_src
-
-   If you have a 3DConnexion Space Mouse, you can use my [[https://github.com/jl2/spacenav][SpaceNav]]
-   package to enable 3D mouse navigation.
+      #+RESULTS:
+      : #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {1023A7E9E3}>
+      
    #+begin_src lisp
      (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
      (use-package :3d-vectors)
-     (sgl:display-in
-      (sglds:create-dynamic-system 63 1 63
-                                   (vec3 (* -3 pi) (* -0.0 pi) (* -3 pi))
-                                   (vec3 (* 3 pi)  (* 0.0 pi) (* 3 pi)))
-      (make-instance 'sgl:3d-mouse-nav-viewer))
+     (let ((ds (sglds:create-strange-attractor 10000 3.0))
+           (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
+       (sgl:add-object viewer :dynamic-system ds)
+       (sgl:display viewer)
+       viewer)
       #+end_src
-
       #+RESULTS:
+      : #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {10224A8933}>
 
 ** Tinkering
 

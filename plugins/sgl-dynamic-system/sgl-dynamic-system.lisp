@@ -99,7 +99,7 @@
                    :free t))
       (setf instance-count 1))))
 
-(defun create-dynamic-system (width height depth max-corner min-corner)
+(defun create-dynamic-system (width height depth min-corner max-corner)
   (let ((dh 0.125)
         (obj (make-instance 'sgl-dynamic-system
                             :width width
@@ -107,10 +107,10 @@
                             :depth depth
                             :max-corner max-corner
                             :min-corner min-corner
-                            :style
-                            (make-instance 'style :name "dynamic-system"
-                                                  :shaders (list (sgl:read-shader "ds-vertex.glsl")
-                                                                 (sgl:read-shader "ds-fragment.glsl")
-                                                                 (sgl:read-shader "ds-geometry.glsl"))))))
+                            :styles (list (cons :dynamic-system
+                                                (make-instance 'style
+                                                               :shaders (list (sgl:read-shader "ds-vertex.glsl")
+                                                                              (sgl:read-shader "ds-fragment.glsl")
+                                                                              (sgl:read-shader "ds-geometry.glsl"))))))))
     (sgl:set-uniform obj "dh" dh :float)
     obj))

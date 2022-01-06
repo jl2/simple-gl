@@ -20,7 +20,7 @@
       (adjoin (asdf:system-relative-pathname :sgl-dynamic-system "shaders/") sgl:*shader-dirs*))
 
 
-(defclass sgl-strange-attractor (instanced-opengl-object)
+(defclass sgl-strange-attractor (opengl-object)
   ((primitive-type :initform :points)
    (point-count :initform 10000 :initarg :point-count)
    (radius :initarg :radius :initform 1.0)
@@ -28,8 +28,7 @@
    (b :initarg :b :initform 0.43)
    (c :initarg :c :initform -0.65)
    (d :initarg :d :initform -2.43)
-   (e :initarg :e :initform 1.0)
-   ))
+   (e :initarg :e :initform 1.0)))
 
 (defmethod initialize-uniforms ((object sgl-strange-attractor) &key)
   (with-slots (a b c d e) object
@@ -42,7 +41,7 @@
 (defmethod initialize-buffers ((object sgl-strange-attractor) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
-  (with-slots (point-count radius instance-count) object
+  (with-slots (point-count radius) object
     (let ((data (loop
                   for i below point-count
                   for pt = (vec3-random (- radius) radius)
@@ -83,8 +82,7 @@
                    :stride 4
                    :attributes '(("in_color" . :vec4))
                    :usage :static-draw
-                   :free t))
-      (setf instance-count 1))))
+                   :free t)))))
 
 (defun create-strange-attractor (point-count radius
                                  &key
@@ -103,8 +101,9 @@
               :c c
               :d d
               :e e
-              :style (make-instance 'style :name "strange-attractor"
-                                           :shaders (list (sgl:read-shader "sa-vertex.glsl")
-                                                          (sgl:read-shader "sa-fragment.glsl")
-                                                          (sgl:read-shader "sa-geometry.glsl"))))))
+              :styles (list (cons :strange-attractor
+                                  (make-instance 'style
+                                                 :shaders (list (sgl:read-shader "sa-vertex.glsl")
+                                                                (sgl:read-shader "sa-fragment.glsl")
+                                                                (sgl:read-shader "sa-geometry.glsl"))))))))
     obj))
