@@ -39,7 +39,7 @@
                                   :shaders (list (sgl:read-shader "hex-vertex.glsl")
                                                  (sgl:read-shader "hex-geometry.glsl")
                                                  (sgl:read-shader "hex-fragment.glsl"))
-                                 :poly-mode :fill)))))
+                                  :poly-mode :fill)))))
   (:documentation "A simple-gl hexagon grid."))
 
 (defun next-state-idx (shg)
@@ -101,25 +101,26 @@
              :do
                 (let* ((cur (hg:state cur-grid coord))
                        (neighbors (hg:neighbors coord))
-                       (stat (loop
-                               :for neigh :across neighbors
-                               :summing
-                               (if (= 1 (hg:state
-                                         cur-grid neigh))
-                                   1
-                                   0))))
+                       (neighbor-sum (loop
+                                       :for neigh :across neighbors
+                                       :summing
+                                       (if (= 1 (hg:state
+                                                 cur-grid neigh))
+                                           1
+                                           0))))
 
                   (cond
                     ((and (or (zerop cur) (= 2 cur))
-                          (= 2 stat))
+                          (= 2 neighbor-sum))
                      (setf (hg:state next-grid coord) 1))
                     ((and (= 1 cur)
                           (or
-                           (= 3 stat)
-                           (= 4 stat)))
+                           (= 2 neighbor-sum)
+                           (= 5 neighbor-sum)
+                           (= 6 neighbor-sum)))
                      (setf (hg:state next-grid coord) 1))
                     ((= 1 cur)
-                     (setf (hg:state next-grid coord) 2))
+                     (setf (hg:state next-grid coord) 4))
                     (t
                      (setf (hg:state next-grid coord) 0)))
                   (setf (gl:glaref state-ptr cur-idx) (hg:state cur-grid coord))
