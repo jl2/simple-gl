@@ -1,7 +1,6 @@
 ;; sgl-fractal.asd
 ;;
-;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
-
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +15,7 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (asdf:defsystem #:sgl-fractal
-  :description "Describe sgl-fractal here"
+  :description "Use simple-gl to display fractals."
   :author "Jeremiah LaRocco <jeremiah_larocco@fastmail.com>"
   :license  "ISC"
   :version "0.0.1"
@@ -24,5 +23,6 @@
   :depends-on (#:alexandria #:j-utils #:simple-gl)
   :components ((:file "package")
                (:file "complex-window")
-               (:file "sgl-fractal"))
+               (:file "sgl-fractal")
+               (:file "create-viewers"))
   :in-order-to ((test-op (test-op sgl-fractal.test))))

@@ -1,4 +1,3 @@
-
 * sgl-fractal
 ** About
 This package uses simple-gl to display fractals using GLSL.
@@ -36,7 +35,6 @@ This package uses simple-gl to display fractals using GLSL.
   (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
     (format t "location: ~a~%" (complex real imag))
     (sgl:display (sgl-fractal:cubic-bs-js-viewer :real real :imag imag)))
-
 #+end_src
 
 #+RESULTS:
@@ -48,10 +46,5 @@ This package uses simple-gl to display fractals using GLSL.
 ISC
 
 
-Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
-
-
-
-* Plan
-** TODO Fill in a TODO list.

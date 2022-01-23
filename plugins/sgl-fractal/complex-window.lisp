@@ -1,8 +1,11 @@
 ;; complex-window.lisp
 ;;
-;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 (in-package #:sgl-fractal)
+
+(setf sgl:*shader-dirs*
+      (adjoin (asdf:system-relative-pathname :sgl-fractal "shaders/") sgl:*shader-dirs*))
 
 (defclass complex-fractal-viewer (viewer)
   ())
@@ -15,8 +18,6 @@
       :do
          (handle-3d-mouse-event object event))))
 
-(setf sgl:*shader-dirs*
-      (adjoin (asdf:system-relative-pathname :sgl-fractal "shaders/") sgl:*shader-dirs*))
 
 (defclass complex-window (opengl-object)
   ((center :initarg :center :initform #C(0.0f0 0.0f0))
@@ -24,102 +25,6 @@
    (max-iterations :initarg :max-iterations :initform 100))
   (:documentation "A rectangular region in the complex plain."))
 
-(defun mandelbrot-viewer ()
-  (let ((viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:add-object viewer
-                    :mandelbrot (make-instance 'complex-window
-                                               :styles (list
-                                                        (cons :mandelbrot
-                                                              (make-style-from-files
-                                                               "complex-vertex.glsl"
-                                                               "mandel-fragment.glsl")))))
-    viewer))
-
-(defun cubic-mandelbrot-viewer ()
-  (let ((viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:add-object viewer
-                    :cubic-mandelbrot
-                    (make-instance 'complex-window
-                                   :styles (list
-                                            (cons :cubic-mandelbrot
-                                                  (make-style-from-files
-                                                   "complex-vertex.glsl"
-                                                   "cubic-mandel-fragment.glsl")))))
-    viewer))
-
-(defun julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
-  (let ((cw (make-instance 'complex-window
-                           :styles (list
-                                    (cons :julia-set
-                                          (make-style-from-files
-                                           "complex-vertex.glsl"
-                                           "julia-set-fragment.glsl")))))
-        (viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:set-uniform cw "cReal" real :float)
-    (sgl:set-uniform cw "cImag" imag :float)
-    (sgl:add-object viewer :julia-set cw)
-    viewer))
-
-(defun cubic-julia-set-viewer (&key (real 0.324f0) (imag -0.2345))
-  (let ((cw (make-instance 'complex-window
-                           :styles (list
-                                    (cons :cubic-julia-set
-                                          (make-style-from-files
-                                           "complex-vertex.glsl"
-                                           "cubic-julia-set-fragment.glsl")))))
-        (viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:set-uniform cw "cReal" real :float)
-    (sgl:set-uniform cw "cImag" imag :float)
-    (sgl:add-object viewer :cubic-julia-set cw)
-    viewer))
-
-(defun burning-ship-viewer ()
-  (let ((viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:add-object viewer :burning-ship
-                    (make-instance 'complex-window
-                                   :styles (list
-                                            (cons :burning-ship
-                                                  (make-style-from-files
-                                                   "complex-vertex.glsl"
-                                                   "burning-ship-fragment.glsl")))))
-    viewer))
-
-(defun cubic-burning-ship-viewer ()
-  (let ((viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:add-object viewer :cubic-burning-ship
-                    (make-instance 'complex-window
-                                   :styles (list
-                                            (cons :cubic-burning-ship
-                                                  (make-style-from-files
-                                                   "complex-vertex.glsl"
-                                                   "cubic-burning-ship-fragment.glsl")))))
-    viewer))
-
-(defun bs-js-viewer (&key (real 0.324f0) (imag -0.2345))
-  (let ((cw (make-instance 'complex-window
-                           :styles (list
-                                    (cons :burning-ship-julia-set
-                                          (make-style-from-files
-                                           "complex-vertex.glsl"
-                                           "bs-js-fragment.glsl")))))
-        (viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:set-uniform cw "cReal" real :float)
-    (sgl:set-uniform cw "cImag" imag :float)
-    (sgl:add-object viewer :bs-js cw)
-    viewer))
-
-(defun cubic-bs-js-viewer (&key (real 0.324f0) (imag -0.2345))
-  (let ((cw (make-instance 'complex-window
-                           :styles (list
-                                    (cons :cubic-burning-ship-julia-set
-                                          (make-style-from-files
-                                           "complex-vertex.glsl"
-                                           "cubic-bs-js-fragment.glsl")))))
-        (viewer (make-instance 'complex-fractal-viewer)))
-    (sgl:set-uniform cw "cReal" real :float)
-    (sgl:set-uniform cw "cImag" imag :float)
-    (sgl:add-object viewer :cubic-bs-js cw)
-    viewer))
 
 (defun compute-min-max (window)
   "Returns (values real-min real-max imag-min imag-max)"
