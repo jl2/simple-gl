@@ -37,8 +37,6 @@
        (glfw:destroy-window window))
   (setf *viewers* (make-hash-table :test 'equal)))
 
-(declaim (inline handle-key handle-resize handle-click handle-scroll handle-3d-mouse-event update))
-
 ;; Keyboard callback.
 (glfw:def-key-callback keyboard-handler (window key scancode action mod-keys)
   (when-let (viewer (find-viewer window))
@@ -106,7 +104,7 @@
 
    (last-update-time :initform 0)
 
-   (seconds-between-updates :initform 0.5
+   (seconds-between-updates :initform (/ 1 30)
                             :initarg :seconds-between-updates)
 
    (cull-face :initform nil

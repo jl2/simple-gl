@@ -5,10 +5,7 @@
 (in-package #:simple-gl)
 
 (defclass style ()
-  ((name :initform "Default Style"
-         :initarg :name
-         :accessor name)
-   (enabled :initform t
+  ((enabled :initform t
             :initarg :enabled
             :accessor enabledp)
    (program :initform 0
@@ -31,7 +28,7 @@
         (plus-ws (indent-whitespace (+ 1 indent)))
         (plus-plus-ws (indent-whitespace (+ 2 indent))))
     (format t "~aStyle:~%" this-ws)
-    (show-slots plus-ws style '(name shaders program ))
+    (show-slots plus-ws style '(shaders program ))
 
     (with-slots (program) style
       (format t "~aProgram ~a:~%" plus-ws program)
@@ -133,18 +130,17 @@
     (gl:use-program program))
   t)
 
-(defun make-style-from-files (name &rest shaders)
+(defun make-style-from-files (&rest shaders)
   (if shaders
-      (make-instance 'style :name name
-                            :shaders (mapcar #'read-shader shaders))
-      (error "No shaders for program ~a" name)))
+      (make-instance 'style :shaders (mapcar #'read-shader shaders))
+      (error "No shaders for style.")))
 
 (defun point-style (&rest extra-shaders)
   (if extra-shaders
-      (apply #'make-style-from-files "point" "position-color-vertex.glsl" "point-fragment.glsl" extra-shaders)
-      (make-style-from-files "point" "position-color-vertex.glsl" "point-fragment.glsl")))
+      (apply #'make-style-from-files "position-color-vertex.glsl" "point-fragment.glsl" extra-shaders)
+      (make-style-from-files "position-color-vertex.glsl" "point-fragment.glsl")))
 
 (defun point-style-instanced (&rest extra-shaders)
   (if extra-shaders
-      (apply #'make-style-from-files "point-instanced" "position-color-transform-vertex.glsl" "point-fragment.glsl" extra-shaders)
-      (make-style-from-files "point-instanced" "position-color-transform-vertex.glsl" "point-fragment.glsl")))
+      (apply #'make-style-from-files "position-color-transform-vertex.glsl" "point-fragment.glsl" extra-shaders)
+      (make-style-from-files "position-color-transform-vertex.glsl" "point-fragment.glsl")))

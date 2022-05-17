@@ -34,10 +34,14 @@
                #:ieee-floats
                #:zpng
 
+               #:obj-reader
+
                #:bordeaux-threads
                #:trivial-main-thread)
 
   :components ((:file "package")
+               (:file "simple-gl")
+               (:file "common")
                (:file "viewer")
                (:file "offscreen-viewer")
                (:file "3d-mouse-nav-viewer")
@@ -48,10 +52,11 @@
                (:file "opengl-object")
                (:file "instanced-opengl-object")
                (:file "stl")
+               (:file "obj-file")
 
-               (:file "common")
+
                (:file "uniforms")
 
 
-               (:file "simple-gl"))
+               )
   :in-order-to ((test-op (test-op simple-gl.test))))

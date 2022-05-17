@@ -57,7 +57,7 @@ This is an example of how it will be used from a REPL:
      (ql:quickload :simple-gl)
      (defparameter *viewer* (make-instance 'sgl:viewer))
      (sgl:display *viewer*)
-     (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))e
+     (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))
      (sgl:hide-viewer *viewer*)
      (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
      (sgl:show-viewer *viewer*)

@@ -9,7 +9,8 @@
            :type (or null list)
            :accessor styles
            :initarg :styles)
-   (instance-count :initform 3 :initarg :instance-count)))
+   (max-instances :initform 100 :initarg :max-instances)
+   (instance-count :initform 0 :initarg :instance-count)))
 
 (defmethod show-info ((object instanced-opengl-object) &key (indent 0))
   (call-next-method)

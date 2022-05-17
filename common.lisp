@@ -40,6 +40,7 @@
 (defgeneric cleanup (object)
   (:documentation "Cleanup any OpenGL resources owned by obj."))
 
+(declaim (inline handle-key handle-resize handle-click handle-scroll handle-3d-mouse-event update))
 ;; Input handlers
 (defgeneric handle-key (object window key scancode action mod-keys)
   (:documentation "Handle a GLFW key press.  Return non-nil if handled."))

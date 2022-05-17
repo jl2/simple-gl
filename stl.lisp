@@ -5,8 +5,8 @@
 (in-package #:simple-gl)
 
 (defclass stl-file (instanced-opengl-object)
-  ((file-name :initarg :file-name)
-   (tri-count :initform 0)))
+  ((file-name :initarg :file-name :type (or string path))
+   (tri-count :initform 0 :type (unsigned-byte 32))))
 
 (declaim (ftype (function
                  ((simple-array (unsigned-byte 8)) fixnum) (unsigned-byte 16)) get-u2)
@@ -32,7 +32,7 @@
                              (aref arr idx))))
 
 (declaim (ftype (function
-                 ((simple-array (unsigned-byte 8)) fixnum) (signed-byte 32)) get-u4)
+                 ((simple-array (unsigned-byte 8)) fixnum) (signed-byte 32)) get-s4)
          (inline get-s4))
 (defun get-s4 (arr idx)
   "Interpret four bytes in arr as an '(signed-byte 32)"
@@ -43,7 +43,9 @@
                                        (aref arr (+ 2 idx))) 256)
                                  (aref arr (+ 1 idx))) 256)
                            (aref arr idx))))
-
+(declaim (ftype (function
+                 ((simple-array (unsigned-byte 8)) fixnum) single-float) get-float)
+         (inline get-float))
 (defun get-float (arr idx)
   "Interpret four bytes in arr as a single-float."
   (declare
@@ -57,6 +59,14 @@
     #-(and :little-endian :ieee-floating-point :sbcl)
     (ieee-floats:decode-float32 x)))
 
+(defparameter *float-byte-size* 4
+  "Size of an STL float in bytes.")
+
+(defparameter *point-byte-size* (* 3 *float-byte-size*)
+  "Size of an STL point in bytes.")
+
+(defparameter *triangle-byte-size* (+ 2 (* 4 *point-byte-size*))
+  "Size of an STL triangle in bytes.")
 (defun get-point (arr idx)
   "Create a point using x, y, and z values read from arr."
   (declare
@@ -66,20 +76,15 @@
         (get-float arr (+ idx *float-byte-size*))
         (get-float arr (+ idx (* 2 *float-byte-size*)))))
 
-(defparameter *float-byte-size* 4
-  "Size of an STL float in bytes.")
 
-(defparameter *point-byte-size* (* 3 *float-byte-size*)
-  "Size of an STL point in bytes.")
-
-(defparameter *triangle-byte-size* (+ 2 (* 4 *point-byte-size*))
-  "Size of an STL triangle in bytes.")
-
+(declaim (type (unsigned-byte 32) *point-byte-size*))
 (defun read-triangle (arr idx)
   "Read a triangle from arr."
   (declare
    (optimize (speed 3) (space 0) (safety 0) (debug 0))
-   (type (simple-array (unsigned-byte 8)) arr))
+   (type (simple-array (unsigned-byte 8)) arr)
+   (type (unsigned-byte 32) idx)
+   (type (unsigned-byte 32)  *point-byte-size*))
   (values
    ;; Point 0
    (get-point arr idx)
@@ -121,10 +126,10 @@
           (read-sequence triangle-count-buffer inf)
           (setf tri-count (get-u4 triangle-count-buffer 0))
           (format t "STL File has ~a triangles!~%" tri-count)
-          (setf vertices (gl:alloc-gl-array :float (* tri-count (* 3 6))))
+          (setf vertices (gl:alloc-gl-array :float( * tri-count (* 3 6))))
           (loop
-            :for idx :below tri-count
-            :for last-idx = (read-sequence buffer inf)
+            :for idx fixnum :below tri-count
+            :for last-idx fixnum = (read-sequence buffer inf)
             :while (= last-idx  *triangle-byte-size*)
             :do
                (multiple-value-bind (norm p1 p2 p3) (read-triangle buffer 0)

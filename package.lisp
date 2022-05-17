@@ -36,7 +36,7 @@
            #:program
            #:uniforms
            #:primitive-type
-           #:style
+           #:styles
            #:name
            #:vao
            #:gl-fset
@@ -76,6 +76,7 @@
            #:bind
            #:render
            #:stl-file
+           #:obj-file
 
            ;; Instanced OpenGL objects (inherits from opengl-object)
            #:instanced-opengl-object
