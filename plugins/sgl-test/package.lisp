@@ -16,12 +16,8 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (defpackage :sgl-test
-  (:use #:cl #:j-utils #:alexandria #:3d-vectors #:3d-matrices #:simple-gl
-        )
-
+  (:use #:cl #:j-utils #:alexandria #:3d-vectors #:3d-matrices #:simple-gl)
   (:nicknames #:sglt)
 
   (:export #:tess-test
-           #:tesselation-shader-test
-           
-           ))
+           #:tesselation-shader-test))

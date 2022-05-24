@@ -2,7 +2,6 @@
 ;;
 ;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
-
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
 ;; copyright notice and this permission notice appear in all copies.
@@ -28,8 +27,7 @@
   :serial t
   :depends-on ( :sgl-test
                   :fiveam)
-  
   :components ((:module "t"
-                        :components 
+                        :components
                         ((:file "package"))))
   :perform (test-op :after (op c) (eval (read-from-string "(every #'fiveam::TEST-PASSED-P (5am:run :sgl-test))"))))

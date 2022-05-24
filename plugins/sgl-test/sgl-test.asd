@@ -23,5 +23,6 @@
   :serial t
   :depends-on (#:alexandria #:j-utils #:simple-gl)
   :components ((:file "package")
-               (:file "sgl-test"))
+               (:file "tesselation")
+               (:file "hexagons"))
   :in-order-to ((test-op (test-op sgl-test.test))))
