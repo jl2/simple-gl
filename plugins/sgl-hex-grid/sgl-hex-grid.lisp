@@ -1,6 +1,6 @@
 ;; sgl-hex-grid.lisp
 ;;
-;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -128,8 +128,7 @@
                   (incf (hg:oddr-row coord))))
            (incf (hg:oddr-col coord)))
       (hg:swap-states object)
-      (sgl:reload radii-buffer)
-      (sgl:reload state-buffer))))
+      (values radii-buffer state-buffer))))
 
 (defmethod initialize-buffers ((object sgl-hex-grid) &key)
   (when (buffers object)
