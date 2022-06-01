@@ -37,6 +37,7 @@
                #:obj-reader
 
                #:bordeaux-threads
+               #:lparallel
                #:trivial-main-thread)
 
   :components ((:file "package")

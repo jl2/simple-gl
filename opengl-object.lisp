@@ -99,13 +99,15 @@
 
 (defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj
-    (if-let (previous (assoc name uniforms :test #'string=))
-      (when overwrite
-        (set-value (cdr previous) value type))
-      (push (cons name (make-instance 'uniform :name name
-                                               :type type
-                                               :value value))
-            uniforms))))
+    (cond ((and overwrite
+                (assoc name uniforms :test #'string=))
+           (set-value (alexandria:assoc-value uniforms name :test #'string=) value type))
+          ((null (assoc name uniforms :test #'string=))
+           (format t "Adding new uniform...~%")
+           (push (cons name (make-instance 'uniform :name name
+                                                    :type type
+                                                    :value value))
+                 uniforms)))))
 
 (defun get-uniform (obj name)
   (with-slots (uniforms) obj

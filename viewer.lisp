@@ -284,30 +284,36 @@
          (handle-scroll object window cpos x-scroll y-scroll))))
 
 (defmethod update ((viewer viewer) elapsed-seconds)
-    (with-slots (objects view-xform view-changed camera-position
-                 last-update-time seconds-between-updates) viewer
-      (loop
-        :for idx :from 0
-        :for (nil . object) :in objects
-        :with updated = nil
-        :when (not (initialized-p object))
-          :do
-             (initialize object)
-             (setf updated t)
-        :do
-           ;; (format t "idx: ~a updating ~a~%" idx object)
-           (set-uniform object "time" elapsed-seconds :float)
-        :when view-changed
-          :do
-             (set-uniform object "camera_position" camera-position :vec3)
-             (set-uniform object "view_transform" view-xform :mat4)
-        :when (> (- elapsed-seconds last-update-time) seconds-between-updates)
-          :do
-             (setf updated t)
-             (update object elapsed-seconds)
-        :finally (when updated
-                   (setf last-update-time elapsed-seconds)))
-      (setf view-changed nil)))
+  (with-slots (objects
+               view-xform
+               view-changed
+               camera-position
+               last-update-time
+               seconds-between-updates) viewer
+    (flet ((update-object (obj)
+             (let ((object (cdr obj)))
+               (when view-changed
+                 (set-uniform object "camera_position" camera-position :vec3)
+                 (set-uniform object "view_transform" view-xform :mat4))
+               (set-uniform object "time" elapsed-seconds :float)
+               (cond
+                 ((not (initialized-p object))
+                  object)
+                 ((> (- elapsed-seconds last-update-time) seconds-between-updates)
+                  (multiple-value-list (update object elapsed-seconds)))
+                 (t nil)))))
+      (let ((update-results (lparallel:pmapcar #'update-object objects)))
+        (loop
+          :for obj :in update-results
+          :when (and obj (atom obj)) :do
+            (initialize obj)
+            (setf last-update-time elapsed-seconds)
+          :when (consp obj) :do
+            (setf last-update-time elapsed-seconds)
+            (dolist (buffer obj)
+              (when buffer
+                (reload buffer))))))
+    (setf view-changed nil)))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer
@@ -345,6 +351,8 @@
   ;; (glfw:set-error-callback 'error-callback)
   (gl-init)
 
+  (when (null lparallel:*kernel*)
+    (setf lparallel:*kernel* (lparallel:make-kernel 24)))
   (tmt:with-body-in-main-thread (:blocking nil)
     (let* ((window (glfw:create-window :title "OpenGL Viewer"
                                        :width (slot-value viewer 'initial-width)
