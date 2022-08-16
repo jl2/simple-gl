@@ -1,7 +1,6 @@
-;; blend2d-surface.asd
+;; blend2d-texture.asd
 ;;
-;; Copyright (c) 2020 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
-
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -15,13 +14,16 @@
 ;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(asdf:defsystem #:blend2d-surface
-  :description "Describe blend2d-surface here"
+(asdf:defsystem #:blend2d-texture
+  :description "OpenGL textures rendered by Blend2D."
   :author "Jeremiah LaRocco <jeremiah_larocco@fastmail.com>"
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on (#:j-utils #:alexandria #:newgl #:blend2d)
+  :depends-on (#:j-utils
+               #:alexandria
+               #:simple-gl
+               #:blend2d)
   :components ((:file "package")
-               (:file "blend2d-surface"))
-  :in-order-to ((test-op (test-op blend2d-surface.test))))
+               (:file "blend2d-texture"))
+  :in-order-to ((test-op (test-op blend2d-texture.test))))

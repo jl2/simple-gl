@@ -1,7 +1,6 @@
 ;; package.lisp
 ;;
-;; Copyright (c) 2020 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
-
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -16,16 +15,16 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (in-package :cl-user)
-(defpackage :blend2d-surface.test
+(defpackage :blend2d-texture.test
   (:use :cl
         :fiveam
         :alexandria
-        :blend2d-surface))
+        :blend2d-texture))
 
-(in-package :blend2d-surface.test)
+(in-package :blend2d-texture.test)
 
-(def-suite :blend2d-surface)
-(in-suite :blend2d-surface)
+(def-suite :blend2d-texture)
+(in-suite :blend2d-texture)
 
 (test hello
   (is-true (hello)))

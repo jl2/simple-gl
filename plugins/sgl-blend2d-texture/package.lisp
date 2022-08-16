@@ -1,7 +1,6 @@
 ;; package.lisp
 ;;
-;; Copyright (c) 2020 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
-
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -15,8 +14,14 @@
 ;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(defpackage :blend2d-surface
-  (:use #:cl #:j-utils #:alexandria)
-  (:export #:blend2d-surface
-           #:draw-texture
+(defpackage :blend2d-texture
+  (:use #:cl
+        #:j-utils
+        #:alexandria
+        #:3d-vectors
+        #:3d-matrices
+        #:simple-gl
+        )
+  (:export #:blend2d-texture
+           #:fill-texture
            #:draw-image))

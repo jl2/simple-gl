@@ -1,13 +1,12 @@
-# blend2d-surface
+# blend2d-texture
 ### _Jeremiah LaRocco <jeremiah_larocco@fastmail.com>_
 
-This is a project to do ... something.
+OpenGL textures rendered by Blend2D.
 
 ## License
 
 ISC
 
-
-Copyright (c) 2020 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 

@@ -1,7 +1,6 @@
-;; blend2d-surface.test.asd
+;; blend2d-texture.test.asd
 ;;
-;; Copyright (c) 2020 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
-
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
 ;; purpose with or without fee is hereby granted, provided that the above
@@ -16,20 +15,24 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (in-package :cl-user)
-(defpackage :blend2d-surface.test-asd
+(defpackage :blend2d-texture.test-asd
   (:use :cl :asdf))
-(in-package :blend2d-surface.test-asd)
+(in-package :blend2d-texture.test-asd)
 
-(asdf:defsystem #:blend2d-surface.test
-  :description "Test blend2d-surface"
+(asdf:defsystem #:blend2d-texture.test
+  :description "Test blend2d-texture"
   :author "Jeremiah LaRocco <jeremiah_larocco@fastmail.com>"
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on ( :blend2d-surface
+  :depends-on ( :blend2d-texture
                   :fiveam)
-  
+
   :components ((:module "t"
-                        :components 
+                        :components
                         ((:file "package"))))
-  :perform (test-op :after (op c) (eval (read-from-string "(every #'fiveam::TEST-PASSED-P (5am:run :blend2d-surface))"))))
+  :perform (test-op
+            :after (op c)
+            (eval (read-from-string
+                   "(every #'fiveam::TEST-PASSED-P
+                      (5am:run :blend2d-texture))"))))
