@@ -534,6 +534,15 @@
         (push (assoc name objects) discarded-objects)
         (setf objects (remove name objects :key #'car))))))
 
+(defgeneric replace-object (viewer name object))
+(defmethod replace-object (viewer name object)
+  (with-viewer-lock (viewer)
+    (with-slots (objects discarded-objects) viewer
+      (when (assoc name objects)
+        (push (assoc name objects) discarded-objects)
+        (setf objects (remove name objects :key #'car))
+        (push (cons name object) objects)))))
+
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
 

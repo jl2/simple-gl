@@ -34,8 +34,6 @@
                #:ieee-floats
                #:zpng
 
-               #:obj-reader
-
                #:bordeaux-threads
                #:lparallel
                #:trivial-main-thread)

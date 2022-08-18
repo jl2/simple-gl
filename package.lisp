@@ -57,6 +57,7 @@
            #:find-viewer
            #:add-object
            #:rm-object
+           #:replace-object
            #:objects
            #:pause
 
@@ -76,7 +77,6 @@
            #:bind
            #:render
            #:stl-file
-           #:obj-file
 
            ;; Instanced OpenGL objects (inherits from opengl-object)
            #:instanced-opengl-object
