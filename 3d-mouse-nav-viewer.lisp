@@ -29,20 +29,22 @@
                :type mat4))
   (:documentation "A viewer with 3d mouse camera navigation."))
 
+(defun reset-view-safe (viewer)
+  (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
+    (setf radius *default-radius*)
+    (setf theta *default-theta*)
+    (setf gamma *default-gamma*)
+    (setf view-xform (view-matrix radius theta gamma))
+    (loop
+      :for (nil . object) :in objects
+      :do
+         (ensure-initialized object)
+         (set-uniform object "view_transform" view-xform :mat4))
+    (setf view-changed t)))
 
 (defmethod reset-view ((viewer 3d-mouse-nav-viewer))
   (with-viewer-lock (viewer)
-    (with-slots (view-changed objects aspect-ratio radius theta gamma view-xform) viewer
-      (setf radius *default-radius*)
-      (setf theta *default-theta*)
-      (setf gamma *default-gamma*)
-      (setf view-xform (view-matrix radius theta gamma))
-      (loop
-        :for (nil . object) :in objects
-        :do
-           (ensure-initialized object)
-           (set-uniform object "view_transform" view-xform :mat4))
-      (setf view-changed t))))
+    (reset-view-safe viewer)))
 
 
 #+spacenav
@@ -65,7 +67,7 @@
         (cond
 
           ((and (eq key :f5) (eq action :press))
-           (reset-view viewer)
+           (reset-view-safe viewer)
            (setf view-changed t)
            t)
 
