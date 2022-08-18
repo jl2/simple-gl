@@ -49,6 +49,7 @@
                (:file "style")
                (:file "buffer")
                (:file "opengl-object")
+               (:file "quad")
                (:file "instanced-opengl-object")
                (:file "stl")
                (:file "obj-file")
