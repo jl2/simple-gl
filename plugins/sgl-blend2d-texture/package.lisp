@@ -14,7 +14,7 @@
 ;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(defpackage :blend2d-texture
+(defpackage :sgl-blend2d-texture
   (:use #:cl
         #:j-utils
         #:alexandria
@@ -22,6 +22,6 @@
         #:3d-matrices
         #:simple-gl
         )
-  (:export #:blend2d-texture
+  (:export #:sgl-blend2d-texture
            #:fill-texture
            #:draw-image))

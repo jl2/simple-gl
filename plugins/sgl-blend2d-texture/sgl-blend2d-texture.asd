@@ -1,4 +1,4 @@
-;; blend2d-texture.asd
+;; sgl-blend2d-texture.asd
 ;;
 ;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
@@ -14,7 +14,7 @@
 ;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(asdf:defsystem #:blend2d-texture
+(asdf:defsystem #:sgl-blend2d-texture
   :description "OpenGL textures rendered by Blend2D."
   :author "Jeremiah LaRocco <jeremiah_larocco@fastmail.com>"
   :license  "ISC"
@@ -25,5 +25,5 @@
                #:simple-gl
                #:blend2d)
   :components ((:file "package")
-               (:file "blend2d-texture"))
-  :in-order-to ((test-op (test-op blend2d-texture.test))))
+               (:file "sgl-blend2d-texture"))
+  :in-order-to ((test-op (test-op sgl-blend2d-texture.test))))

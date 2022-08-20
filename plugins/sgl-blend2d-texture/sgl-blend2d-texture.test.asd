@@ -1,4 +1,4 @@
-;; blend2d-texture.test.asd
+;; sgl-blend2d-texture.test.asd
 ;;
 ;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
@@ -15,17 +15,17 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (in-package :cl-user)
-(defpackage :blend2d-texture.test-asd
+(defpackage :sgl-blend2d-texture.test-asd
   (:use :cl :asdf))
-(in-package :blend2d-texture.test-asd)
+(in-package :sgl-blend2d-texture.test-asd)
 
-(asdf:defsystem #:blend2d-texture.test
-  :description "Test blend2d-texture"
+(asdf:defsystem #:sgl-blend2d-texture.test
+  :description "Test sgl-blend2d-texture"
   :author "Jeremiah LaRocco <jeremiah_larocco@fastmail.com>"
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on ( :blend2d-texture
+  :depends-on ( :sgl-blend2d-texture
                   :fiveam)
 
   :components ((:module "t"
@@ -35,4 +35,4 @@
             :after (op c)
             (eval (read-from-string
                    "(every #'fiveam::TEST-PASSED-P
-                      (5am:run :blend2d-texture))"))))
+                      (5am:run :sgl-blend2d-texture))"))))

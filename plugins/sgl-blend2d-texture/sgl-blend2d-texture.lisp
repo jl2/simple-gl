@@ -1,4 +1,4 @@
-;; blend2d-texture.lisp
+;; sgl-blend2d-texture.lisp
 ;;
 ;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
@@ -14,12 +14,12 @@
 ;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(in-package :blend2d-texture)
+(in-package :sgl-blend2d-texture)
 
 (setf sgl:*shader-dirs*
-      (adjoin (asdf:system-relative-pathname :blend2d-texture "shaders/") sgl:*shader-dirs*))
+      (adjoin (asdf:system-relative-pathname :sgl-blend2d-texture "shaders/") sgl:*shader-dirs*))
 
-(defclass blend2d-texture (texture)
+(defclass sgl-blend2d-texture (texture)
   ((tex-type :initform :texture-2d)
    (size :initarg :size :initform 2048)
    (textures :initform nil))
@@ -27,7 +27,7 @@
 
 (defgeneric draw-image (obj img ctx size))
 
-(defmethod draw-image ((obj blend2d-texture) img ctx size)
+(defmethod draw-image ((obj sgl-blend2d-texture) img ctx size)
   (declare (ignorable obj img ctx size))
   (bl:with-objects
       ((circle bl:circle))
@@ -43,7 +43,7 @@
           (bl:lookup-error (bl:context-set-fill-style-rgba32 ctx (random #16rffffffff)))
           (bl:lookup-error (bl:context-fill-geometry ctx bl:+geometry-type-circle+ circle))))))
 
-(defmethod fill-texture ((obj blend2d-texture) elapsed-time)
+(defmethod fill-texture ((obj sgl-blend2d-texture) elapsed-time)
   (with-slots (size textures) obj
     (bl:with-memory-image-context*
         (img ctx :width size :height size)

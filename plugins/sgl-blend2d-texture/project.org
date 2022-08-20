@@ -1,14 +1,16 @@
-* blend2d-texture
+* sgl-blend2d-texture
 ** About
 
 OpenGL textures rendered by Blend2D.
 
   #+begin_src lisp
-(ql:quickload '(:spacenav :simple-gl :blend2d-texture))
+(ql:quickload '(:spacenav :simple-gl :sgl-blend2d-texture))
 (let ((viewer (make-instance 'sgl:3d-mouse-nav-viewer))
-      (quad (make-instance 'sgl:screen-quad :name "quad"
-                                            :textures (list (make-instance 'blend2d-texture:blend2d-texture))
-                                            :styles (list (cons :bls (sgl:make-style-from-files "bls-vertex.glsl" "bls-fragment.glsl"))))))
+      (quad (make-instance
+      'sgl:screen-quad :name "quad"
+      :textures (list (make-instance 'sgl-blend2d-texture:sgl-blend2d-texture))
+      :styles (list (cons
+      :blt (sgl:make-style-from-files "blt-vertex.glsl" "blt-fragment.glsl"))))))
   (sgl:display viewer)
   (sgl:add-object viewer :quad quad)
   viewer)

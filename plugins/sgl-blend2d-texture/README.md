@@ -1,4 +1,4 @@
-# blend2d-texture
+# sgl-blend2d-texture
 ### _Jeremiah LaRocco <jeremiah_larocco@fastmail.com>_
 
 OpenGL textures rendered by Blend2D.

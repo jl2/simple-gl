@@ -15,16 +15,16 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (in-package :cl-user)
-(defpackage :blend2d-texture.test
+(defpackage :sgl-blend2d-texture.test
   (:use :cl
         :fiveam
         :alexandria
-        :blend2d-texture))
+        :sgl-blend2d-texture))
 
-(in-package :blend2d-texture.test)
+(in-package :sgl-blend2d-texture.test)
 
-(def-suite :blend2d-texture)
-(in-suite :blend2d-texture)
+(def-suite :sgl-blend2d-texture)
+(in-suite :sgl-blend2d-texture)
 
 (test hello
   (is-true (hello)))
