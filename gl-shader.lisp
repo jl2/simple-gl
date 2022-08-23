@@ -45,6 +45,10 @@
   ((source-file :initarg :source-file :type (or pathname string) :accessor source-file))
   (:documentation "An OpenGL shader whose source code is stored in a file."))
 
+(defmethod print-object ((object gl-file-shader) stream)
+  (with-slots (source-file) object
+    (format stream "(make-instance 'sgl:gl-file-shader ~a)" source-file)))
+
 ;; (defmethod print-object ((shader gl-shader) stream)
 ;;   (format stream "(make-instance 'simple-gl:gl-file-shader :source-file ~s )" (source-file shader)))
 

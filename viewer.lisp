@@ -206,6 +206,13 @@
        (show-gl-state))
      t)
 
+    ((and (eq key :v) (eq action :press))
+     (with-viewer-lock (viewer)
+       (with-slots (view-changed) viewer
+         (format t "Setting view changed to ~a~%" (not view-changed))
+         (setf view-changed (not view-changed)))
+       t))
+
     ;; f to toggle printing fps
     ((and (eq key :f) (eq action :press))
      (with-viewer-lock (viewer)
@@ -353,6 +360,7 @@
 
   (when (null lparallel:*kernel*)
     (setf lparallel:*kernel* (lparallel:make-kernel 24)))
+
   (tmt:with-body-in-main-thread (:blocking nil)
     (let* ((window (glfw:create-window :title "OpenGL Viewer"
                                        :width (slot-value viewer 'initial-width)
@@ -400,6 +408,7 @@
                             :program-point-size
                             )
                  (gl:depth-func :lequal)
+
                  ;; The event loop
                  (with-slots (previous-seconds show-fps desired-fps
                               blend
@@ -423,14 +432,13 @@
                           (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
                           (setf previous-seconds current-seconds)
                           (setf frame-count 0)
-
                           ;; This do is important...
-                     :do (progn
-                           (glfw:swap-buffers window)
-                           #+spacenav
-                           (when-let (ev (sn:poll-event))
-                             (sn:remove-events :motion)
-                             (handle-3d-mouse-event viewer ev)))
+                     :do
+                        (glfw:swap-buffers window)
+                     #+spacenav
+                      (when-let (ev (sn:poll-event))
+                        (sn:remove-events :motion)
+                        (handle-3d-mouse-event viewer ev))
                      :do
                         (with-viewer-lock (viewer)
 
@@ -459,13 +467,15 @@
 
                           (render viewer))
 
-                     :do (glfw:poll-events)
-                     :do (let* ((now (glfw:get-time))
-                                (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
-                                             now)))
-                           ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
-                           (when (> rem-time 0)
-                             (sleep rem-time))))))
+                     :do
+                        (glfw:poll-events)
+                     :do
+                        (let* ((now (glfw:get-time))
+                               (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
+                                            now)))
+                          ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
+                          (when (> rem-time 0)
+                            (sleep rem-time))))))
 
              (t (err)
                (format t "Caught:  ~a~%" err)

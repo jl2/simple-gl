@@ -82,6 +82,8 @@
            #:instanced-opengl-object
            #:instance-count
 
+           #:quad
+
            ;; Buffers
            #:buffer
            #:attribute-buffer
