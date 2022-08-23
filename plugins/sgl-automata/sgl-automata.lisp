@@ -41,8 +41,9 @@
   (declare (ignorable elapsed-seconds))
   (with-slots (max-instances instance-count) object
     (when (< instance-count max-instances)
-      (add-current-instances object)
-      (compute-next object))))
+      (let ((rval (add-current-instances object)))
+        (compute-next object)
+        rval))))
 
 (defmethod initialize-buffers ((object cellular-automata) &key)
   (when (buffers object)

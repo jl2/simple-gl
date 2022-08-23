@@ -91,24 +91,23 @@
         ;; Loop over each cell in the data
         (loop
           ;; Track whether any quads have been added
-          with updated = nil
+          :with updated = nil
 
           ;; Calculate the quad location
-          for x-offset from 0 below width
-          for x-float real = (- 1.0f0 (* cell-width x-offset))
-          do
+          :for x-offset from 0 below width
+          :for x-float real = (- 1.0f0 (* cell-width x-offset))
+          :do
              (loop
-               for y-offset from 0 below height
-               for y-float real = (- 1.0f0 (* cell-height y-offset))
+               :for y-offset :from 0 :below height
+               :for y-float real = (- 1.0f0 (* cell-height y-offset))
 
                ;; If the cell is 'on' then add a quad
-               when (is-on object x-offset y-offset) do
+               :when (is-on object x-offset y-offset) do
                  (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0) ;(* -0.1f0 current-board-idx))
                                           pointer
                                           (* instance-count 3))
                  (setf updated t)
                  (incf instance-count))
-          finally
+          :finally
              ;; Copy the buffer to OpenGL if anything changed.
-             (when updated
-               (reload buffer)))))))
+             (return buffer))))))
