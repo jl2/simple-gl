@@ -257,8 +257,7 @@
                     (set-uniform object "maxIterations" max-iterations :int)))
 
                  (t
-                  (call-next-method)
-                  nil))))
+                  (call-next-method)))))
     (when need-reload
       (update-bounds object)
       t)))
