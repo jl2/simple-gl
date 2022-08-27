@@ -13,9 +13,9 @@
    #+begin_src lisp
      (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
      (use-package :3d-vectors)
-     (let ((ds (sglds:create-dynamic-system 63 3 63
-                                            (vec3 (* -3 pi) (* -2.0 pi) (* -3 pi))
-                                            (vec3 (* 3 pi)  (* 2.0 pi) (* 3 pi))))
+     (let ((ds (sglds:create-dynamic-system 10 200 10
+                                            (vec3 (* -12 pi) -6.0 (* -12 pi))
+                                            (vec3 (* 12 pi)  6.0 (* 12 pi))))
            (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
        (sgl:add-object viewer :dynamic-system ds)
        (sgl:display viewer)

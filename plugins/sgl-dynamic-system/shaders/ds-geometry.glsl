@@ -14,12 +14,13 @@ out vec4 diffuse_color;
 
 vec4 fpt(vec4 pt) {
      float divisor = 0.2 * 3.1415;
-     return vec4(pt.x, cos(pt.y + cos(pt.x)), pt.y, pt.w);
+     return vec4(sin(pt.x), cos(pt.y * cos(pt.x)), pt.y, pt.w);
 }
 
 float fx(float xv) {
-     // return sin(xv * xv + sin(3 * xv * xv)) + cos(xv);
-     return sin(xv + sin(xv * xv)) + cos(xv);
+    // return sin(xv  + sin(1 * xv * xv)) + cos(xv);
+    // return sin(xv + sin( xv * sin(xv) - cos( xv * sin(xv))));
+    return 6.0*sin(xv + xv * sin( xv - xv * cos(xv) * cos( xv * sin(xv))));
 }
 
 void main() {
@@ -31,9 +32,9 @@ void main() {
      vec4 oldpt = pt;
      EmitVertex();
      for (i=0; i<127; ++i) {
-          pt = vec4(oldpt.x - h * fx(oldpt.z),
+          pt = vec4(oldpt.x - h * fx(oldpt.z * oldpt.y),
                     oldpt.y,
-                    oldpt.z + h * fx(oldpt.x),
+                    oldpt.z + h * fx(oldpt.x * oldpt.y),
                     oldpt.w);
           gl_Position = gs_in[0].final_transform * pt;
           EmitVertex();
