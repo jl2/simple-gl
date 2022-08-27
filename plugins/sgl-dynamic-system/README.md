@@ -14,5 +14,5 @@ See [project.org](https://github.com/jl2/sgl-dynamic-system/blob/master/project.
 ISC
 
 
-Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
