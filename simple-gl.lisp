@@ -1,6 +1,6 @@
 ;; simple-gl.lisp
 ;;
-;; Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
 ;; Permission to use, copy, modify, and/or distribute this software for any
