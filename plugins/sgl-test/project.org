@@ -9,9 +9,7 @@ Some of this is based on [[https://web.engr.oregonstate.edu/~mjb/cs519/Handouts/
 ISC
 
 
-Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
-
-
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
 * TODO List

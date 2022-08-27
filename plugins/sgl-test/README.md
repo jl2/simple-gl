@@ -1,13 +1,12 @@
 # sgl-test
 ### _Jeremiah LaRocco <jeremiah_larocco@fastmail.com>_
 
-This is a project to do ... something.
+Playground to create things with simple-gl before creating a new project.
 
 ## License
 
 ISC
 
-
-Copyright (c) 2021 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
