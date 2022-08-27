@@ -23,8 +23,8 @@ vec4 poly_vert(vec2 center, float radius, float angle0, int sides, int num, floa
      vec2 pt = center + vec2( 0.45 * radius * cos(this_theta),
                               0.45 * radius * sin(this_theta));
      return vec4(pt.x,
-                 ycoord,
                  pt.y,
+                 ycoord,
                  1);
 }
 
@@ -53,7 +53,7 @@ void main() {
      float ycoord = y_coordinate;
           for (int i = 0; i < 6; ++i) {
                diffuse_color = hex_color;
-               gl_Position = final_transform * vec4(center.x, ycoord, center.y, 1);
+               gl_Position = final_transform * vec4(center.x, center.y, ycoord, 1);
                EmitVertex();
 
                diffuse_color = hex_color;
@@ -68,7 +68,7 @@ void main() {
           }
 
           diffuse_color = hex_color;
-          gl_Position = final_transform * vec4(center.x, ycoord, center.y, 1);
+          gl_Position = final_transform * vec4(center.x, center.y, ycoord, 1);
           EmitVertex();
 
           diffuse_color = hex_color;

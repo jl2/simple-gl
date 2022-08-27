@@ -51,7 +51,8 @@
     (setf state-idx (next-state-idx shg))))
 
 (defun make-sgl-hex-grid (&key
-                            (initial-hex-grid (hg:make-hex-grid))
+                            (initial-hex-grid (hg:make-hex-grid :min-hex (hg:oddr :col -32 :row -32)
+                                                                :max-hex (hg:oddr :row 32 :col 32)))
                             (y-coord 0.0)
                             (hex-radius 1.0))
   (with-slots (hg:hex-type hg:default-state hg:min-hex hg:max-hex hg:width) initial-hex-grid
@@ -70,8 +71,12 @@
 
 (defmethod initialize-uniforms ((object sgl-hex-grid) &key)
   (with-slots (y-coord) object
-    (set-uniform object "obj_transform" (meye 4) :mat4)
-    (set-uniform object "y_coordinate" y-coord :float)))
+    (let* ((wsize (glfw:get-window-size))
+           (ar (/ (cadr wsize) (car wsize)  1.0)))
+    (set-uniform object "obj_transform" (m* (mscaling (vec3 ar 1.0 1.0))
+                                            (mrotation (vec3 0 0 1) (/ pi 3))
+                                            (mscaling (vec3 0.018 0.018 1.0))) :mat4)
+    (set-uniform object "y_coordinate" y-coord :float))))
 
 (defmethod update ((object sgl-hex-grid) elapsed-seconds )
   (set-uniform object "time" elapsed-seconds :float)

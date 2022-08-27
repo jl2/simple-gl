@@ -4,44 +4,42 @@ This is a project to do something.
 
 ** Example
 #+begin_src lisp
-  (ql:quickload '(:spacenav :sgl-hex-grid :hex-grid :3d-vectors))
-  (use-package :3d-vectors)
+  (ql:quickload '(:spacenav :sgl-hex-grid))
 
-  (let ((hg (shg:make-sgl-hex-grid
-             :initial-hex-grid
-             (hg:make-hex-grid :min-hex (hg:oddr :col -60 :row -60)
-                               :max-hex (hg:oddr :row 60 :col 60))))
-        (viewer (make-instance 'sgl:3d-mouse-nav-viewer
-                               :seconds-between-updates (/ 1.0 15))))
-    (sgl:add-object viewer :hex-grid hg)
-    (sgl:display viewer)
-    viewer)
+  (defparameter *viewer* (make-instance 'sgl:viewer
+                                        :seconds-between-updates 1/15))
+  (sgl:add-object *viewer* :hex-grid (shg:make-sgl-hex-grid))
+  (sgl:display *viewer*)
+
 #+end_src
-
-#+RESULTS:
-: #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {104C8AB993}>
 
 #+begin_src lisp
-     (ql:quickload '(:spacenav :sgl-hex-grid :hex-grid :3d-vectors))
-     (use-package :3d-vectors)
-     (defparameter *viewer*
-       (let ((viewer (make-instance 'sgl:3d-mouse-nav-viewer
-                                  :desired-fps 60
-                                  :seconds-between-updates (/ 1.0 10))))
-       (sgl:display viewer)
-       viewer))
+  (ql:quickload '(:spacenav :sgl-hex-grid :hex-grid))
+  (defparameter *viewer* (make-instance 'sgl:viewer
+                                        :desired-fps 60
+                                        :seconds-between-updates 1/10))
+  (sgl:display *viewer*)
   (dotimes (i 24)
-    (let ((newhg (shg:make-sgl-hex-grid
-                  :y-coord  (* (- i 8) 2)
-                  :initial-hex-grid
-                  (hg:make-hex-grid :min-hex (hg:oddr :col -40 :row -40)
-                                    :max-hex (hg:oddr :row 40 :col 40)))))
-      (sgl:add-object *viewer* i newhg))
-    (sleep 1.0))
+    (sgl:add-object *viewer* i (shg:make-sgl-hex-grid
+                                :y-coord  (* (- i 8) 2)))
+    (sleep 0.25))
 #+end_src
 
-#+RESULTS:
-: *VIEWER*
+#+begin_src lisp
+  (dotimes (i 24)
+    (sgl:rm-object *viewer* i))
+#+end_src
+
+#+begin_src lisp
+  (sgl:replace-object *viewer*
+                      :hex-grid (shg:make-sgl-hex-grid
+                                 :initial-hex-grid (hg:make-hex-grid :min-hex (hg:oddr :col -32 :row -32)
+                                                                     :max-hex (hg:oddr :row 32 :col 32))))
+#+end_src
+
+#+begin_src lisp
+  (sgl:rm-object *viewer* :hex-grid)
+#+end_src
 
 ** License
 ISC
