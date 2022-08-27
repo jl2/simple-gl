@@ -31,10 +31,10 @@
   (declare (ignorable obj img ctx size))
   (bl:with-objects
       ((circle bl:circle))
-    (dotimes (i 2000)
+    (dotimes (i 500)
         (let* ((sx (random (coerce size 'double-float)))
                (sy (random (coerce size 'double-float)))
-               (radius (coerce (random (/ size 50.0)) 'double-float)))
+               (radius (coerce (random (/ size 20.0)) 'double-float)))
 
           (setf (bl:circle.cx circle) sx)
           (setf (bl:circle.cy circle) sy)
