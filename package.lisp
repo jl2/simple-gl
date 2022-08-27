@@ -60,6 +60,7 @@
            #:replace-object
            #:objects
            #:pause
+           #:call-with-object
 
            ;; OpenGL objects
            #:opengl-object
@@ -96,6 +97,9 @@
            #:to-gl-array
            #:fill-buffer
            #:show-gl-array
+           #:rebuild-style
+           #:refill-textures
+           #:reload-buffers
 
            ;; Styles/shaders
            #:style

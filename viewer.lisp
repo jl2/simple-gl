@@ -126,8 +126,7 @@
 
    (initial-height :initform 800 :initarg :initial-height)
    (initial-width :initform 800 :initarg :initial-width)
-   (previous-seconds :initform 0.0)
-   (frame-count :initform 1))
+   (previous-seconds :initform 0.0))
   (:documentation "A collection of objects and a vieweport."))
 
 (defmacro with-viewer-lock ((viewer) &body body)
@@ -139,13 +138,14 @@
 
 (defmethod initialize ((viewer viewer) &key)
   (with-viewer-lock (viewer)
-    (with-slots (last-update-time objects view-xform) viewer
+    (with-slots (last-update-time objects view-xform view-changed) viewer
       (setf last-update-time 0)
       (loop
         :for (nil . object) :in objects
         :do
            (initialize object)
-           (set-uniform object "view_transform" view-xform :mat4)))))
+           (set-uniform object "view_transform" view-xform :mat4))
+      (setf view-changed t))))
 
 
 (defmethod cleanup ((viewer viewer))
@@ -170,57 +170,10 @@
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
   (cond
-    ;; ESC to exit
     ((and (eq key :escape) (eq action :press))
      (glfw:set-window-should-close window)
      t)
 
-    ;; r to rebuild shaders
-    ((and (eq key :r) (eq action :press))
-     (format t "Rebuilding shaders...~%")
-     (with-viewer-lock (viewer)
-       (with-slots (objects view-changed) viewer
-         (loop :for (nil . object) :in objects :do
-           (ensure-initialized object)
-           (rebuild-style object))
-         (setf view-changed t)))
-     t)
-
-    ;; f to refill buffers
-    ((and (eq key :b) (eq action :press))
-     (format t "Reloading buffers ~%")
-     (with-viewer-lock (viewer)
-       (with-slots (blend) viewer
-         (setf blend (not blend)))
-       t))
-
-    ;; i to show gl info
-    ((and (eq key :i) (eq action :press))
-     (show-open-gl-info)
-     (show-info viewer)
-     t)
-
-    ;; s to show gl state
-    ((and (eq key :s) (eq action :press))
-     (with-viewer-lock (viewer)
-       (show-gl-state))
-     t)
-
-    ((and (eq key :v) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (view-changed) viewer
-         (format t "Setting view changed to ~a~%" (not view-changed))
-         (setf view-changed (not view-changed)))
-       t))
-
-    ;; f to toggle printing fps
-    ((and (eq key :f) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (show-fps) viewer
-         (setf show-fps (not show-fps)))
-       t))
-
-    ;; f1
     ((and (eq key :f1) (eq action :press))
      (with-viewer-lock (viewer)
        (with-slots (cull-face) viewer
@@ -238,6 +191,62 @@
                               :cw))
          (format t "Front face: ~a~%" front-face))
        t))
+
+    ((and (eq key :f3) (eq action :press))
+     (format t "Rebuilding shaders...~%")
+     (with-viewer-lock (viewer)
+       (with-slots (objects view-changed) viewer
+         (loop :for (nil . object) :in objects :do
+           (ensure-initialized object)
+           (rebuild-style object))
+         (setf view-changed t)))
+     t)
+
+    ((and (eq key :f4) (eq action :press))
+     (format t "Reloading textures...~%")
+     (with-viewer-lock (viewer)
+       (with-slots (objects view-changed) viewer
+         (loop :for (nil . object) :in objects :do
+           (ensure-initialized object)
+           (refill-textures object))
+         (setf view-changed t)))
+     t)
+
+    ((and (eq key :f5) (eq action :press))
+     (format t "Refilling buffers~%")
+     (with-viewer-lock (viewer)
+       (with-slots (objects view-changed) viewer
+         (loop :for (nil . object) :in objects :do
+           (ensure-initialized object)
+           (reload-buffers object))
+         (setf view-changed t)))
+     t)
+
+
+    ((and (eq key :f6) (eq action :press))
+     (format t "Toggling blending ~%")
+     (with-viewer-lock (viewer)
+       (with-slots (blend) viewer
+         (setf blend (not blend)))
+       t))
+
+    ((and (eq key :f7) (eq action :press))
+     (show-open-gl-info)
+     (show-info viewer)
+     t)
+
+    ((and (eq key :f8) (eq action :press))
+     (with-viewer-lock (viewer)
+       (show-gl-state))
+     t)
+
+    ((and (eq key :f9) (eq action :press))
+     (with-viewer-lock (viewer)
+       (with-slots (show-fps) viewer
+         (setf show-fps (not show-fps)))
+       t))
+
+
     ((and (eq key :f12) (eq action :press))
      ;; TODO: Run this in a background thread?
      (let* ((win-size (glfw:get-window-size))
@@ -297,18 +306,19 @@
                camera-position
                last-update-time
                seconds-between-updates) viewer
-    (flet ((update-object (obj)
-             (let ((object (cdr obj)))
-               (when view-changed
-                 (set-uniform object "camera_position" camera-position :vec3)
-                 (set-uniform object "view_transform" view-xform :mat4))
-               (set-uniform object "time" elapsed-seconds :float)
-               (cond
-                 ((not (initialized-p object))
-                  object)
-                 ((> (- elapsed-seconds last-update-time) seconds-between-updates)
-                  (multiple-value-list (update object elapsed-seconds)))
-                 (t nil)))))
+    (flet
+        ((update-object (obj)
+           (let ((object (cdr obj)))
+             (when view-changed
+               (set-uniform object "camera_position" camera-position :vec3)
+               (set-uniform object "view_transform" view-xform :mat4))
+             (set-uniform object "time" elapsed-seconds :float)
+             (cond
+               ((not (initialized-p object))
+                object)
+               ((> (- elapsed-seconds last-update-time) seconds-between-updates)
+                (multiple-value-list (update object elapsed-seconds)))
+               (t nil)))))
       (let ((update-results (lparallel:pmapcar #'update-object objects)))
         (loop
           :for obj :in update-results
@@ -405,8 +415,7 @@
                  (gl:enable :line-smooth
                             :polygon-smooth
                             :depth-test
-                            :program-point-size
-                            )
+                            :program-point-size)
                  (gl:depth-func :lequal)
 
                  ;; The event loop
@@ -525,33 +534,44 @@
     (let ((this-ws (indent-whitespace indent)))
       (show-slots this-ws viewer  '(objects view-xform aspect-ratio show-fps desired-fps
                                     cull-face front-face background-color
-                                    window previous-seconds frame-count))
+                                    window previous-seconds))
       (loop for (nil . object) in (objects viewer) :do
         (show-info object :indent (1+ indent))))))
 
 (defgeneric add-object (viewer name object))
 (defmethod add-object (viewer name object)
   (with-viewer-lock (viewer)
-    (with-slots (objects) viewer
+    (with-slots (objects view-changed) viewer
       (when (null (assoc name objects))
-        (push (cons name object) objects)))))
+        (push (cons name object) objects)
+        (setf view-changed t)))))
 
 (defgeneric rm-object (viewer name))
 (defmethod rm-object (viewer name)
   (with-viewer-lock (viewer)
-    (with-slots (objects discarded-objects) viewer
+    (with-slots (objects discarded-objects view-changed) viewer
       (when (assoc name objects)
         (push (assoc name objects) discarded-objects)
-        (setf objects (remove name objects :key #'car))))))
+        (setf objects (remove name objects :key #'car))
+        (setf view-changed t)))))
 
 (defgeneric replace-object (viewer name object))
 (defmethod replace-object (viewer name object)
   (with-viewer-lock (viewer)
-    (with-slots (objects discarded-objects) viewer
+    (with-slots (objects discarded-objects view-changed) viewer
       (when (assoc name objects)
         (push (assoc name objects) discarded-objects)
         (setf objects (remove name objects :key #'car))
-        (push (cons name object) objects)))))
+        (push (cons name object) objects)
+        (setf view-changed t)))))
+
+;; Note: This is won't work with functions like #'fill-texture because they run in the wrong thread.
+(defgeneric call-with-object (viewer name function))
+(defmethod call-with-object (viewer name function)
+  (with-viewer-lock (viewer)
+    (with-slots (objects discarded-objects view-changed) viewer
+      (when-let  (it (assoc-value objects name))
+        (setf view-changed (not (null (funcall function it))))))))
 
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))

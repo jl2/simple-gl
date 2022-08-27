@@ -26,30 +26,26 @@
   (set-buffer object :vertices
               (constant-attribute-buffer
 
-               '(-1.0f0 0.0f0 -1.0f0
-                 0.0f0 0.0f0
+               (list
+                 (vec3 -1.0f0 -1.0f0 0.0f0)
+                 (vec2 0.0f0 0.0f0)
 
-                 1.0f0 0.0f0 -1.0f0
-                 1.0f0 0.0f0
+                 (vec3 1.0f0 -1.0f0 0.0f0)
+                 (vec2 1.0f0 0.0f0)
 
-                 1.0f0 0.0f0  1.0f0
-                 1.0f0 1.0f0
+                 (vec3 1.0f0  1.0f0 0.0f0)
+                 (vec2 1.0f0 1.0f0)
 
-                 -1.0f0 0.0f0 1.0f0
-                 0.0f0 1.0f0)
-
+                 (vec3 -1.0f0 1.0f0 0.0f0)
+                 (vec2 0.0f0 1.0f0))
+               (* 4 5)
                '(("in_position" . :vec3)
-                 ("in_tex" . :vec2))
-
-               :free t))
+                 ("in_tex" . :vec2))))
 
   (set-buffer object
               :indices
               (make-instance 'index-buffer
                              :idx-count 6
-                 :pointer (to-gl-array :unsigned-int
-                                       6
-                                       '(0 1 2 0 3 2))
-                             :stride nil
-                             :usage :static-draw
-                             :free t)))
+                             :pointer (to-gl-array :unsigned-int
+                                                   6
+                                                   '(0 1 2 2 3 0)))))

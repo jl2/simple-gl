@@ -37,7 +37,7 @@
 
 (defmethod fill-texture ((object texture) elapsed-time)
   (declare (ignorable elapsed-time))
-  (with-slots (parameters tex-type textures) object
+  (with-slots (parameters tex-type) object
     (dolist (param parameters)
       (gl:tex-parameter tex-type (car param) (cdr param)))
     (gl:tex-image-2d tex-type 0 :rgba 1 1 0 :rgba :unsigned-byte #(255 0 0 255))

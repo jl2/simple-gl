@@ -95,7 +95,6 @@
   (:documentation "Set a generic's value and optionally type."))
 
 (defmethod set-value (uniform new-value &optional (new-type nil))
-  "Set a uniform's value."
   (with-slots (value modified type) uniform
     (setf value new-value)
     (when new-type

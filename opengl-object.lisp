@@ -7,7 +7,8 @@
 
 (defclass opengl-object ()
   ((vao :initform 0
-        :type fixnum)
+        :type fixnum
+        :accessor vao)
    (name :initform "GL Object"
          :initarg :name
          :type string)
@@ -37,8 +38,7 @@
   (:documentation "Bind the correct VAO and build object's shader programs."))
 
 (defmethod initialized-p ((object opengl-object))
-  (with-slots (buffers) object
-    (not (null buffers))))
+  (not (zerop (vao object))))
 
 (defun ensure-initialized (object)
   (when (not (initialized-p object))
@@ -103,7 +103,6 @@
                 (assoc name uniforms :test #'string=))
            (set-value (alexandria:assoc-value uniforms name :test #'string=) value type))
           ((null (assoc name uniforms :test #'string=))
-           (format t "Adding new uniform...~%")
            (push (cons name (make-instance 'uniform :name name
                                                     :type type
                                                     :value value))
@@ -118,10 +117,9 @@
   (cleanup object))
 
 (defmethod initialize ((object opengl-object) &key)
-  (with-slots (vao styles) object
-    (when (/= 0 vao)
-      (error "initialize called on object where vao != 0 ~a" object))
-
+  (when (initialized-p object)
+    (error "initialize called on object where vao != 0 ~a" object))
+  (with-slots (vao styles initialized) object
     (setf vao (gl:gen-vertex-array))
     (gl:bind-vertex-array vao)
 
@@ -131,6 +129,13 @@
     (initialize-buffers object)
     (initialize-uniforms object)
     (initialize-textures object)))
+
+(defgeneric rebuild-style (object))
+(defgeneric refill-textures (object))
+(defgeneric reload-buffers (object))
+
+(defmethod reload-buffers (object)
+  t)
 
 (defmethod rebuild-style ((object opengl-object))
   (bind object)
@@ -147,19 +152,28 @@
 
     (loop :for (nil . uniform) :in uniforms :do
       (loop :for (nil . style) :in styles :do
-        (use-uniform uniform (program style))))))
+        (use-uniform uniform (program style)))))
+  t)
+
+
+(defmethod refill-textures ((object opengl-object))
+  (bind object)
+  (with-slots (textures buffers uniforms) object
+    (loop :for texture :in textures :do
+      (cleanup texture)
+      (initialize texture)))
+  t)
 
 (defmethod initialize-uniforms ((object opengl-object) &key)
   (set-uniform object "obj_transform" (meye 4) :mat4)
   (set-uniform object "view_transform" (meye 4) :mat4)
   t)
 
-(defun constant-attribute-buffer (data attributes &key (free t) (usage :static-draw))
+(defun constant-attribute-buffer (data float-count attributes &key (free t) (usage :static-draw))
   (make-instance 'attribute-buffer
-                 :pointer (to-gl-array
-                           :float
-                           (length data)
-                           data)
+                 :pointer (to-gl-array :float
+                                       float-count
+                                       data)
                  :stride nil
                  :attributes attributes
                  :usage usage
@@ -171,8 +185,6 @@
                  :pointer (to-gl-array :unsigned-int
                                        count
                                        (loop :for i :below count :collecting i))
-                 :stride nil
-                 :usage :static-draw
                  :free free))
 
 
@@ -182,20 +194,19 @@
 
   (set-buffer object :vertices
               (constant-attribute-buffer
-               (list -1.0f0 -1.0f0 0.0f0
-                     0.1f0 0.8f0 0.1f0 1.0f0
-
-                     1.0f0 -1.0f0 0.0f0
-                     0.1f0 0.8f0 0.1f0 1.0f0
-
-                     0.0f0 1.0f0 0.0f0
-                     0.1f0 0.8f0 0.1f0 1.0f0)
-               '(("in_position" . :vec3) ("in_color" . :vec4))
-               :free nil))
+               (list
+                 (vec3 -1.0f0 -1.0f0 0.0f0)
+                 (vec4 0.1f0 0.8f0 0.1f0 1.0f0)
+                 (vec3 1.0f0 -1.0f0 0.0f0)
+                 (vec4 0.1f0 0.8f0 0.1f0 1.0f0)
+                 (vec3 0.0f0 1.0f0 0.0f0)
+                 (vec4 0.1f0 0.8f0 0.1f0 1.0f0))
+               (* 7 3)
+               '(("in_position" . :vec3) ("in_color" . :vec4))))
 
   (set-buffer object
               :indices
-              (constant-index-buffer 3 :free nil)))
+              (constant-index-buffer 3)))
 
 (defmethod initialize-textures ((object opengl-object) &key)
   (declare (ignorable object))
@@ -225,8 +236,6 @@
       (gl:bind-vertex-array 0)
       (gl:delete-vertex-arrays (list vao))
       (setf buffers nil)
-      (setf uniforms nil)
-      (setf textures nil)
       (setf vao 0))))
 
 (defmethod bind ((object opengl-object))
@@ -241,10 +250,10 @@
     (loop :for (nil . style) :in styles :do
       (use-style style)
       (loop :for (nil . uniform) :in uniforms :do
-        (use-uniform uniform (program style))
-        (gl:draw-elements primitive-type
-                          (gl:make-null-gl-array :unsigned-int)
-                          :count (idx-count (assoc-value buffers :indices)))))))
+        (use-uniform uniform (program style)))
+      (gl:draw-elements primitive-type
+                        (gl:make-null-gl-array :unsigned-int)
+                        :count (idx-count (assoc-value buffers :indices))))))
 
 (defun set-buffer (object buffer-name buffer)
   (declare (type opengl-object object)

@@ -10,9 +10,7 @@
    (target :initform :array-buffer :initarg :target :accessor target)
    (usage :initform :static-draw :initarg :usage :accessor usage)
    (stride :initform nil :initarg :stride)
-   (free :initform t :initarg :free)
-   (needs-rebind :initform t :initarg :needs-rebind :accessor needs-rebind)
-   (needs-realloc :initform t :initarg :needs-realloc :accessor needs-realloc))
+   (free :initform t :initarg :free))
   (:documentation "An OpenGL buffer object."))
 
 (defclass attribute-buffer (buffer)
@@ -233,13 +231,21 @@
 
 (defmethod reload ((buffer buffer))
   (bind buffer)
-  (with-slots (pointer target) buffer
+  (with-slots (pointer free target) buffer
     (when (null pointer)
       (error "Cannot refill buffer from nil."))
-    (gl:buffer-sub-data target pointer)))
+    (gl:buffer-sub-data target pointer)
+    (when (and free pointer)
+      (gl:free-gl-array pointer)
+      (setf pointer nil))))
 
 
-(declaim (inline gl-fset gl-iset gl-get to-gl-float-array to-gl-array fill-pointer-offset fill-buffer))
+(declaim (inline
+          gl-fset gl-iset gl-dset
+          gl-get
+          to-gl-array
+          fill-pointer-offset
+          fill-buffer))
 (defun gl-iset (array idx value)
   "Set array position idx to value. value must be a fixnum"
   (declare (optimize (speed 3))
