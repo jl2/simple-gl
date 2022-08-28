@@ -1,0 +1,16 @@
+* sgl-test
+** About
+This is a project for playing with my simple-gl library.
+
+
+Some of this is based on [[https://web.engr.oregonstate.edu/~mjb/cs519/Handouts/tessellation.1pp.pdf][these slides]].
+
+** License
+ISC
+
+
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
+* TODO List
+
