@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# merge-repos
+# Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+# The packages in the plugins directory were originally kept in separate Git repositories.
+# After a while, I realized it would be easier to keep them in the simple-gl repository
+# because they often need to change when simple-gl is changed.
+
+# I used this script to merge the separate repositories into one
+
+# The common URL component for my GitHub repos
+github_url="git@github.com:jl2/"
+
+# The parent repository that will have other repos merged into it
+parent_repo=simple-gl
+
+# Parent directory of the parent repo.
+base_dir="$HOME/src/lisp"
+
+# The directory where the remote repositories will be cloned
+# They'll be removed once they are merged into $parent_repo
+temp_dir="/tmp"
+
+# The name of the sub-directory that the other repos will be moved into
+# The child projects will be located in  "$parent_repo/$new_sub_dir/$repo"
+new_sub_dir=plugins
+
+# These are the repositories that will be merged into $parent_repo
+repos=("sgl-automata" \
+           "sgl-blend2d-texture" \
+           "sgl-dynamic-system" \
+           "sgl-fractal" \
+           "sgl-test" \
+      )
+
+for repo in "${repos[@]}"; do
+
+echo "Cloning $repo into $temp_dir/$repo"
+cd "$base_dir"
+git clone "$github_url$repo.git" "$temp_dir/$repo"
+
+echo "Filtering $repo files into $new_sub_dir"
+(cd "$temp_dir/$repo"
+ time git filter-repo --to-subdirectory-filter "$new_sub_dir/$repo" --tag-rename ":$repo-"
+)
+
+echo "Adding remote for $repo to $parent_repo and merging"
+(cd "$base_dir/$parent_repo"
+ git checkout master
+ git remote add "$repo" "$temp_dir/$repo"
+ git fetch "$repo" --tags
+ git merge --allow-unrelated-histories  "$repo/master"
+)
+
+echo "Removing $temp_dir/$repo"
+rm -Rf "$temp_dir/$repo"
+
+done
