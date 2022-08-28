@@ -48,7 +48,7 @@ vec4 bsJsColor(int maxIter, vec2 pos) {
      // red =   clamp(pow((1.0 - fi), zy), 0.0, 1.0);
      // green = clamp(pow(fi, abs(sin(zy))), 0.0, 1.0);
      // blue =  clamp(abs(tan(fi - sin( zx))), 0.0, 1.0);
--
+
      return vec4(red, green, blue, 1.0);
 }
 

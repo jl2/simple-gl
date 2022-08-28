@@ -4,40 +4,117 @@ This package uses simple-gl to display fractals using GLSL.
 
 ** Example
 #+begin_src lisp
-  (ql:quickload '(:spacenav :sgl-fractal :3d-vectors :alexandria))
+  (ql:quickload '(:spacenav :simple-gl :sgl-fractal :3d-vectors :alexandria))
   (use-package :3d-vectors)
-  (sgl:display (sgl-fractal:mandelbrot-viewer))
-  (sgl:display (sgl-fractal:cubic-julia-set-viewer :real -0.3002491 :imag 0.6814959))
-  (sgl:display (sgl-fractal:burning-ship-viewer))
-  (sgl:display (sgl:fractal:cubic-bs-js-viewer
-                :real 0.5484568031713148d0 :imag -0.49384509731658854d0))
-  (sgl:display (sgl-fractal:bs-js-viewer
-                :real -1.5057239992026854d0 :imag -0.4609143758687352d0))
-  (sgl:display (sgl-fractal:cubic-bs-js-viewer
-                :real 0.5292035989496411d0 :imag -0.5279432657162864d0))
-  (sgl:display (sgl-fractal:bs-js-viewer
-                :real -0.328528436850382d0 :imag 0.18830130447285628d0))
-  (sgl:display (sgl-fractal:bs-js-viewer
-                :real -1.2979205493836528d0 :imag -0.025842545896878462d0))
-  (sgl:display (sgl-fractal:bs-js-viewer
-                :real 0.5202565197049642d0 :imag -0.6287315930374843d0))
-  (sgl:display (sgl-fractal:bs-js-viewer
-                :real -0.9147363222395052d0 :imag -0.1615519494159263d0))
-  (sgl:display (sgl-fractal:cubic-bs-js-viewer
-                :real 0.5923823240474674D0 :imag 0.49177080397132106D0))
-  (sgl:display (sgl-fractal:cubic-bs-js-viewer :real -0.4922855 :imag -2.4807572))
-  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
-    (format t "location: ~a~%" (complex real imag))
-    (sgl:display (sgl-fractal:julia-set-viewer :real real :imag imag)))
-  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
-    (format t "location: ~a~%" (complex real imag))
-    (sgl:display (sgl-fractal:bs-js-viewer :real real :imag imag)))
-  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
-    (format t "location: ~a~%" (complex real imag))
-    (sgl:display (sgl-fractal:cubic-bs-js-viewer :real real :imag imag)))
 #+end_src
 
 #+RESULTS:
+: T
+
+#+begin_src lisp
+  (sgl:display (sgl-fractal:mandelbrot-viewer))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1029FE70CB}> :STATUS :SCHEDULED {1029FE7143}>
+
+#+begin_src lisp
+  (sgl:display (sgl-fractal:cubic-mandelbrot-viewer))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {10225582DB}> :STATUS :SCHEDULED {1022558353}>
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:cubic-julia-set-viewer :real -0.3002491 :imag 0.6814959))
+#+end_src
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:burning-ship-viewer))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102221501B}> :STATUS :SCHEDULED {1022215093}>
+
+#+begin_src lisp
+    (sgl:display (sgl:fractal:cubic-bs-js-viewer
+                  :real 0.5484568031713148d0 :imag -0.49384509731658854d0))
+#+end_src
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:bs-js-viewer
+                  :real -1.5057239992026854d0 :imag -0.4609143758687352d0))
+#+end_src
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:cubic-bs-js-viewer
+                  :real 0.5292035989496411d0 :imag -0.5279432657162864d0))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {101F86A5FB}> :STATUS :SCHEDULED {101F91E943}>
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:bs-js-viewer
+                  :real -0.328528436850382d0 :imag 0.18830130447285628d0))
+#+end_src
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:bs-js-viewer
+                  :real -1.2979205493836528d0 :imag -0.025842545896878462d0))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {101130721B}> :STATUS :SCHEDULED {1011307293}>
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:bs-js-viewer
+                  :real 0.5202565197049642d0 :imag -0.6287315930374843d0))
+#+end_src
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:bs-js-viewer
+                  :real -0.9147363222395052d0 :imag -0.1615519494159263d0))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {101688FCAB}> :STATUS :SCHEDULED {101688FD23}>
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:cubic-bs-js-viewer
+                  :real 0.5923823240474674D0 :imag 0.49177080397132106D0))
+#+end_src
+
+#+begin_src lisp
+    (sgl:display (sgl-fractal:cubic-bs-js-viewer :real -0.4922855 :imag -2.4807572))
+#+end_src
+
+#+begin_src lisp
+    (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+      (format t "location: ~a~%" (complex real imag))
+      (sgl:display (sgl-fractal:julia-set-viewer :real real :imag imag)))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {10216DE1EB}> :STATUS :SCHEDULED {10216DE263}>
+
+#+begin_src lisp
+    (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+      (format t "location: ~a~%" (complex real imag))
+      (sgl:display (sgl-fractal:bs-js-viewer :real real :imag imag)))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {101E50FD8B}> :STATUS :SCHEDULED {101E50FE03}>
+
+#+begin_src lisp
+    (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+      (format t "location: ~a~%" (complex real imag))
+      (sgl:display (sgl-fractal:cubic-bs-js-viewer :real real :imag imag)))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102054512B}> :STATUS :SCHEDULED {10205451A3}>
 
 ** TODO
 *** Reduce copy/paste by setting complex fractal using a uniform

@@ -10,31 +10,38 @@
 
    Use the arrow keys to rotate the display and PageUp and PageDown to zoom in and out.
 
-   #+begin_src lisp
-     (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
-     (use-package :3d-vectors)
-     (let ((ds (sglds:create-dynamic-system 10 200 10
-                                            (vec3 (* -12 pi) -6.0 (* -12 pi))
-                                            (vec3 (* 12 pi)  6.0 (* 12 pi))))
-           (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
-       (sgl:add-object viewer :dynamic-system ds)
-       (sgl:display viewer)
-       viewer)
-      #+end_src
-      #+RESULTS:
-      : #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {1023A7E9E3}>
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
+  (use-package :3d-vectors)
+#+end_src
+
+#+RESULTS:
+: T
+
+#+begin_src lisp
+  (defparameter *viewer* (make-instance 'sgl:3d-mouse-nav-viewer))
+
+  (sgl:add-object *viewer*
+                  :dynamic-system (sglds:create-dynamic-system 10 200 10
+                                                               (vec3 (* -12 pi) -6.0 (* -12 pi))
+                                                               (vec3 (* 12 pi)  6.0 (* 12 pi))))
+  (sgl:display *viewer*)
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102643A73B}> :STATUS :SCHEDULED {10264EDB93}>
       
-   #+begin_src lisp
-     (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
-     (use-package :3d-vectors)
-     (let ((ds (sglds:create-strange-attractor 10000 3.0))
-           (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
-       (sgl:add-object viewer :dynamic-system ds)
-       (sgl:display viewer)
-       viewer)
-      #+end_src
-      #+RESULTS:
-      : #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {10224A8933}>
+#+begin_src lisp
+  (defparameter *viewer* (make-instance 'sgl:3d-mouse-nav-viewer))
+
+  (sgl:add-object *viewer*
+                  :attractor (sglds:create-strange-attractor 10000 3.0))
+
+  (sgl:display *viewer*)
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1027B8545B}> :STATUS :SCHEDULED {1027B854D3}>
 
 ** Tinkering
 

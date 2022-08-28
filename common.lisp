@@ -48,11 +48,18 @@
 (defgeneric handle-click (object window click-info)
   (:documentation "Handle a mouse click."))
 
-(defgeneric handle-scroll (bject window cpos x-scroll y-scroll)
+(defgeneric handle-scroll (object window cpos x-scroll y-scroll)
   (:documentation "Handle scrolling."))
 
 (defgeneric handle-resize (object window width height)
   (:documentation "Handle window resize."))
+
+(defgeneric initialized-p (object)
+  (:documentation "Returns nil if object is not initialized, non-nil otherwise."))
+
+(defgeneric build-style (object)
+  (:documentation "Bind the correct VAO and build object's shader programs."))
+
 
 (defun show-slots (white-space object slots)
   "Print the specified slots of object, one per line, indenting with white-space on each line.~

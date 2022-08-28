@@ -69,6 +69,7 @@
 
                        1.0f0 -1.0f0 0.0f0
                        real-max imag-min)
+                 20
                  '(("in_position" . :vec3) ("in_uv" . :vec2))
                  :free nil)))
 
@@ -155,7 +156,7 @@
       (pan-complex-fractal-window (complex xm ym) object)))
   (update-bounds object))
 
-(defmethod sgl:handle-key ((object complex-window) window key scancode action mod-keys)
+(defmethod handle-key ((object complex-window) window key scancode action mod-keys)
   (declare (ignorable window key scancode action mod-keys))
   (let* ((pan-offset 0.025)
          (zoom-in-percent 1.05)

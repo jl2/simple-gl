@@ -7,14 +7,21 @@ Automota animations in OpenGL.
 #+begin_src lisp
   (ql:quickload '(:spacenav :simple-gl :3d-vectors :sgl-automata))
   (use-package :3d-vectors)
-  (let ((gol (sgla:create-game-of-life 256 256
-                                       :max-instances (* 256 256)))
-        (viewer (make-instance 'sgl:viewer
-                               :seconds-between-updates (/ 1.0 10))))
-    (sgl:add-object viewer :game-of-life gol)
-    (sgl:display viewer)
-    viewer)
 #+end_src
+
+#+RESULTS:
+: T
+
+#+begin_src lisp
+(defparameter *viewer* (make-instance 'sgl:viewer
+                               :seconds-between-updates (/ 1.0 10)))
+  (sgl:add-object *viewer* :game-of-life (sgla:create-game-of-life 256 256
+                                                                   :max-instances (* 256 256)))
+  (sgl:display *viewer*)
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1019DBE9CB}> :STATUS :SCHEDULED {101A0391B3}>
 
 ** License
 ISC

@@ -31,12 +31,6 @@
    (primitive-type :initform :triangles))
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
-(defgeneric initialized-p (object)
-  (:documentation "Returns nil if object is not initialized, non-nil otherwise."))
-
-(defgeneric build-style (object)
-  (:documentation "Bind the correct VAO and build object's shader programs."))
-
 (defmethod initialized-p ((object opengl-object))
   (not (zerop (vao object))))
 
