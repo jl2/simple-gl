@@ -1,0 +1,54 @@
+* sgl-dynamic-system
+
+** About
+
+   This is a small package for visualizing dynamical systems from the Clifford Pickover's book
+   "Computers, Pattern, Chaos and Beauty".  It's mainly a convenient way to learn about OpenGL
+   geometry shaders.
+
+** Example
+
+   Use the arrow keys to rotate the display and PageUp and PageDown to zoom in and out.
+
+   #+begin_src lisp
+     (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
+     (use-package :3d-vectors)
+     (let ((ds (sglds:create-dynamic-system 10 200 10
+                                            (vec3 (* -12 pi) -6.0 (* -12 pi))
+                                            (vec3 (* 12 pi)  6.0 (* 12 pi))))
+           (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
+       (sgl:add-object viewer :dynamic-system ds)
+       (sgl:display viewer)
+       viewer)
+      #+end_src
+      #+RESULTS:
+      : #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {1023A7E9E3}>
+      
+   #+begin_src lisp
+     (ql:quickload '(:spacenav :simple-gl :sgl-dynamic-system))
+     (use-package :3d-vectors)
+     (let ((ds (sglds:create-strange-attractor 10000 3.0))
+           (viewer (make-instance 'sgl:3d-mouse-nav-viewer)))
+       (sgl:add-object viewer :dynamic-system ds)
+       (sgl:display viewer)
+       viewer)
+      #+end_src
+      #+RESULTS:
+      : #<SIMPLE-GL:3D-MOUSE-NAV-VIEWER {10224A8933}>
+
+** Tinkering
+
+   To change the function that's iterated, edit `fx` in [[https://github.com/jl2/sgl-dynamic-system/blob/master/shaders/ds-geometry.glsl][shaders/ds-geometry.glsl]] and type 'r' in the viewer.
+
+** Screenshots
+   [[https://photos.smugmug.com/photos/i-kQnn2Gg/0/190a8b39/O/i-kQnn2Gg.png]]
+      
+   [[https://photos.smugmug.com/photos/i-x4ZmGW8/0/19e39848/O/i-x4ZmGW8.png]]
+      
+** License
+ISC
+
+
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
