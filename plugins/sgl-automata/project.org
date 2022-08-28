@@ -1,0 +1,29 @@
+* sgl-automata
+** About
+Automota animations in OpenGL.
+
+** Examples
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :3d-vectors :sgl-automata))
+  (use-package :3d-vectors)
+  (let ((gol (sgla:create-game-of-life 256 256
+                                       :max-instances (* 256 256)))
+        (viewer (make-instance 'sgl:viewer
+                               :seconds-between-updates (/ 1.0 10))))
+    (sgl:add-object viewer :game-of-life gol)
+    (sgl:display viewer)
+    viewer)
+#+end_src
+
+** License
+ISC
+
+
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
+
+
+* Plan
+** TODO Fill in a TODO list.
