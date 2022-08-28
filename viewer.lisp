@@ -306,31 +306,33 @@
                camera-position
                last-update-time
                seconds-between-updates) viewer
-    (flet
-        ((update-object (obj)
-           (let ((object (cdr obj)))
-             (when view-changed
-               (set-uniform object "camera_position" camera-position :vec3)
-               (set-uniform object "view_transform" view-xform :mat4))
-             (set-uniform object "time" elapsed-seconds :float)
-             (cond
-               ((not (initialized-p object))
-                object)
-               ((> (- elapsed-seconds last-update-time) seconds-between-updates)
-                (multiple-value-list (update object elapsed-seconds)))
-               (t nil)))))
-      (let ((update-results (lparallel:pmapcar #'update-object objects)))
-        (loop
-          :for obj :in update-results
-          :when (and obj (atom obj)) :do
-            (initialize obj)
-            (setf last-update-time elapsed-seconds)
-          :when (consp obj) :do
-            (setf last-update-time elapsed-seconds)
-            (dolist (buffer obj)
-              (when buffer
-                (reload buffer))))))
-    (setf view-changed nil)))
+    (let ((was-view-changed view-changed))
+      ;; Change this back immediately
+      (setf view-changed nil)
+      (flet
+          ((update-object (obj)
+             (let ((object (cdr obj)))
+               (when was-view-changed
+                 (set-uniform object "camera_position" camera-position :vec3)
+                 (set-uniform object "view_transform" view-xform :mat4))
+               (set-uniform object "time" elapsed-seconds :float)
+               (cond
+                 ((not (initialized-p object))
+                  object)
+                 ((> (- elapsed-seconds last-update-time) seconds-between-updates)
+                  (multiple-value-list (update object elapsed-seconds)))
+                 (t nil)))))
+        (let ((update-results (lparallel:pmapcar #'update-object objects)))
+          (loop
+            :for obj :in update-results
+            :when (and obj (atom obj)) :do
+              (initialize obj)
+              (setf last-update-time elapsed-seconds)
+            :when (consp obj) :do
+              (setf last-update-time elapsed-seconds)
+              (dolist (buffer obj)
+                (when buffer
+                  (reload buffer)))))))))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer
