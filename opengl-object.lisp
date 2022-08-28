@@ -135,6 +135,11 @@
 (defgeneric reload-buffers (object))
 
 (defmethod reload-buffers (object)
+  (with-slots (buffers) object
+    (dolist (buffer buffers)
+      (cleanup (cdr buffer)))
+    (setf buffers nil)
+    (initialize-buffers object))
   t)
 
 (defmethod rebuild-style ((object opengl-object))

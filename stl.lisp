@@ -159,7 +159,7 @@
       (with-slots (instance-count) obj
         (setf instance-count 1)
         (set-buffer obj :colors (make-instance 'instance-buffer
-                                               :pointer (to-gl-array :float (* 4 instance-count) (vec4 0.4 0.8 0.4 1.0))
+                                               :pointer (to-gl-array :float (* 4 instance-count) (vec4 0.1 0.8 0.2 1.0))
                                                :attributes '(("in_color" . :vec4))
                                                :free t))
         (set-buffer obj :transforms (make-instance 'instance-buffer
