@@ -16,3 +16,14 @@
 ;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 (in-package :simple-gl)
+
+(defun new-sgl-plugin (project-name
+                       &rest deps)
+  "Create a new SGL plugin in the simple-gl plugins directory.
+An 'sgl- prefix will be added automatically."
+  (quickproject:make-project
+   (format nil
+           "~a/sgl-~a/"
+           (asdf:system-relative-pathname :simple-gl "plugins")
+           (string-downcase (format nil "~a" project-name)))
+   :depends-on (concatenate 'list '(:simple-gl :j-utils :alexandria) deps)))

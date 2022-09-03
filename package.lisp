@@ -27,6 +27,8 @@
 
   (:export #:*shader-dirs*  ;; The search paths for shaders
 
+           #:new-sgl-plugin
+
            ;; Shared methods
            #:cleanup
            #:update
