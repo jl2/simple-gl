@@ -23,5 +23,6 @@
         #:simple-gl
         )
   (:export #:sgl-blend2d-texture
+           #:sgl-text-draw
            #:fill-texture
            #:draw-image))

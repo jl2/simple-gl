@@ -25,8 +25,17 @@
    (textures :initform nil))
   (:documentation "Texture drawn by Blend2D."))
 
-(defgeneric draw-image (obj img ctx size))
+(defmethod fill-texture ((obj sgl-blend2d-texture) elapsed-time)
+  (with-slots (size textures) obj
+    (bl:with-memory-image-context*
+        (img ctx :width size :height size)
+        ((data bl:image-data))
+      (draw-image obj img ctx size)
+      (bl:image-get-data img data)
+      (gl:tex-image-2d :texture-2d 0 :rgba size size 0 :rgba :unsigned-byte (bl:image-data.pixel-data data))
+      (gl:generate-mipmap :texture-2d))))
 
+(defgeneric draw-image (obj img ctx size))
 (defmethod draw-image ((obj sgl-blend2d-texture) img ctx size)
   (declare (ignorable obj img ctx size))
   (bl:with-objects
@@ -43,12 +52,34 @@
           (bl:lookup-error (bl:context-set-fill-style-rgba32 ctx (random #16rffffffff)))
           (bl:lookup-error (bl:context-fill-geometry ctx bl:+geometry-type-circle+ circle))))))
 
-(defmethod fill-texture ((obj sgl-blend2d-texture) elapsed-time)
-  (with-slots (size textures) obj
-    (bl:with-memory-image-context*
-        (img ctx :width size :height size)
-        ((data bl:image-data))
-      (draw-image obj img ctx size)
-      (bl:image-get-data img data)
-      (gl:tex-image-2d :texture-2d 0 :rgba size size 0 :rgba :unsigned-byte (bl:image-data.pixel-data data))
-      (gl:generate-mipmap :texture-2d))))
+
+(defmethod draw-image ((obj sgl-blend2d-texture) img ctx size)
+  (declare (ignorable obj img ctx size))
+  (let ((text "This is a test.")
+        (font-file-name "/usr/local/share/fonts/JuliaMono-Regular.ttf"))
+  (bl:with-objects
+      ((font bl:font-core)
+       (face bl:font-face-core)
+       (point bl:point-i))
+
+    (bl:lookup-error (bl:font-face-init face))
+    (bl:lookup-error (bl:font-face-create-from-file face font-file-name 0))
+    (bl:lookup-error (bl:font-init font))
+    (bl:lookup-error (bl:font-create-from-face font face 50.0d0))
+
+    (bl:lookup-error (bl:context-set-fill-style-rgba32 ctx #16r77ffffff))
+
+    (setf (bl:point-i.x point) 60)
+    (setf (bl:point-i.y point) 80)
+
+    (cffi:with-foreign-string (str text)
+      (bl:lookup-error (bl:context-fill-text-i  ctx point font str 15 bl:+text-encoding-utf8+)))
+
+    (cffi:with-foreign-array (arr #(0.785398d0) '(:array :double 1))
+      (bl:lookup-error (bl:context-matrix-op ctx bl:+matrix2d-op-rotate+ arr)))
+
+    (setf (bl:point-i.x point) 250)
+    (setf (bl:point-i.y point) 80)
+
+    (cffi:with-foreign-string (str text)
+      (bl:lookup-error (bl:context-fill-text-i ctx point font str 14 bl:+text-encoding-utf8+))))))
