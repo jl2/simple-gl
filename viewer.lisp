@@ -77,10 +77,6 @@
             :initarg :objects
             :type (or null cons)
             :accessor objects)
-   (view-xform :initform (meye 4)
-               :initarg :xform
-               :type mat4
-               :accessor viewport)
    (camera-position :initarg :camera-position
                     :initform (vec3 0 0 1)
                     :accessor camera-position)
@@ -138,13 +134,13 @@
 
 (defmethod initialize ((viewer viewer) &key)
   (with-viewer-lock (viewer)
-    (with-slots (last-update-time objects view-xform view-changed) viewer
+    (with-slots (last-update-time objects view-changed) viewer
       (setf last-update-time 0)
       (loop
         :for (nil . object) :in objects
         :do
            (initialize object)
-           (set-uniform object "view_transform" view-xform :mat4))
+           (set-uniform object "view_transform" (view-matrix viewer) :mat4))
       (setf view-changed t))))
 
 
@@ -164,9 +160,12 @@
          (cleanup object))
     (setf discarded-objects nil)))
 
-(defgeneric reset-view (viewer)
+(defgeneric reset-view-safe (viewer)
   (:documentation "Reset view to its initial conditions."))
 
+(defun reset-view (viewer)
+  (with-viewer-lock (viewer)
+    (reset-view-safe viewer)))
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
   (cond
@@ -301,7 +300,6 @@
 
 (defmethod update ((viewer viewer) elapsed-seconds)
   (with-slots (objects
-               view-xform
                view-changed
                camera-position
                last-update-time
@@ -314,7 +312,7 @@
              (let ((object (cdr obj)))
                (when was-view-changed
                  (set-uniform object "camera_position" camera-position :vec3)
-                 (set-uniform object "view_transform" view-xform :mat4))
+                 (set-uniform object "view_transform" (view-matrix viewer) :mat4))
                (set-uniform object "time" elapsed-seconds :float)
                (cond
                  ((not (initialized-p object))
@@ -534,7 +532,7 @@
 (defmethod show-info ((viewer viewer) &key (indent 0))
   (with-viewer-lock (viewer)
     (let ((this-ws (indent-whitespace indent)))
-      (show-slots this-ws viewer  '(objects view-xform aspect-ratio show-fps desired-fps
+      (show-slots this-ws viewer  '(objects aspect-ratio show-fps desired-fps
                                     cull-face front-face background-color
                                     window previous-seconds))
       (loop for (nil . object) in (objects viewer) :do
@@ -581,3 +579,7 @@
 (defun pause (viewer timeout)
   (sgl::with-viewer-lock (viewer)
     (sleep timeout)))
+
+(defgeneric view-matrix (viewer))
+(defmethod view-matrix ((viewer viewer))
+  (meye 4))

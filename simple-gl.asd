@@ -44,6 +44,7 @@
                (:file "viewer")
                (:file "offscreen-viewer")
                (:file "3d-mouse-nav-viewer")
+               (:file "quaternion-viewer")
                (:file "texture")
                (:file "gl-shader")
                (:file "style")

@@ -32,6 +32,7 @@ repos=("sgl-automata" \
            "sgl-dynamic-system" \
            "sgl-fractal" \
            "sgl-test" \
+           "sgl-hex-grid" \
       )
 
 for repo in "${repos[@]}"; do

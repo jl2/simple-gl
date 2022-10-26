@@ -136,7 +136,7 @@
 
 (defmethod show-info ((viewer offscreen-viewer) &key (indent 0))
   (let ((this-ws (indent-whitespace indent)))
-    (show-slots this-ws viewer  '(objects view-xform aspect-ratio show-fps desired-fps
+    (show-slots this-ws viewer  '(objects aspect-ratio show-fps desired-fps
                                   cull-face front-face background-color
                                   window previous-seconds frame-count))
     (with-slots (objects) viewer

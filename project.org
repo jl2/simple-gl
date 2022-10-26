@@ -5,19 +5,18 @@ This is a high level library for using OpenGL.
 
 ** Overview
 
-   This is a minimalist, modern OpenGL library based on GLFW.  It provides a framework for working
-   with shaders, buffers, textures, and user input.  The goal is to be a "playground" for OpenGL
-   development and make it easy to prototype OpenGL code.
+This is a minimalist, modern OpenGL library based on GLFW.  It provides a framework for working
+with shaders, buffers, textures, and user input.  The goal is to be a "playground" for OpenGL
+development and make it easy to prototype OpenGL code.
 
-   The smallest possible example, showing how to create a window with two instanced triangles (ESC to exit):
+The smallest possible example, showing how to create a window with two instanced triangles (ESC to exit):
    #+begin_src lisp
      (ql:quickload :simple-gl)
      (sgl:display-in (make-instance 'sgl:instanced-opengl-object) (make-instance 'sgl:viewer))
    #+end_src
-
    #+RESULTS:
 
-   To create more complicated graphics, create a subclass of `opengl-object`, or `instanced-opengl-object` and overload the 'initialize-buffers' method.
+To create more complicated graphics, create a subclass of `opengl-object`, or `instanced-opengl-object` and overload the 'initialize-buffers' method.
 
 #+begin_src lisp
   (defclass my-gl-object (sgl:opengl-object)
@@ -47,36 +46,49 @@ This is an example of how it will be used from a REPL:
 #+begin_src lisp
   (ql:quickload :simple-gl)
   (defparameter *viewer* (make-instance 'sgl:viewer))
-  (sgl:add-object *my-viewer*
-                  :torus-thing (make-instance
-                                'sgl:stl-file
-                                :file-name "/home/jeremiah/data/3d-models/torus-thing.stl"))
-  #+end_src lisp
+  (sgl:add-object *viewer*
+                    :torus-thing (make-instance
+                                  'sgl:stl-file
+                                  :file-name "/home/jeremiah/data/3d-models/torus-thing.stl"))
+#+end_src lisp
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl))
+  (defparameter *viewer* (make-instance 'sgl:3d-mouse-nav-viewer))
+  (sgl:add-object *viewer*
+                    :torus-thing (make-instance
+                                  'sgl:stl-file
+                                  :file-name "/home/jeremiah/data/3d-models/torus-thing.stl"))
+#+end_src lisp
 
-  #+begin_src lisp
-     (ql:quickload :simple-gl)
-     (defparameter *viewer* (make-instance 'sgl:viewer))
-     (sgl:display *viewer*)
-     (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))
-     (sgl:hide-viewer *viewer*)
-     (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
-     (sgl:show-viewer *viewer*)
-     (sgl:add-object *viewer* :third-object (make-instance 'sgl:opengl-object))
-     (sgl:with-viewer-lock () *viewer*
-       ;; Do something...
-       )
-     (sgl:rm-object *viewer* :second-object)
-     (when (sgl:viewer-isplayed-p *viewer*)
-       (sgl:hide-viewer *viewer*))
+#+begin_src lisp
+  (ql:quickload :simple-gl)
+  (defparameter *viewer* (make-instance 'sgl:viewer))
+  (sgl:display *viewer*)
+  (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))
+  (sgl:hide-viewer *viewer*)
+  (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
+  (sgl:show-viewer *viewer*)
+  (sgl:add-object *viewer* :third-object (make-instance 'sgl:opengl-object))
+  (sgl:with-viewer-lock () *viewer*
+         ;; Do something...
+         )
+  (sgl:rm-object *viewer* :second-object)
+  (when (sgl:viewer-isplayed-p *viewer*)
+    (sgl:hide-viewer *viewer*))
 
 #+end_src
 
 
-*** Plan
-**** DONE Add mutex to viewer class
-**** TODO Remove add-viewer, rm-viewer, find-viewer, etc.
-**** TODO Add display method that runs in the main thread and displays the viewer
-**** TODO Add methods and functions that lock viewer's mutex and manipulate viewer state (from any thread).
+* TODO Items
+** TODO Refactor/rename 3d-mouse-nav-viewer to radial-viewer
+** TODO Create 3d mouse navigation viewer that moves through the world using vector directions
+** TODO Refactor glfw out of viewer base class and into glfw-viewer
+** TODO offscreen-viewer classes
+** TODO Make rebuilding styles safer.  Right now, rebuilding with a syntax error causes a crash.
+** DONE Add mutex to viewer class
+** DONE Remove add-viewer, rm-viewer, find-viewer, etc.
+** DONE Add display method that runs in the main thread and displays the viewer
+** DONE Add methods and functions that lock viewer's mutex and manipulate viewer state (from any thread).
 
 
 ** License
@@ -88,7 +100,3 @@ Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
 
-* Other TODO Items
-** TODO Refactor glfw out of viewer base class and into glfw-viewer
-** TODO offscreen-viewer classes
-** TODO Make rebuilding styles safer.  Right now, rebuilding with a syntax error causes a crash.

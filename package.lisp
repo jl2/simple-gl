@@ -46,11 +46,14 @@
 
            ;; Viewer
            #:viewer
+           #:reset-view
+           #:reset-view-safe
            #:offscreen-viewer
            #:output-directory
            #:initial-height
            #:initial-width
            #:3d-mouse-nav-viewer
+           #:quaternion-viewer
            #:handle-3d-mouse-event
            #:handle-key
            #:constant-attribute-buffer
