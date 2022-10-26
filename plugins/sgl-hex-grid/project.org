@@ -1,0 +1,51 @@
+* sgl-hex-grid
+** About
+This is a project to do something.
+
+** Example
+#+begin_src lisp
+  (ql:quickload '(:spacenav :sgl-hex-grid))
+
+  (defparameter *viewer* (make-instance 'sgl:viewer
+                                        :seconds-between-updates 1/15))
+  (sgl:add-object *viewer* :hex-grid (shg:make-sgl-hex-grid))
+  (sgl:display *viewer*)
+
+#+end_src
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav :sgl-hex-grid :hex-grid))
+  (defparameter *viewer* (make-instance 'sgl:viewer
+                                        :desired-fps 60
+                                        :seconds-between-updates 1/10))
+  (sgl:display *viewer*)
+  (dotimes (i 24)
+    (sgl:add-object *viewer* i (shg:make-sgl-hex-grid
+                                :y-coord  (* (- i 8) 2)))
+    (sleep 0.25))
+#+end_src
+
+#+begin_src lisp
+  (dotimes (i 24)
+    (sgl:rm-object *viewer* i))
+#+end_src
+
+#+begin_src lisp
+  (sgl:replace-object *viewer*
+                      :hex-grid (shg:make-sgl-hex-grid
+                                 :initial-hex-grid (hg:make-hex-grid :min-hex (hg:oddr :col -32 :row -32)
+                                                                     :max-hex (hg:oddr :row 32 :col 32))))
+#+end_src
+
+#+begin_src lisp
+  (sgl:rm-object *viewer* :hex-grid)
+#+end_src
+
+** License
+ISC
+
+
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+* Plan
+** TODO Fill in a TODO list.
