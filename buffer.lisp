@@ -260,18 +260,19 @@
   "Set array position idx to value. value is coerced to a single-float."
   (declare (optimize (speed 3))
            (type fixnum idx)
+           (type single-float value)
            (type gl:gl-array array))
   (when (> idx (gl::gl-array-size array))
     (error "~a is outside of bounds for array." idx))
-  (setf (gl:glaref array idx) (coerce value 'single-float)))
+  (setf (gl:glaref array idx) value))
 
 (defun gl-dset (array idx value)
   "Set array position idx to value. value is coerced to a double-float."
   (declare (optimize (speed 3))
            (type fixnum idx)
-           (type number value)
+           (type double-float value)
            (type gl:gl-array array))
-  (setf (gl:glaref array idx) (coerce value 'double-float)))
+  (setf (gl:glaref array idx) value))
 
 (defun gl-get (array idx)
   "Return the array value at idx."
@@ -302,12 +303,6 @@
   (gl-fset ptr (+ 1 offset) (vy data))
   (+ 2 offset))
 
-(defmethod fill-pointer-offset ((data vector) ptr offset)
-  (loop
-    :for obj :across data
-    :for off = offset :then next-off
-    :for next-off = (fill-pointer-offset obj ptr off)
-    :finally (return next-off)))
 
 (defmethod fill-pointer-offset ((data vec3) ptr offset)
   (gl-fset ptr (+ 0 offset) (vx data))
@@ -338,12 +333,6 @@
        (gl-fset ptr (+ off offset) d)
     :finally (return (+ off offset))))
 
-(defmethod fill-pointer-offset ((data list) ptr offset)
-  (loop
-    :for obj :in data
-    :for off = offset :then next-off
-    :for next-off = (fill-pointer-offset obj ptr off)
-    :finally (return next-off)))
 
 (defmethod fill-pointer-offset ((data integer) ptr offset)
   (gl-iset ptr offset data)
@@ -352,6 +341,20 @@
 (defmethod fill-pointer-offset ((data real) ptr offset)
   (gl-fset ptr offset data)
   (1+ offset))
+
+(defmethod fill-pointer-offset ((data vector) ptr offset)
+  (loop
+    :for obj :across data
+    :for off = offset :then next-off
+    :for next-off = (fill-pointer-offset obj ptr off)
+    :finally (return next-off)))
+
+(defmethod fill-pointer-offset ((data list) ptr offset)
+  (loop
+    :for obj :in data
+    :for off = offset :then next-off
+    :for next-off = (fill-pointer-offset obj ptr off)
+    :finally (return next-off)))
 
 (defun show-gl-array (array &optional count)
   "Print the contents of array to standard out."

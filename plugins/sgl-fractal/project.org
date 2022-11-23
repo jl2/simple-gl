@@ -29,6 +29,9 @@ This package uses simple-gl to display fractals using GLSL.
     (sgl:display (sgl-fractal:cubic-julia-set-viewer :real -0.3002491 :imag 0.6814959))
 #+end_src
 
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {10210E07DB}> :STATUS :RUNNING {102118C7A3}>
+
 #+begin_src lisp
     (sgl:display (sgl-fractal:burning-ship-viewer))
 #+end_src
@@ -37,9 +40,12 @@ This package uses simple-gl to display fractals using GLSL.
 : #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102221501B}> :STATUS :SCHEDULED {1022215093}>
 
 #+begin_src lisp
-    (sgl:display (sgl:fractal:cubic-bs-js-viewer
+    (sgl:display (sgl-fractal:cubic-bs-js-viewer
                   :real 0.5484568031713148d0 :imag -0.49384509731658854d0))
 #+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {10377FEDFB}> :STATUS :SCHEDULED {10377FEEA3}>
 
 #+begin_src lisp
     (sgl:display (sgl-fractal:bs-js-viewer
@@ -78,12 +84,15 @@ This package uses simple-gl to display fractals using GLSL.
 #+end_src
 
 #+RESULTS:
-: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {101688FCAB}> :STATUS :SCHEDULED {101688FD23}>
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {103815736B}> :STATUS :SCHEDULED {1038157413}>
 
 #+begin_src lisp
     (sgl:display (sgl-fractal:cubic-bs-js-viewer
                   :real 0.5923823240474674D0 :imag 0.49177080397132106D0))
 #+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {10386771FB}> :STATUS :SCHEDULED {10386772A3}>
 
 #+begin_src lisp
     (sgl:display (sgl-fractal:cubic-bs-js-viewer :real -0.4922855 :imag -2.4807572))
@@ -99,22 +108,33 @@ This package uses simple-gl to display fractals using GLSL.
 : #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {10216DE1EB}> :STATUS :SCHEDULED {10216DE263}>
 
 #+begin_src lisp
+  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+    (format t "location: ~a~%" (complex real imag))
+    (sgl:display (sgl-fractal:bs-js-viewer :max-iterations 123
+                                           :real -0.504018353987933d0 :imag 0.059586248156519445d0)))
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1053931D9B}> :STATUS :SCHEDULED {1053931E43}>
+
+#+begin_src lisp
     (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
       (format t "location: ~a~%" (complex real imag))
       (sgl:display (sgl-fractal:bs-js-viewer :real real :imag imag)))
 #+end_src
 
 #+RESULTS:
-: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {101E50FD8B}> :STATUS :SCHEDULED {101E50FE03}>
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1021D92BCB}> :STATUS :SCHEDULED {1021D92C83}>
 
 #+begin_src lisp
-    (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
-      (format t "location: ~a~%" (complex real imag))
-      (sgl:display (sgl-fractal:cubic-bs-js-viewer :real real :imag imag)))
+  (multiple-value-bind (real imag) (alexandria:gaussian-random -2.0 2.0)
+    (format t "location: ~a~%" (complex real imag))
+    
+    (sgl:display (sgl-fractal:cubic-bs-js-viewer :real real :imag imag)))
 #+end_src
 
 #+RESULTS:
-: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102054512B}> :STATUS :SCHEDULED {10205451A3}>
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {105ED80C7B}> :STATUS :SCHEDULED {105EE34F83}>
 
 ** TODO
 *** Reduce copy/paste by setting complex fractal using a uniform

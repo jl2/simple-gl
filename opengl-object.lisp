@@ -136,6 +136,7 @@
     (initialize-buffers object))
   t)
 
+
 (defmethod rebuild-style ((object opengl-object))
   (bind object)
   (with-slots (styles buffers uniforms) object
