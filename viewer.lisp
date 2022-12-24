@@ -17,6 +17,9 @@
   #+darwin t
   "Whether or not to ask for a 'forward compatible' OpenGL context.  Required for OSX.")
 
+(defvar  *display-in-main-thread* t
+  "t if GLFW windows will run in the main thread.")
+
 (defvar *viewers* (make-hash-table :test 'equal))
 (declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
 (defun find-viewer (window)
@@ -360,6 +363,7 @@
           id
           message))
 
+
 (defmethod display ((viewer viewer))
   "High level function to display a viewer and start processing in a background thread."
 
@@ -371,131 +375,152 @@
   (when (null lparallel:*kernel*)
     (setf lparallel:*kernel* (lparallel:make-kernel 24)))
 
-  (tmt:with-body-in-main-thread (:blocking nil)
-    (let* ((window (glfw:create-window :title "OpenGL Viewer"
-                                       :width (slot-value viewer 'initial-width)
-                                       :height (slot-value viewer 'initial-height)
-                                       :decorated t
-                                       :opengl-profile :opengl-core-profile
-                                       :context-version-major 4
-                                       :context-version-minor 0
-                                       :opengl-debug-context t
-                                       :opengl-forward-compat *want-forward-context*
-                                       :samples 0
-                                       :resizable t)))
-      (when (null window)
-        (format t "Could not create-window!")
-        (error "Could not create-window!"))
+  (flet
+      ((window-main ()
+         (let* ((window (glfw:create-window :title "OpenGL Viewer"
+                                            :width (slot-value viewer 'initial-width)
+                                            :height (slot-value viewer 'initial-height)
+                                            :decorated t
+                                            :opengl-profile :opengl-core-profile
+                                            :context-version-major 4
+                                            :context-version-minor 0
+                                            :opengl-debug-context t
+                                            :opengl-forward-compat *want-forward-context*
+                                            :samples 0
+                                            :resizable t)))
+           (when (null window)
+             (format t "Could not create-window!")
+             (error "Could not create-window!"))
 
-      (with-viewer-lock (viewer)
-        (setf (slot-value viewer 'window) window))
+           (with-viewer-lock (viewer)
+             (setf (slot-value viewer 'window) window))
 
-      (add-viewer window viewer)
+           (add-viewer window viewer)
 
-      (gl:enable :debug-output-synchronous)
-      (%gl:debug-message-callback (cffi:callback gl-debug-callback)
-                                  (cffi:null-pointer))
-      (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
+           (gl:enable :debug-output-synchronous)
+           (%gl:debug-message-callback (cffi:callback gl-debug-callback)
+                                       (cffi:null-pointer))
+           (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
 
-      (unwind-protect
-           (handler-case
-               (progn
-                 #+spacenav(sn:sn-open)
-                 ;; GLFW Initialization
-                 (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
+           (unwind-protect
+                (handler-case
+                    (progn
 
-                 (add-viewer window viewer)
+                      ;; GLFW Initialization
+                      (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
 
-                 (glfw:set-key-callback 'keyboard-handler window)
-                 (glfw:set-mouse-button-callback 'mouse-handler window)
-                 (glfw:set-scroll-callback 'scroll-handler window)
-                 (glfw:set-framebuffer-size-callback 'resize-handler window)
+                      (add-viewer window viewer)
 
-                 ;; Initialize OpenGL state
-                 (gl:enable :line-smooth
-                            :polygon-smooth
-                            :depth-test
-                            :program-point-size)
-                 (gl:depth-func :lequal)
+                      (glfw:set-key-callback 'keyboard-handler window)
+                      (glfw:set-mouse-button-callback 'mouse-handler window)
+                      (glfw:set-scroll-callback 'scroll-handler window)
+                      (glfw:set-framebuffer-size-callback 'resize-handler window)
 
-                 ;; The event loop
-                 (with-slots (previous-seconds show-fps desired-fps
-                              blend
-                              cull-face front-face background-color)
-                     viewer
+                      ;; Initialize OpenGL state
+                      (gl:enable :line-smooth
+                                 :polygon-smooth
+                                 :depth-test
+                                 :program-point-size)
 
-                   ;; Load objects for the first time
-                   (initialize viewer)
-                   #+spacenav(sn:sensitivity 0.125d0)
-                   (loop
-                     :with start-time = (glfw:get-time)
-                     :for frame-count from 0
-                     :until (glfw:window-should-close-p window)
+                      (gl:depth-func :lequal)
 
-                     :for current-seconds = (glfw:get-time)
-                     :for elapsed-seconds = (- current-seconds previous-seconds)
-                     :for elapsed-time = (- current-seconds start-time)
+                      ;; The event loop
+                      (with-slots (previous-seconds show-fps desired-fps
+                                   blend
+                                   cull-face front-face background-color)
+                          viewer
+                        #+spacenav(sn:sn-open)
+                        #+spacenav(sn:sensitivity 0.125d0)
 
-                     :when (and show-fps (> elapsed-seconds 0.25))
-                       :do
-                          (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
-                          (setf previous-seconds current-seconds)
-                          (setf frame-count 0)
-                          ;; This do is important...
-                     :do
-                        (glfw:swap-buffers window)
-                     #+spacenav
-                      (when-let (ev (sn:poll-event))
-                        (sn:remove-events :motion)
-                        (handle-3d-mouse-event viewer ev))
-                     :do
-                        (with-viewer-lock (viewer)
-
-                          (clean-discarded viewer)
-
-                          ;; Update for next frame
-                          (update viewer elapsed-time)
-                          ;; Apply viewer-wide drawing settings
-                          (gl:clear-color (vx background-color)
-                                          (vy background-color)
-                                          (vz background-color)
-                                          (vw background-color))
-                          (gl:clear :color-buffer :depth-buffer)
-
-                          (if cull-face
-                              (gl:enable :cull-face)
-                              (gl:disable :cull-face))
-
-                          (cond (blend
-                                 (gl:enable :blend)
-                                 (gl:blend-func :src-alpha
-                                                :one-minus-src-alpha))
-                                (t (gl:disable :blend)))
-                          (gl:front-face front-face)
+                        ;; Load objects for the first time
+                        (initialize viewer)
 
 
-                          (render viewer))
+                        (loop
+                          :with start-time = (glfw:get-time)
+                          :for frame-count from 0
+                          :until (glfw:window-should-close-p window)
 
-                     :do
-                        (glfw:poll-events)
-                     :do
-                        (let* ((now (glfw:get-time))
-                               (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
-                                            now)))
-                          ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
-                          (when (> rem-time 0)
-                            (sleep rem-time))))))
+                          :for current-seconds = (glfw:get-time)
+                          :for elapsed-seconds = (- current-seconds previous-seconds)
+                          :for elapsed-time = (- current-seconds start-time)
 
-             (t (err)
-               (format t "Caught:  ~a~%" err)
-               (inspect err)))
-        (progn
-          ;; Cleanup before exit
-          (cleanup viewer)
-          (rm-viewer window))
-        #+spacenav(sn:sn-close)
-        (glfw:destroy-window window)
-        (glfw:poll-events)))))
+                          :when (and show-fps (> elapsed-seconds 0.25))
+                            :do
+                               (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
+                               (setf previous-seconds current-seconds)
+                               (setf frame-count 0)
+
+
+                          :do ;; This do is important...
+                              (glfw:swap-buffers window)
+
+                          #+spacenav
+                           (when-let (ev (sn:poll-event))
+                             (handle-3d-mouse-event viewer ev)
+                             (sn:remove-events :motion))
+
+                          :do
+                             (with-viewer-lock (viewer)
+
+                               (clean-discarded viewer)
+
+                               ;; Update for next frame
+                               (update viewer elapsed-time)
+
+                               ;; Apply viewer-wide drawing settings
+                               (gl:clear-color (vx background-color)
+                                               (vy background-color)
+                                               (vz background-color)
+                                               (vw background-color))
+
+                               (gl:clear :color-buffer
+                                         :depth-buffer)
+
+                               (if cull-face
+                                   (gl:enable :cull-face)
+                                   (gl:disable :cull-face))
+
+                               (cond (blend
+                                      (gl:enable :blend)
+                                      (gl:blend-func :src-alpha
+                                                     :one-minus-src-alpha))
+                                     (t (gl:disable :blend)))
+                               (gl:front-face front-face)
+
+
+                               (render viewer))
+
+                          :do
+                             (glfw:poll-events)
+                          :do
+                             (let* ((now (glfw:get-time))
+                                    (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
+                                                 now)))
+                               ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
+                               (when (> rem-time 0)
+                                 (sleep rem-time))))))
+
+                  (t (err)
+                    (format t "Caught:  ~a~%" err)
+                    (inspect err)))
+             (progn
+               ;; Cleanup before exit
+               (cleanup viewer)
+               (rm-viewer window))
+
+             #+spacenav (progn
+                          (format t "Calling (sn:sn-close)~%")
+                          (sn:sn-close))
+
+             (glfw:destroy-window window)
+             (glfw:poll-events)))))
+
+    (cond
+      (*display-in-main-thread*
+       (tmt:with-body-in-main-thread (:blocking nil)
+         (window-main)))
+      (t (window-main)))))
 
 (defun show-gl-state ()
   "Print debug information about the OpenGL state."

@@ -5,9 +5,25 @@ This is a project for playing with my simple-gl library.
 
 Some of this is based on [[https://web.engr.oregonstate.edu/~mjb/cs519/Handouts/tessellation.1pp.pdf][these slides]].
 
+#+begin_src lisp
+  (ql:quickload '(:spacenav :sgl-test))
+
+  (defparameter *viewer*
+    (make-instance 'sgl:viewer :seconds-between-updates (/ 1.0 10)))
+
+  (sgl:add-object *viewer*
+                  :tess-shader-object
+                  (make-instance 'sgl-test:tesselation-shader-test))
+  (let ((sgl:*display-in-main-thread* nil))
+    (sgl:display *viewer*))
+
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102B3E997B}> :STATUS :SCHEDULED {102B5617B3}>
+
 ** License
 ISC
-
 
 Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 

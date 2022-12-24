@@ -3,7 +3,7 @@
 ;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 (in-package #:simple-gl)
-(declaim (optimize (speed 1)))
+(declaim (optimize (speed 3)))
 (defclass buffer ()
   ((bo :initform 0 :initarg :bo)
    (pointer :initarg :pointer :accessor pointer)

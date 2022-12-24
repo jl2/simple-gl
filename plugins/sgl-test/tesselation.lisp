@@ -26,8 +26,7 @@
   ((primitive-type :initform :patches)
    (inner :initform 8 :initarg :inner)
    (outer :initform 8 :initarg :outer)
-   (style :initform (make-style-from-files "tess-test"
-                                           "tess-test-vertex.glsl"
+   (style :initform (make-style-from-files "tess-test-vertex.glsl"
                                            "tess-test-tess-control.glsl"
                                            "tess-test-tess-eval.glsl"
                                            "tess-test-geometry.glsl"

@@ -13,10 +13,11 @@
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((viewer complex-fractal-viewer) (event sn:motion-event))
   (with-slots (sgl:objects) viewer
+    (format t "sending handle-3d-mouse-event to ~a~%" sgl:objects)
     (loop
       :for (nil . object) :in (objects viewer)
       :do
-         (handle-3d-mouse-event object event))))
+         (sgl:handle-3d-mouse-event object event))))
 
 
 (defclass complex-window (opengl-object)
@@ -156,140 +157,136 @@
       (pan-complex-fractal-window (complex xm ym) object)))
   (update-bounds object))
 
-(defmethod handle-key ((object complex-window) window key scancode action mod-keys)
+
+(defmethod sgl:handle-key ((object complex-window) window key scancode action mod-keys)
   (declare (ignorable window key scancode action mod-keys))
-  (let* ((pan-offset 0.025)
-         (zoom-in-percent 1.05)
-         (zoom-out-percent 0.95)
-         (iter-up-percent 1.10)
-         (iter-down-percent 0.90)
-         (window-center (mapcar (rcurry #'/ 2.0) (glfw:get-window-size)))
-         (shift-down (find :shift mod-keys))
-         (alt-down (find :alt mod-keys))
-         (need-reload
-           (with-slots (center radius) object
-             (cond
-               ((and (eq key :f5) (eq action :press))
-                (setf center  #C(0.0f0 0.0f0))
-                (setf radius  #C(4.0f0 4.0f0)))
+  (flet ((adjust-center (object uniform scale)
+           (when-let* ((uni (get-uniform object uniform))
+                       (univ (get-value uni)))
+             (set-uniform object
+                          uniform
+                          (+ univ
+                             (* univ scale))
+                          :float))))
 
-               ((and (eq key :page-down)
-                     (or (eq action :release)
-                         (eq action :press)
-                         (eq action :repeat)))
-                (zoom-complex-fractal-window zoom-in-percent window-center object))
-
-               ((and (eq key :page-up)
-                     (or (eq action :release)
-                         (eq action :press)
-                         (eq action :repeat)))
-                (zoom-complex-fractal-window zoom-out-percent window-center object))
-
-               ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
-                (when (get-uniform object "cImag")
-                  (let* ((uni (get-uniform object "cImag"))
-                         (univ (get-value uni)))
-                    (set-uniform object
-                                 "cImag"
-                                 (- univ
-                                    (* (if alt-down
-                                           0.01
-                                           1)
-                                       (abs radius)
-                                       univ))
-                                 :float))))
-
-
-               ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
-                (when (get-uniform object "cImag")
-                  (let* ((uni (get-uniform object "cImag"))
-                         (univ (get-value uni)))
-                    (set-uniform object
-                                 "cImag"
-                                 (+ univ
-                                    (* (if alt-down
-                                           0.01
-                                           1)
-                                       (abs radius)
-                                       univ))
-                                 :float))))
-
-
-               ((and shift-down (eq key :left) (or (eq action :press) (eq action :repeat)))
-                (when (get-uniform object "cReal")
-                  (let* ((uni (get-uniform object "cReal"))
-                         (univ (get-value uni)))
-                    (set-uniform object
-                                 "cReal"
-                                 (- univ
-                                    (* (if alt-down
-                                           0.01
-                                           1)
-                                       (abs radius)
-                                       univ))
-                                 :float))))
+    (let* ((window-center (mapcar (rcurry #'/ 2.0)
+                                  (glfw:get-window-size)))
+           (shift-down (find :shift mod-keys))
+           (alt-down (find :alt mod-keys))
+           (pan-offset 0.025)
+           (zoom-in-percent 1.05)
+           (zoom-out-percent 0.95)
+           (iter-up-percent 1.10)
+           (iter-down-percent 0.90)
+           (center-move-percent (if alt-down
+                                    0.01
+                                    0.1))
+           
+           (need-reload
+             (with-slots (center radius) object
+               (cond
+                 ((and (eq key :f5) (eq action :press))
+                  (setf center  #C(0.0f0 0.0f0))
+                  (setf radius  #C(4.0f0 4.0f0)))
+                 
+                 ((and (eq key :page-down)
+                       (or (eq action :release)
+                           (eq action :press)
+                           (eq action :repeat)))
+                  (zoom-complex-fractal-window zoom-in-percent
+                                               window-center
+                                               object))
+                 
+                 ((and (eq key :page-up)
+                       (or (eq action :release)
+                           (eq action :press)
+                           (eq action :repeat)))
+                  (zoom-complex-fractal-window zoom-out-percent
+                                               window-center
+                                               object))
+                 
+                 ((and (eq key :down)
+                       shift-down
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  
+                  (adjust-center object "cImag" center-move-percent))
+                 
+                 
+                 ((and (eq key :up)
+                       shift-down
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (adjust-center object "cImag" (- center-move-percent)))
 
 
-               ((and shift-down (eq key :right) (or (eq action :press) (eq action :repeat)))
-                (when (get-uniform object "cReal")
-                  (let* ((uni (get-uniform object "cReal"))
-                         (univ (get-value uni)))
-                    (set-uniform object "cReal"
-                                 (* univ
-                                    (+ ) (* (if alt-down
-                                              0.01
-                                              1)
-                                          (abs radius)
-                                          univ))
-                                 :float))))
-
-               ;; ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
-               ;;  (when (get-uniform object "cImag")
-               ;;    (format t "spanning~%")
-               ;;    (set-uniform object "cImag" (- (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
-               ;;    (set-uniform object "cReal" (- (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
-
-               ;; ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
-               ;;  (when (get-uniform object "cImag")
-               ;;    (format t "spanning~%")
-               ;;    (set-uniform object "cImag" (+ (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
-               ;;    (set-uniform object "cReal" (+ (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
+                 ((and (eq key :left)
+                       shift-down
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (adjust-center object "cReal" (- center-move-percent)))
 
 
-               ((and shift-down (eq key :left) (or (eq action :press) (eq action :repeat)))
-                (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
 
-               ((and shift-down (eq key :right) (or (eq action :press) (eq action :repeat)))
-                (pan-complex-fractal-window (complex pan-offset 0.0) object))
+                 ((and (eq key :right)
+                       shift-down
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (adjust-center object "cReal" center-move-percent))
+
+                 ;; ((and shift-down (eq key :down) (or (eq action :press) (eq action :repeat)))
+                 ;;  (when (get-uniform object "cImag")
+                 ;;    (format t "spanning~%")
+                 ;;    (set-uniform object "cImag" (- (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
+                 ;;    (set-uniform object "cReal" (- (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
+
+                 ;; ((and shift-down (eq key :up) (or (eq action :press) (eq action :repeat)))
+                 ;;  (when (get-uniform object "cImag")
+                 ;;    (format t "spanning~%")
+                 ;;    (set-uniform object "cImag" (+ (get-uniform object "cImag") (* 0.1 (get-uniform object "cImag"))) :float)
+                 ;;    (set-uniform object "cReal" (+ (get-uniform object "cReal") (* 0.1 (get-uniform object "cReal"))) :float)))
 
 
-               ((and (eq key :down) (or (eq action :press) (eq action :repeat)))
-                (pan-complex-fractal-window (complex 0.0 (- pan-offset)) object))
 
-               ((and (eq key :up) (or (eq action :press) (eq action :repeat)))
-                (pan-complex-fractal-window (complex 0.0 pan-offset) object))
+                 ((and (eq key :down)
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (pan-complex-fractal-window (complex 0.0 (- pan-offset)) object))
 
-               ((and (eq key :left) (or (eq action :press) (eq action :repeat)))
-                (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
+                 ((and (eq key :up)
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (pan-complex-fractal-window (complex 0.0 pan-offset) object))
 
-               ((and (eq key :right) (or (eq action :press) (eq action :repeat)))
-                (pan-complex-fractal-window (complex pan-offset 0.0) object))
+                 ((and (eq key :left)
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (pan-complex-fractal-window (complex (- pan-offset) 0.0) object))
 
-               ((and (eq key :equal) (or (eq action :press) (eq action :repeat)))
-                (with-slots ( max-iterations ) object
-                  (setf max-iterations (max 1 (1+ (floor (* max-iterations iter-up-percent)))))
-                  (set-uniform object "maxIterations" max-iterations :int)))
+                 ((and (eq key :right)
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (pan-complex-fractal-window (complex pan-offset 0.0) object))
 
-               ((and (eq key :minus) (or (eq action :press) (eq action :repeat)))
-                (with-slots ( max-iterations ) object
-                  (setf max-iterations (max 1 (floor (* max-iterations iter-down-percent))))
-                  (set-uniform object "maxIterations" max-iterations :int)))
+                 ((and (eq key :equal)
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (with-slots ( max-iterations ) object
+                    (setf max-iterations (max 1 (1+ (floor (* max-iterations iter-up-percent)))))
+                    (set-uniform object "maxIterations" max-iterations :int)))
 
-               (t
-                (call-next-method))))))
-    (when need-reload
-      (update-bounds object)
-      t)))
+                 ((and (eq key :minus)
+                       (or (eq action :press)
+                           (eq action :repeat)))
+                  (with-slots ( max-iterations ) object
+                    (setf max-iterations (max 1 (floor (* max-iterations iter-down-percent))))
+                    (set-uniform object "maxIterations" max-iterations :int)))
+
+                 (t
+                  (call-next-method))))))
+      (when need-reload
+        (update-bounds object)
+        t))))
 
 (defclass complex-fractal-click (mouse-click)
   ((window :initarg :window)))

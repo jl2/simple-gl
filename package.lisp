@@ -46,6 +46,7 @@
 
            ;; Viewer
            #:viewer
+           #:*display-in-main-thread*
            #:reset-view
            #:reset-view-safe
            #:offscreen-viewer
