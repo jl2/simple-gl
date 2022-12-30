@@ -22,6 +22,7 @@
 
 (defvar *viewers* (make-hash-table :test 'equal))
 (declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
+
 (defun find-viewer (window)
   (gethash (cffi:pointer-address window) *viewers*))
 
@@ -170,6 +171,37 @@
   (with-viewer-lock (viewer)
     (reset-view-safe viewer)))
 
+(defun rebuild-buffers (viewer)
+       (format t "Refilling buffers~%")
+  (with-viewer-lock (viewer)
+    (with-slots (objects view-changed) viewer
+      (loop
+        :for (nil . object) :in objects
+        :do
+           (ensure-initialized object)
+           (reload-buffers object))
+      (setf view-changed t))))
+
+(defun rebuild-shaders (viewer)
+  (format t "Rebuilding shaders...~%")
+  (with-viewer-lock (viewer)
+    (with-slots (objects view-changed) viewer
+      (loop
+        :for (nil . object) :in objects
+        :do
+           (ensure-initialized object)
+           (rebuild-style object))
+      (setf view-changed t))))
+
+(defun rebuild-textures (viewer)
+  (format t "Reloading textures...~%")
+  (with-viewer-lock (viewer)
+    (with-slots (objects view-changed) viewer
+      (loop :for (nil . object) :in objects :do
+        (ensure-initialized object)
+        (refill-textures object))
+      (setf view-changed t))))
+
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
   (cond
     ((and (eq key :escape) (eq action :press))
@@ -195,33 +227,15 @@
        t))
 
     ((and (eq key :f3) (eq action :press))
-     (format t "Rebuilding shaders...~%")
-     (with-viewer-lock (viewer)
-       (with-slots (objects view-changed) viewer
-         (loop :for (nil . object) :in objects :do
-           (ensure-initialized object)
-           (rebuild-style object))
-         (setf view-changed t)))
+     (rebuild-shaders viewer)
      t)
 
     ((and (eq key :f4) (eq action :press))
-     (format t "Reloading textures...~%")
-     (with-viewer-lock (viewer)
-       (with-slots (objects view-changed) viewer
-         (loop :for (nil . object) :in objects :do
-           (ensure-initialized object)
-           (refill-textures object))
-         (setf view-changed t)))
+     (rebuild-textures viewer)
      t)
 
     ((and (eq key :f5) (eq action :press))
-     (format t "Refilling buffers~%")
-     (with-viewer-lock (viewer)
-       (with-slots (objects view-changed) viewer
-         (loop :for (nil . object) :in objects :do
-           (ensure-initialized object)
-           (reload-buffers object))
-         (setf view-changed t)))
+     (rebuild-buffers viewer)
      t)
 
 
@@ -306,34 +320,56 @@
                view-changed
                camera-position
                last-update-time
-               seconds-between-updates) viewer
+               seconds-between-updates)
+      viewer
+
+    ;; This is a little convoluted because the update is done by a pool of
+    ;; worker threads, but may trigger OpenGL state changes that need to be
+    ;; handled in the main thread.
+    ;; update-object runs in a thread pool for each object
+    ;; It returns the object if the object needs to be initialized
+    ;; Otherwise it returns a list of buffers that need to be reloaded
+    ;; by OpenGL.  As far as I know, there's no way to update buffers off of
+    ;; the main thread.
     (let ((was-view-changed view-changed))
       ;; Change this back immediately
       (setf view-changed nil)
       (flet
+          ;; Call update on objects in a worker thread and return
+          ;; objects that need to be initialized in the main thread
+          ;; or buffers that need to be reloaded, also in the main thread
           ((update-object (obj)
+             ;; Update view info if needed, and set time shader variable
              (let ((object (cdr obj)))
                (when was-view-changed
                  (set-uniform object "camera_position" camera-position :vec3)
                  (set-uniform object "view_transform" (view-matrix viewer) :mat4))
                (set-uniform object "time" elapsed-seconds :float)
+               ;; If an object isn't initialized return it so that it will be initialized in the main thread
                (cond
                  ((not (initialized-p object))
                   object)
                  ((> (- elapsed-seconds last-update-time) seconds-between-updates)
                   (multiple-value-list (update object elapsed-seconds)))
                  (t nil)))))
+        ;; Call update-object on each object
         (let ((update-results (lparallel:pmapcar #'update-object objects)))
           (loop
             :for obj :in update-results
-            :when (and obj (atom obj)) :do
-              (initialize obj)
-              (setf last-update-time elapsed-seconds)
-            :when (consp obj) :do
-              (setf last-update-time elapsed-seconds)
-              (dolist (buffer obj)
-                (when buffer
-                  (reload buffer)))))))))
+
+            ;; Initialize objects that need it
+            :when (and obj (atom obj))
+              :do
+                 (initialize obj)
+                 (setf last-update-time elapsed-seconds)
+
+            ;; reload buffers that need it
+            :when (consp obj)
+              :do
+                 (setf last-update-time elapsed-seconds)
+                 (dolist (buffer obj)
+                   (when buffer
+                     (reload buffer)))))))))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer
