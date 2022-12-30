@@ -1,0 +1,40 @@
+* sgl-fft-viz
+
+** About
+
+OpenGL textures rendered by Blend2D.
+
+** Examples
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :sgl-fft-viz))
+  (defparameter *viewer* (make-instance 'sgl:viewer))
+  (sgl:add-object *viewer* :quad (make-instance 'sgl:quad
+  :name "quad"
+                                                :textures
+                                                (list (make-instance 'sgl-fft-viz:sgl-fft-viz))
+                                                :styles
+                                                  (list
+                                                    (cons :blt
+                                                          (sgl:make-style-from-files "blt-vertex.glsl" "blt-fragment.glsl")))))
+  (sgl:display *viewer*)
+#+end_src lisp
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :sgl-blend2d-texture))
+  (defparameter *viewer* (make-instance 'sgl:viewer))
+  (sgl:add-object *viewer* :quad (make-instance 'sgl:quad :name "quad"
+                                                :textures (list (make-instance 'sgl-blend2d-texture:sgl-text-draw))
+                                                :styles
+                                                  (list
+                                                    (cons :blt
+                                                          (sgl:make-style-from-files "blt-vertex.glsl" "blt-fragment.glsl")))))
+  (sgl:display *viewer*)
+#+end_src lisp
+
+** License
+ISC
+
+Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+** TODO Fill in a TODO list.
