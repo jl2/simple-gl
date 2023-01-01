@@ -72,12 +72,12 @@ This package uses simple-gl to display fractals using GLSL.
 : #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {100B62E56B}> :STATUS :SCHEDULED {100B62E613}>
 
 #+begin_src lisp
-    (sgl:display (sgl-fractal:bs-js-real
-                  :viewer -1.2979205493836528d0 :imag -0.025842545896878462d0))
+    (sgl:display (sgl-fractal:bs-js-viewer
+                  :real -1.2979205493836528d0 :imag -0.025842545896878462d0))
 #+end_src
 
 #+RESULTS:
-: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {100AAFC06B}> :STATUS :SCHEDULED {100AAFC113}>
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1007A5F51B}> :STATUS :SCHEDULED {1007A5F583}>
 
 #+begin_src lisp
     (sgl:sgl-display-fractal:bs-js-viewer

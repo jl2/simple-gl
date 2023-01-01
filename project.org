@@ -80,6 +80,8 @@ This is an example of how it will be used from a REPL:
 
 
 * TODO Items
+** TODO Split APIs for allocating, binding, filling, and refilling objects
+** TODO Better document API and library usage
 ** TODO Refactor/rename 3d-mouse-nav-viewer to radial-viewer
 ** TODO Create 3d mouse navigation viewer that moves through the world using vector directions
 ** TODO Refactor glfw out of viewer base class and into glfw-viewer
