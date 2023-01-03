@@ -229,6 +229,10 @@
                   (%gl:vertex-attrib-divisor attrib-idx divisor))))))
   t)
 
+(defmethod update ((object buffer) elapsed-seconds)
+  (declare (ignorable object elapsed-seconds))
+  nil)
+
 (defmethod reload ((buffer buffer))
   (bind buffer)
   (with-slots (pointer free target) buffer

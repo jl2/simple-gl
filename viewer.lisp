@@ -179,7 +179,7 @@
         :for (nil . object) :in objects
         :do
            (ensure-initialized object)
-           (reload-buffers object))
+           (reload object))
       (setf view-changed t))))
 
 (defun rebuild-shaders (viewer)
@@ -350,7 +350,7 @@
                  ((not (initialized-p object))
                   object)
                  ((> (- elapsed-seconds last-update-time) seconds-between-updates)
-                  (multiple-value-list (update object elapsed-seconds)))
+                  (update object elapsed-seconds))
                  (t nil)))))
         ;; Call update-object on each object
         (let ((update-results (lparallel:pmapcar #'update-object objects)))
@@ -367,9 +367,12 @@
             :when (consp obj)
               :do
                  (setf last-update-time elapsed-seconds)
-                 (dolist (buffer obj)
-                   (when buffer
-                     (reload buffer)))))))))
+                 (loop
+                   :for  (object . thing) :in obj
+                   :when (and thing object)
+                     :do
+                        ;;(bind object)
+                        (reload thing))))))))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer
@@ -398,8 +401,8 @@
           (cffi:foreign-enum-keyword '%gl:enum severity)
           id
           message))
-
-
+(defun glfw-initialization ()
+  )
 (defmethod display ((viewer viewer))
   "High level function to display a viewer and start processing in a background thread."
 
@@ -545,9 +548,7 @@
                (cleanup viewer)
                (rm-viewer window))
 
-             #+spacenav (progn
-                          (format t "Calling (sn:sn-close)~%")
-                          (sn:sn-close))
+             #+spacenav (sn:sn-close)
 
              (glfw:destroy-window window)
              (glfw:poll-events)))))
@@ -573,6 +574,7 @@
 
 (defun show-open-gl-info ()
   "Print OpenGL limits"
+  (format t "gl-version: ~a~%" (gl:gl-version))
   (loop
     :for field :in '(:max-combined-texture-image-units
                      :max-cube-map-texture-size

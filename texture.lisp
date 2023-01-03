@@ -7,6 +7,7 @@
 (defclass texture ()
   ((tex-type :initform :texture-2d :initarg :type)
    (textures :initform nil :type (or null list))
+   (size :initform #(1 1) :initarg :size :type sequence)
    (parameters :initform '((:texture-wrap-s . :repeat)
                            (:texture-wrap-t . :repeat)
                            (:texture-base-level . 0)
@@ -14,9 +15,16 @@
                            (:texture-min-filter . :linear-mipmap-linear)
                            (:texture-mag-filter . :linear)))))
 
+(defclass texture-1d (texture)
+  ((tex-type :initform :texture-1d :initarg :type)))
 
+(defclass texture-2d (texture)
+  ((tex-type :initform :texture-2d :initarg :type)))
 
-(defgeneric fill-texture (obj elapsed-time))
+(defclass texture-3d (texture)
+  ((tex-type :initform :texture-3d :initarg :type)))
+
+(defgeneric fill-texture (obj))
 
 (defmethod update ((texture texture) elapsed-seconds)
   (declare (ignorable texture elapsed-seconds))
@@ -28,19 +36,27 @@
       (gl:bind-texture tex-type (car textures)))))
 
 (defmethod initialize ((tex texture) &key)
-  (with-slots (textures) tex
+  (with-slots (textures tex-type size) tex
     (when textures
       (error "Initializing texture twice ~a" tex))
     (setf textures (gl:gen-textures 1))
     (bind tex)
-    (fill-texture tex 0.0)))
+    (%gl:tex-storage-2d tex-type 1 :rgba8 (elt size 0) (elt size 1) )
+    (fill-texture tex)))
 
-(defmethod fill-texture ((object texture) elapsed-time)
-  (declare (ignorable elapsed-time))
-  (with-slots (parameters tex-type) object
+(defmethod reload ((object texture))
+  (bind object)
+  (with-slots (parameters size tex-type) object
     (dolist (param parameters)
       (gl:tex-parameter tex-type (car param) (cdr param)))
-    (gl:tex-image-2d tex-type 0 :rgba 1 1 0 :rgba :unsigned-byte #(255 0 0 255))
+    (fill-texture object)))
+
+(defmethod fill-texture ((object texture))
+  (with-slots (size tex-type) object
+    (gl:tex-sub-image-2d tex-type 0
+                         0 0
+                         (elt size 0) (elt size 1)
+                         :rgba :unsigned-byte #(255 0 0 255))
     (gl:generate-mipmap tex-type)))
 
 (defmethod cleanup ((obj texture))

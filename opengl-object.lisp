@@ -89,7 +89,20 @@
 
 (defmethod update ((object opengl-object) elapsed-seconds )
   (declare (ignorable object elapsed-seconds))
-  nil)
+  (with-slots (textures styles buffers) object
+    (concatenate 'list
+                 (loop :for tex :in textures
+                       :for updated = (update tex elapsed-seconds)
+                       :when updated
+                         :collect (cons object updated))
+                 (loop :for (nil . style) :in styles
+                       :for updated = (update style elapsed-seconds)
+                       :when updated
+                         :collect (cons object  updated))
+                 (loop :for (nil . buffer) :in buffers
+                       :for updated = (update buffer elapsed-seconds)
+                       :when updated
+                         :collect (cons object updated)))))
 
 (defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj
@@ -126,9 +139,8 @@
 
 (defgeneric rebuild-style (object))
 (defgeneric refill-textures (object))
-(defgeneric reload-buffers (object))
 
-(defmethod reload-buffers (object)
+(defmethod reload ((object opengl-object))
   (with-slots (buffers) object
     (dolist (buffer buffers)
       (cleanup (cdr buffer)))
@@ -160,8 +172,7 @@
   (bind object)
   (with-slots (textures buffers uniforms) object
     (loop :for texture :in textures :do
-      (cleanup texture)
-      (initialize texture)))
+          (reload texture)))
   t)
 
 (defmethod initialize-uniforms ((object opengl-object) &key)
