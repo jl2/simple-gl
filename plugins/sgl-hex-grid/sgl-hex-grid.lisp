@@ -133,7 +133,7 @@
                   (incf (hg:oddr-row coord))))
            (incf (hg:oddr-col coord)))
       (hg:swap-states object)
-      (values radii-buffer state-buffer))))
+      (list radii-buffer state-buffer))))
 
 (defmethod initialize-buffers ((object sgl-hex-grid) &key)
   (when (buffers object)

@@ -52,40 +52,45 @@
 
 ;; Keyboard callback.
 (glfw:def-key-callback keyboard-handler (window key scancode action mod-keys)
-  "GLFW keyboard handler.  Finds a viewer for the window and calls the (handle-key) method."
-  (when-let (viewer (find-viewer window))
-    (handle-key viewer window key scancode action mod-keys)))
+  (progn
+    "GLFW keyboard handler.  Finds a viewer for the window and calls the (handle-key) method."
+    (when-let (viewer (find-viewer window))
+      (handle-key viewer window key scancode action mod-keys))))
 
 ;; Mouse handler callback
 (glfw:def-mouse-button-callback mouse-handler (window button action mod-keys)
-  "GLFW mouse handler.  Finds a viewer for the window and calls the (handle-click) method."
-  (when-let (viewer (find-viewer window))
-    (let* ((cpos (glfw:get-cursor-position window))
-           (click-info (make-instance 'mouse-click
-                                      :cursor-pos cpos
-                                      :mod-keys mod-keys
-                                      :action action
-                                      :button button
-                                      :time (glfw:get-time))))
-      (handle-click viewer window click-info))))
+  (progn
+    "GLFW mouse handler.  Finds a viewer for the window and calls the (handle-click) method."
+    (when-let (viewer (find-viewer window))
+      (let* ((cpos (glfw:get-cursor-position window))
+             (click-info (make-instance 'mouse-click
+                                        :cursor-pos cpos
+                                        :mod-keys mod-keys
+                                        :action action
+                                        :button button
+                                        :time (glfw:get-time))))
+        (handle-click viewer window click-info)))))
 
 ;; GLFW scroll handler
 (glfw:def-scroll-callback scroll-handler (window x-scroll y-scroll)
-  "GLFW scroll handler.  Finds a viewer for the window and calls the (handle-scroll) method."
-  (when-let (viewer (find-viewer window))
-    (let ((cpos (glfw:get-cursor-position window)))
-      (handle-scroll viewer window cpos x-scroll y-scroll))))
+  (progn
+    "GLFW scroll handler.  Finds a viewer for the window and calls the (handle-scroll) method."
+    (when-let (viewer (find-viewer window))
+      (let ((cpos (glfw:get-cursor-position window)))
+        (handle-scroll viewer window cpos x-scroll y-scroll)))))
 
 ;; Resize event handler
 (glfw:def-framebuffer-size-callback resize-handler (window width height)
-  "GLFW resize handler.  Finds a viewer for the window and calls the (handle-resize) method."
-  (when-let (viewer (find-viewer window))
-    (handle-resize viewer window width height)))
+  (progn
+    "GLFW resize handler.  Finds a viewer for the window and calls the (handle-resize) method."
+    (when-let (viewer (find-viewer window))
+      (handle-resize viewer window width height))))
 
 ;; GLFW error callback
 (glfw:def-error-callback error-callback (message)
-  "GLFW error callback.  Writes errors to *error-stream*"
-  (format *error-stream* "Error: ~a~%" message))
+  (progn
+    "GLFW error callback.  Writes errors to *error-stream*"
+    (format *error-stream* "Error: ~a~%" message)))
 
 (defclass viewer ()
   ((window
