@@ -31,4 +31,5 @@
            #:2d-cellular-automata
            #:game-of-life
            #:create-game-of-life
+           #:create-random-game-of-life
            ))

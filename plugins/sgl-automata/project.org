@@ -23,6 +23,25 @@ Automota animations in OpenGL.
 #+RESULTS:
 : #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1019DBE9CB}> :STATUS :SCHEDULED {101A0391B3}>
 
+
+#+begin_src lisp
+  (defparameter *viewer* (make-instance 'sgl:viewer
+                                        :seconds-between-updates (/ 1.0 10)))
+  (sgl:display *viewer*)
+  (sgl:add-object *viewer* :hashlife (sgla:naive-life
+                                      (hl:make-life "glider.rle")))
+#+end_src
+
+
+
+#+begin_src lisp
+(defparameter *viewer* (make-instance 'sgl:viewer
+                               :seconds-between-updates (/ 1.0 10)))
+  (sgl:add-object *viewer* :game-of-life (sgla:create-game-of-life "glider.cells"))
+  (sgl:display *viewer*)
+#+end_src
+
+
 ** License
 ISC
 

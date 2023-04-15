@@ -34,80 +34,76 @@
 ;;                                       +vy+)))))
 
 
-(defclass game-of-life (2d-cellular-automata)
-  ())
+(defclass game-of-life (cellular-automata)
+  ((pts :initarg :pts :type list)
+   (iterator :initform #'hl:iterate-baseline-life :initarg :iterator)))
 
-(defun create-game-of-life (width height
-                            &key
-                              (max-instances (* width height))
-                              (initial-data (make-array (* width height)
-                                                        :element-type 'bit
-                                                        :initial-contents
-                                                        (loop for i below (* width height)
-                                                              collecting (random 2)))))
-  "Create a cellular automata of the specified size."
-  (make-instance 'game-of-life
-                 :width width
-                 :height height
-                 :current-board-idx 0
-                 :max-instances max-instances
-                 :current-board-data initial-data
-                 :next-board-data (make-array (list (* width height))
-                                              :initial-element 0
-                                              :element-type 'bit)))
-
-(defmethod compute-next ((object game-of-life))
-  (with-slots (instance-count width height current-board-idx current-board-data next-board-data) object
-    (loop
-      ;; Calculate the quad location
-      for i fixnum from 0 below width
-      do
-         (loop
-           for j fixnum from 0 below height
-           for ncount = (count-neighbors object i j)
-           do
-              (cond ((and (is-off object i j)
-                          (= ncount 3))
-                     (turn-on object i j))
-                    ((and (is-on object i j)
-                          (or (= ncount 2)
-                              (= ncount 3)))
-                     (turn-on object i j))
-                    (t
-                     (turn-off object i j)))))
-    (rotatef next-board-data current-board-data)
-    (incf current-board-idx)))
-
-
-(defmethod add-current-instances ((object 2d-cellular-automata))
+(defmethod add-current-instances ((object game-of-life))
   "Draw the next row of automata data by adding translations to the instance buffer."
-  (with-slots (buffers instance-count max-instances height width current-board-idx current-board-data) object
+  (with-slots (buffers instance-count max-instances pts) object
     (let ((buffer (get-buffer object :obj-transform))
-          (cell-width (/ 2.0f0 (coerce width 'single-float)))
-          (cell-height (/ 2.0f0 height)))
+          (cell-width 0.8 ;;(/ 2.0f0 (coerce (1+  (- max-x min-x)) 'single-float))
+                      )
+          (cell-height 0.8 ;; (/ 2.0f0 (1+ (- max-y min-y)))
+                       ))
       (declare (type single-float cell-width cell-height))
       (setf instance-count 0)
       (with-slots (pointer) buffer
         ;; Loop over each cell in the data
+        ;; (format t "min-x ~a  max-x ~a  min-y ~a  max-y ~a  cell-width ~a  cell-height ~a~%" min-x max-x  min-y max-y cell-width cell-height)
+        ;; (lparallel:pmap
+        ;;  nil
+        ;;  (lambda (pt)
+        ;;    (let ((x-float (- 1.0f0 (* cell-width (car pt))))
+        ;;          (y-float (- 1.0f0 (* cell-height (cdr pt)))))
+        ;;      (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0)
+        ;;                               pointer
+        ;;                               (* instance-count 3))))
+        ;;  pts)
         (loop
-          ;; Track whether any quads have been added
-          :with updated = nil
-
-          ;; Calculate the quad location
-          :for x-offset from 0 below width
-          :for x-float real = (- 1.0f0 (* cell-width x-offset))
+          :for pt :in pts
+          :for x-float = (- 1.0f0 (* cell-width (car pt)))
+          :for y-float = (- 1.0f0 (* cell-height (cdr pt)))
           :do
-             (loop
-               :for y-offset :from 0 :below height
-               :for y-float real = (- 1.0f0 (* cell-height y-offset))
+             (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0)
+                                      pointer
+                                      (* instance-count 3)))
+        (setf instance-count (length pts)))
+      
+      ;; (loop
+      ;;   :for (x . y) :in pts
+      ;;   :for x-float real = (- 1.0f0 (* cell-width x))
+      ;;   :for y-float real = (- 1.0f0 (* cell-height y))
+      ;;   :do
+      ;;      ;;(format t "x ~a y ~a xf ~a  yf ~a~%" x y x-float y-float)
+      ;;      (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0)
+      ;;                               pointer
+      ;;                               (* instance-count 3))
+      ;;      (incf instance-count)))
+      buffer)))
 
-               ;; If the cell is 'on' then add a quad
-               :when (is-on object x-offset y-offset) do
-                 (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0) ;(* -0.1f0 current-board-idx))
-                                          pointer
-                                          (* instance-count 3))
-                 (setf updated t)
-                 (incf instance-count))
-          :finally
-             ;; Copy the buffer to OpenGL if anything changed.
-             (return buffer))))))
+(defun create-random-game-of-life (width height
+                                   &key
+                                     (iterator #'hl:iterate-baseline-life)
+                                     (max-instances (* width height)))
+  "Create a cellular automata of the specified size."
+  (make-instance 'game-of-life
+                 :max-instances max-instances
+                 :iterator iterator
+                 :pts (loop :for i :below (* width height)
+                            :collecting (cons (random width) (random height)))))
+
+(defun create-game-of-life (filename &key
+                                       (iterator #'hl:iterate-baseline-life)
+                                       (max-instances (* 100 100)))
+  "Create a cellular automata of the specified size."
+  (make-instance 'game-of-life
+                 :max-instances max-instances
+                 :iterator iterator
+                 :pts (hl:read-game-file filename)))
+
+(defmethod compute-next ((object game-of-life))
+  (with-slots (instance-count iterator pts) object
+    (setf pts (funcall iterator pts))
+;;    (format t "pts: ~a~%" pts)
+    (setf instance-count (length pts))))

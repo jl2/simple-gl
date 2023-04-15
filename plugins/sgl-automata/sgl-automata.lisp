@@ -22,10 +22,9 @@
 
 (defclass cellular-automata (instanced-opengl-object)
   ((styles :initform (list (cons :automata
-                                 (sgl:make-style-from-files
-                                  "sgl-automata-vertex.glsl"
-                                  "point-fragment.glsl"))))
-   (max-instances :initform 10000 :initarg :max-instances :type fixnum)
+                                 (sgl:make-style-from-files "sgl-automata-vertex.glsl"
+                                                            "point-fragment.glsl"))))
+   (max-instances :initform 100000 :initarg :max-instances :type fixnum)
    (instance-count :initform 0 :type fixnum)))
 
 (declaim (inline apply-rule left-element right-element compute-next-row add-row-instance))
@@ -43,38 +42,37 @@
     (when (< instance-count max-instances)
       (let ((rval (add-current-instances object)))
         (compute-next object)
-        rval))))
+        (ensure-list rval)))))
 
 (defmethod initialize-buffers ((object cellular-automata) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
 
   ;; Fill vertex and index buffers with data for a single OpenGL quad
-  (with-slots (width) object
-    (let ((cell-width (/ 2.0f0 width)))
-      (set-buffer object
-                  :vertices
-                  (make-instance
-                   'attribute-buffer
-                   :pointer (to-gl-array
-                             :float
-                             28
-                             (list 0.0f0 0.0f0 0.0f0
-                               0.1f0 0.8f0 0.1f0 1.0f0
+  (let ((cell-width 1.0))
+    (set-buffer object
+                :vertices
+                (make-instance
+                 'attribute-buffer
+                 :pointer (to-gl-array
+                           :float
+                           28
+                           (list 0.0f0 0.0f0 0.0f0
+                                 0.1f0 0.8f0 0.1f0 1.0f0
 
-                               cell-width 0.0f0 0.0f0
-                               0.1f0 0.8f0 0.1f0 1.0f0
+                                 cell-width 0.0f0 0.0f0
+                                 0.1f0 0.8f0 0.1f0 1.0f0
 
-                               cell-width cell-width 0.0f0
-                               0.1f0 0.8f0 0.1f0 1.0f0
+                                 cell-width cell-width 0.0f0
+                                 0.1f0 0.8f0 0.1f0 1.0f0
 
-                               0.0f0 cell-width 0.0f0
-                               0.1f0 0.8f0 0.1f0 1.0f0))
-                   :stride nil
-                   :attributes '(("in_position" . :vec3)
-                                 ("in_color" . :vec4))
-                   :usage :dynamic-draw
-                   :free t))))
+                                 0.0f0 cell-width 0.0f0
+                                 0.1f0 0.8f0 0.1f0 1.0f0))
+                 :stride nil
+                 :attributes '(("in_position" . :vec3)
+                               ("in_color" . :vec4))
+                 :usage :dynamic-draw
+                 :free t)))
   (set-buffer object
               :indices
               (make-instance
@@ -97,5 +95,5 @@
                                                       (vec3 0.0f0 0.0f0 0.0f0))
                                 :stride nil
                                 :attributes '(("translation" . :vec3))
-                                :usage :static-draw
+                                :usage :dynamic-draw
                                 :free nil))))

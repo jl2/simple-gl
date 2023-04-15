@@ -21,11 +21,10 @@
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on (#:simple-gl)
+  :depends-on (#:simple-gl #:cl-hashlife)
   :components ((:file "package")
                (:file "sgl-automata")
                (:file "1d-automata")
                (:file "2d-automata")
-               (:file "game-of-life")
-               )
+               (:file "game-of-life"))
   :in-order-to ((test-op (test-op sgl-automata.test))))
