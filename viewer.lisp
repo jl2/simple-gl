@@ -17,22 +17,31 @@
   #+darwin t
   "Whether or not to ask for a 'forward compatible' OpenGL context.  Required for OSX.")
 
+(defparameter *error-stream* t
+  "Stream to write error information (usually GLFW errors).")
+
 (defvar  *display-in-main-thread* t
   "t if GLFW windows will run in the main thread.")
 
-(defvar *viewers* (make-hash-table :test 'equal))
+(defvar *viewers* (make-hash-table :test 'equal)
+  "All viewers that have been created.")
+
 (declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
 
 (defun find-viewer (window)
+  "Find a viewer associated with the given GLFW window."
   (gethash (cffi:pointer-address window) *viewers*))
 
 (defun add-viewer (window viewer)
+  "Add a new viewer for the GLFW window."
   (setf (gethash (cffi:pointer-address window) *viewers*) viewer))
 
 (defun rm-viewer (window)
+  "Remove the viewer associated with the GLFW viewer."
   (remhash (cffi:pointer-address window) *viewers*))
 
 (defun rm-all-viewers ()
+  "Remove all viewers."
   (loop
     :for window :being :the :hash-keys :of *viewers*
       :using (hash-value viewer)
@@ -43,11 +52,13 @@
 
 ;; Keyboard callback.
 (glfw:def-key-callback keyboard-handler (window key scancode action mod-keys)
+  "GLFW keyboard handler.  Finds a viewer for the window and calls the (handle-key) method."
   (when-let (viewer (find-viewer window))
     (handle-key viewer window key scancode action mod-keys)))
 
 ;; Mouse handler callback
 (glfw:def-mouse-button-callback mouse-handler (window button action mod-keys)
+  "GLFW mouse handler.  Finds a viewer for the window and calls the (handle-click) method."
   (when-let (viewer (find-viewer window))
     (let* ((cpos (glfw:get-cursor-position window))
            (click-info (make-instance 'mouse-click
@@ -60,80 +71,133 @@
 
 ;; GLFW scroll handler
 (glfw:def-scroll-callback scroll-handler (window x-scroll y-scroll)
+  "GLFW scroll handler.  Finds a viewer for the window and calls the (handle-scroll) method."
   (when-let (viewer (find-viewer window))
     (let ((cpos (glfw:get-cursor-position window)))
       (handle-scroll viewer window cpos x-scroll y-scroll))))
 
 ;; Resize event handler
 (glfw:def-framebuffer-size-callback resize-handler (window width height)
+  "GLFW resize handler.  Finds a viewer for the window and calls the (handle-resize) method."
   (when-let (viewer (find-viewer window))
     (handle-resize viewer window width height)))
 
 ;; GLFW error callback
 (glfw:def-error-callback error-callback (message)
-  (format t "Error: ~a~%" message))
+  "GLFW error callback.  Writes errors to *error-stream*"
+  (format *error-stream* "Error: ~a~%" message))
 
 (defclass viewer ()
-  ((window :initform nil)
-   (viewer-mutex :initform (bt:make-lock "viewer-lock"))
+  ((window
+    :initform nil
+    :documentation "The GLFW window for this viewer.")
 
-   (objects :initform nil
-            :initarg :objects
-            :type (or null cons)
-            :accessor objects)
-   (camera-position :initarg :camera-position
-                    :initform (vec3 0 0 1)
-                    :accessor camera-position)
+   (viewer-mutex
+    :initform (bt:make-lock "viewer-lock")
+    :documentation "Mutex to synchronize multi-threaded access to this viewer.")
 
-   (view-changed :initform t)
+   (objects
+    :initform nil
+    :initarg :objects
+    :type (or null cons)
+    :accessor objects
+    :documentation "The list of objects shown in this viewer.")
 
-   (aspect-ratio :initform 1.0
-                 :initarg :aspect-ratio
-                 :type real
-                 :accessor aspect-ratio)
+   (camera-position
+    :initarg :camera-position
+    :initform (vec3 0 0 1)
+    :accessor camera-position
+    :documentation "Camera location of the viewer.")
 
-   (show-fps :initform nil
-             :initarg :show-fps
-             :type t
-             :accessor show-fps)
+   (view-changed
+    :initform t
+    :documentation "t when the view has changed recently.")
 
-   (desired-fps :initform 60
-                :initarg :desired-fps
-                :type fixnum
-                :accessor desired-fps)
+   (aspect-ratio
+    :initform 1.0
+    :initarg :aspect-ratio
+    :type real
+    :accessor aspect-ratio
+    :documentation "Aspect ratio of the view window.")
 
-   (last-update-time :initform 0)
+   (show-fps
+    :initform nil
+    :initarg :show-fps
+    :type t
+    :accessor show-fps
+    :documentation "t to show FPS to *error-stream*.  nil to disable.")
 
-   (seconds-between-updates :initform (/ 1 30)
-                            :initarg :seconds-between-updates)
+   (desired-fps
+    :initform 60
+    :initarg :desired-fps
+    :type fixnum
+    :accessor desired-fps
+    :documentation "Target FPS. The viewer should achieve this frame rate as long as render and update calls are fast enough.")
 
-   (cull-face :initform nil
-              :initarg :cull-face
-              :accessor cull-face)
-   (front-face :initform :ccw
-               :initarg :front-face
-               :accessor front-face)
+   (last-update-time
+    :initform 0
+    :documentation "Timestamp when the last update call finished")
 
-   (blend :initform t
-          :initarg :blend
-          :accessor blend)
+   (seconds-between-updates
+    :initform (/ 1 30)
+    :initarg :seconds-between-updates
+    :documentation "Ideal number of seconds between each update call.  Should be ~ (1 / desired-fps)")
 
-   (background-color :initform (vec4 0.08f0 0.08f0 0.08f0 1.0)
-                     :initarg :background
-                     :accessor background-color)
+   ;; Should cull-face, front-face, and blend be per-object?
+   (cull-face
+    :initform nil
+    :initarg :cull-face
+    :accessor cull-face
+    :documentation "T to (gl:enable :cull-face), nil to (gl:disable :cull-face)")
 
-   (discarded-objects :initform nil)
+   (front-face
+    :initform :ccw
+    :type (or :ccw :cw)
+    :initarg :front-face
+    :accessor front-face
+    :documentation "Winding order of faces. :ccw or :cw.")
 
-   (initial-height :initform 800 :initarg :initial-height)
-   (initial-width :initform 800 :initarg :initial-width)
-   (previous-seconds :initform 0.0))
-  (:documentation "A collection of objects and a vieweport."))
+   (blend
+    :initform t
+    :initarg :blend
+    :accessor blend
+    :documentation "Enable (t) or disable (nil) blending.")
+
+   (enable-update
+    :initform t
+    :initarg :enable-update
+    :accessor enable-update
+    :documentation "t to enable calls to (update), nil to disable. Used to pause or continue animations.")
+
+   (background-color
+    :initform (vec4 0.08f0 0.08f0 0.08f0 1.0)
+    :initarg :background
+    :accessor background-color
+    :documentation "The background color.")
+
+   (discarded-objects
+    :initform nil
+    :documentation "Objects that have been removed from the viewer, but still need to be cleaned up by OpenGL.")
+
+   (initial-height
+    :initform 800
+    :initarg :initial-height
+    :documentation "Requested initial window height.")
+   
+   (initial-width
+    :initform 800
+    :initarg :initial-width
+    :documentation "Requested initial window width.")
+
+   (previous-seconds
+    :initform 0.0
+    :documentation "Timestamp of previous render loop.")
+   )
+  (:documentation "A collection of objects and a viewport."))
 
 (defmacro with-viewer-lock ((viewer) &body body)
   `(with-slots (viewer-mutex) ,viewer
-     ;; (format t "Acquiring mutex ~a ~%" viewer-mutex)
      (bt:with-lock-held (viewer-mutex)
-       ;; (format t "Acquired mutex ~a ~%" viewer-mutex)
        ,@body)))
 
 (defmethod initialize ((viewer viewer) &key)
@@ -172,7 +236,7 @@
     (reset-view-safe viewer)))
 
 (defun rebuild-buffers (viewer)
-       (format t "Refilling buffers~%")
+  (format t "Refilling buffers~%")
   (with-viewer-lock (viewer)
     (with-slots (objects view-changed) viewer
       (loop
@@ -262,6 +326,28 @@
          (setf show-fps (not show-fps)))
        t))
 
+    ((and (eq key :f10) (eq action :press))
+     (with-viewer-lock (viewer)
+       (with-slots (enable-update) viewer
+         (cond ((integerp enable-update)
+                (setf enable-update t))
+               ((null enable-update)
+                (setf enable-update t))
+               (t
+                (setf enable-update nil)))
+         (format t "enable-update: ~a~%" enable-update))
+       t))
+
+    ((and (eq key :f11) (eq action :press))
+     (with-viewer-lock (viewer)
+       (with-slots (enable-update) viewer
+         (cond ((null enable-update)
+                (setf enable-update 1))
+               ((integerp enable-update)
+                (incf enable-update)))
+         (format t "enable-update: ~a~%" enable-update))
+       t))
+
 
     ((and (eq key :f12) (eq action :press))
      ;; TODO: Run this in a background thread?
@@ -318,6 +404,7 @@
 (defmethod update ((viewer viewer) elapsed-seconds)
   (with-slots (objects
                view-changed
+               enable-update
                camera-position
                last-update-time
                seconds-between-updates)
@@ -349,11 +436,17 @@
                (cond
                  ((not (initialized-p object))
                   object)
-                 ((> (- elapsed-seconds last-update-time) seconds-between-updates)
+                 ((and enable-update
+                       (> (- elapsed-seconds last-update-time)
+                          seconds-between-updates))
                   (update object elapsed-seconds))
                  (t nil)))))
         ;; Call update-object on each object
         (let ((update-results (lparallel:pmapcar #'update-object objects)))
+          (if (integerp enable-update)
+              (if (zerop (- enable-update 1))
+                  (setf enable-update nil)
+                  (decf enable-update)))
           (loop
             :for obj :in update-results
 
@@ -368,8 +461,8 @@
               :do
                  (setf last-update-time elapsed-seconds)
                  (loop
-                   :for  (object . thing) :in obj
-                   :when (and thing object)
+                   :for thing :in obj
+                   :when thing
                      :do
                         ;;(bind object)
                         (reload thing))))))))
@@ -628,7 +721,7 @@
         (push (cons name object) objects)
         (setf view-changed t)))))
 
-;; Note: This is won't work with functions like #'fill-texture because they run in the wrong thread.
+;; Note: This won't work with functions like #'fill-texture because they run in the wrong thread.
 (defgeneric call-with-object (viewer name function))
 (defmethod call-with-object (viewer name function)
   (with-viewer-lock (viewer)

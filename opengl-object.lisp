@@ -94,15 +94,15 @@
                  (loop :for tex :in textures
                        :for updated = (update tex elapsed-seconds)
                        :when updated
-                         :collect (cons object updated))
+                         :collect tex)
                  (loop :for (nil . style) :in styles
                        :for updated = (update style elapsed-seconds)
                        :when updated
-                         :collect (cons object  updated))
+                         :return style)
                  (loop :for (nil . buffer) :in buffers
                        :for updated = (update buffer elapsed-seconds)
                        :when updated
-                         :collect (cons object updated)))))
+                         :collect buffer))))
 
 (defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj
@@ -141,11 +141,14 @@
 (defgeneric refill-textures (object))
 
 (defmethod reload ((object opengl-object))
+  ;; TODO: What should reload do, really?
   (with-slots (buffers) object
     (dolist (buffer buffers)
       (cleanup (cdr buffer)))
     (setf buffers nil)
-    (initialize-buffers object))
+    (initialize-buffers object)
+    (initialize-uniforms object)
+    (initialize-textures object))
   t)
 
 

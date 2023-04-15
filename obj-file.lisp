@@ -4,28 +4,24 @@
 
 (in-package #:simple-gl)
 
-;; (defclass obj-group  (instanced-opengl-object)
-;;   ((xforms :initform (list (meye 4)))
-;;    (obj-group :init-arg :obj-group)))
+;; (use-package :obj-reader)
 
-;; (defclass obj-file (instanced-opengl-object)
-;;   ((file-name :initarg :file-name)
-;;    (tri-count :initform 0)
-;;    (obj-file :initform nil)
-;;    (gl-objects :initform nil)))
+;; (defclass sgl-obj (opengl-object)
+;;   ((filename :initarg :filename :type (or string pathname))
+;;    (obj-file :initform nil :type (or null obj-file)))
 
-;; (defmethod initialize-buffers ((obj obj-file) &key)
-;;   (declare (optimize (speed 1) (space 0) (safety 3) (debug 3)))
-;;   (with-slots (file-name tri-count obj-file gl-objects) obj
+
+;; (defmethod initialize-buffers ((obj sgl-obj) &key)
+;;   (with-slots (filename obj-file) obj
 ;;     (when (null obj-file)
-;;       (setf obj-file (obj-reader:read-obj-from-file file-name)))
+;;       (setf obj-file (read-obj-from-file file-name)))
 
-;;     (with-slots (obj-reader:objects) obj-file
+;;     (with-slots (objects) obj-file
 
-;;       (loop :for obj-object :in obj-reader:objects :do
-;;         (with-slots (obj-reader:groups) obj-object
+;;       (loop :for obj-object :in objects :do
+;;         (with-slots (groups) obj-object
 ;;           (loop
-;;             :for group :in obj-reader:groups
+;;             :for group :in groups
 ;;             :do
 ;;                (let ((object (make-instance 'obj-group :obj-group group)))
 ;;                  (with-slots (obj-reader:face-stride obj-reader:faces) group
