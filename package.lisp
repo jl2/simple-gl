@@ -46,6 +46,19 @@
 
            ;; Viewer
            #:viewer
+           #:3d-mouse-nav-viewer
+           #:quaternion-viewer
+
+           #:add-object
+           #:rm-object
+           #:replace-object
+           #:objects
+           #:pause
+
+           #:handle-3d-mouse-event
+           #:handle-key
+
+           #:with-viewer-lock
            #:*display-in-main-thread*
            #:reset-view
            #:reset-view-safe
@@ -53,26 +66,19 @@
            #:output-directory
            #:initial-height
            #:initial-width
-           #:3d-mouse-nav-viewer
-           #:quaternion-viewer
-           #:handle-3d-mouse-event
-           #:handle-key
-           #:constant-attribute-buffer
+           #:view-matrix
            #:display
            #:*viewers*
            #:find-viewer
-           #:add-object
-           #:rm-object
-           #:replace-object
-           #:objects
-           #:pause
-           #:call-with-object
+           #:view-changed
+
 
            ;; OpenGL objects
            #:opengl-object
            #:initialize-buffers
            #:initialize-uniforms
            #:initialize-textures
+           #:ensure-initialized
            #:primitive-type
            #:buffers
            #:get-buffer
@@ -83,6 +89,7 @@
            #:get-value
            #:bind
            #:render
+
            #:stl-file
 
            ;; Instanced OpenGL objects (inherits from opengl-object)
@@ -94,6 +101,7 @@
            ;; Buffers
            #:buffer
            #:attribute-buffer
+           #:constant-attribute-buffer
            #:index-buffer
            #:idx-count
            #:instance-buffer
@@ -120,4 +128,5 @@
            ;; Textures
            #:texture
            #:fill-texture
+
            ))

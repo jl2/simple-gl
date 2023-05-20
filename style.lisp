@@ -4,21 +4,6 @@
 
 (in-package #:simple-gl)
 
-(defclass style ()
-  ((enabled :initform t
-            :initarg :enabled
-            :accessor enabledp)
-   (program :initform 0
-            :accessor program
-            :type fixnum)
-   (shaders :initform nil
-           :type (or null list)
-           :accessor shaders
-            :initarg :shaders)
-   (poly-mode :initform :fill
-              :accessor poly-mode
-              :initarg :poly-mode)))
-
 (defmethod update ((style style) elapsed-seconds)
   (declare (ignorable style elapsed-seconds))
   nil)
@@ -119,9 +104,6 @@
                    :info-log (gl:get-program-info-log program))
           (ignore-validation-error () t))))
     program))
-
-(defgeneric use-style (style)
-  (:documentation "Apply style settings."))
 
 (defmethod use-style ((style style))
   (with-slots (program poly-mode) style

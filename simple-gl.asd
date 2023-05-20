@@ -54,10 +54,5 @@
                (:file "instanced-opengl-object")
                (:file "stl")
                (:file "obj-file")
-
-
-               (:file "uniforms")
-
-
-               )
+               (:file "uniforms"))
   :in-order-to ((test-op (test-op simple-gl.test))))

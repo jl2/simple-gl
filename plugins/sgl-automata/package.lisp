@@ -24,12 +24,15 @@
         #:3d-matrices)
   (:export #:create-1d-cellular-automata
            #:cellular-automata
+           #:2d-automata-viewer
            #:1d-cellular-automata
            #:1d-cellular-automata-wrapping
 
            #:create-2d-cellular-automata
            #:2d-cellular-automata
            #:game-of-life
+           #:hashlife
            #:create-game-of-life
+           #:create-hashlife
            #:create-random-game-of-life
            ))

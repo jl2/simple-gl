@@ -16,14 +16,12 @@
 
 (in-package :simple-gl)
 
-(defclass quad (opengl-object)
-  ())
-
 (defmethod initialize-buffers ((object quad) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
 
-  (set-buffer object :vertices
+  (set-buffer object
+              :vertices
               (constant-attribute-buffer
 
                `(

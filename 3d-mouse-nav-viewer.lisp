@@ -4,33 +4,14 @@
 
 (in-package #:simple-gl)
 
-(defparameter *default-radius* 120.0)
-(defparameter *default-theta* (/ pi 2))
-(defparameter *default-gamma* (/ pi 6))
-
 (declaim (inline handle-3d-mouse-event))
 
-(defclass 3d-mouse-nav-viewer (viewer)
-  ((radius :initform *default-radius* :type real)
-   (gamma :initform *default-gamma* :type real)
-   (gamma-direction :initform 1.0 :type real)
-   (theta :initform *default-theta* :type real)
-   (theta-direction :initform 1.0 :type real)
-   (target :initform (vec3 0.0 0.0 0.0) :initarg :target :type vec3)
-   (up :initform (vec3 0 1 0) :initarg :up :type vec3)
-   (min-radius :initform 0.1 :initarg :min-radius :type real)
-   (max-radius :initform 100.0 :initarg :max-radius :type real)
-   (zoom-factor :initform 2000.0 :initarg :zoom-factor :type real)
-   (rotation-factor :initform 2000.0 :initarg :rotation-factor :type real))
-  (:documentation "A viewer with 3d mouse camera navigation."))
-
-
 (defmethod view-matrix ((viewer 3d-mouse-nav-viewer))
-  (with-slots (radius theta gamma target up) viewer
-    (let*  ((tval (* radius (cos theta)))
-            (yv (* radius (sin theta)))
-            (xv (* tval (cos gamma)))
-            (zv (* tval (sin gamma))))
+  (with-slots (radius φ θ target up) viewer
+    (let*  ((tval (* radius (cos φ)))
+            (yv (* radius (sin φ)))
+            (xv (* tval (cos θ)))
+            (zv (* tval (sin θ))))
       (m*
        (mperspective 90.0 1.0 0.1 1000.0)
        (mlookat (vec3 xv yv zv)
@@ -38,10 +19,10 @@
                 up)))))
 
 (defmethod reset-view-safe (viewer)
-  (with-slots (view-changed objects aspect-ratio radius theta gamma) viewer
+  (with-slots (view-changed objects aspect-ratio radius φ θ) viewer
     (setf radius *default-radius*)
-    (setf theta *default-theta*)
-    (setf gamma *default-gamma*)
+    (setf φ *default-φ*)
+    (setf θ *default-θ*)
     (loop
       :with view-xform = (view-matrix viewer)
       :for (nil . object) :in objects
@@ -53,7 +34,7 @@
 (defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
   (with-viewer-lock (viewer)
-    (with-slots (aspect-ratio radius theta gamma view-changed) viewer
+    (with-slots (aspect-ratio radius φ θ view-changed) viewer
       (let* ((multiplier (if (find :shift mod-keys) 4 1.0))
              (angle-inc (* multiplier (/ pi 270)))
              (linear-inc (* multiplier 0.5)))
@@ -67,28 +48,28 @@
 
 
           ((and (eq key :left) (find action '(:repeat :press)))
-           (setf gamma (+ gamma angle-inc))
+           (setf θ (+ θ angle-inc))
            (setf view-changed t)
            t)
 
           ((and (eq key :right) (find action '(:repeat :press)))
-           (setf gamma
-                 (- gamma angle-inc))
+           (setf θ
+                 (- θ angle-inc))
            (setf view-changed t)
            t)
 
 
           ((and (eq key :up) (find action '(:repeat :press)))
-           (setf theta (min
+           (setf φ (min
                         (/ pi 2)
-                        (+ theta angle-inc)))
+                        (+ φ angle-inc)))
            (setf view-changed t)
            t)
 
           ((and (eq key :down) (find action '(:repeat :press)))
-           (setf theta (max
+           (setf φ (max
                         (- (/ pi 2))
-                        (- theta angle-inc)))
+                        (- φ angle-inc)))
            (setf view-changed t)
            t)
 
@@ -114,14 +95,14 @@
   (with-viewer-lock (viewer)
     (with-slots (up
                  radius
-                 theta
-                 gamma
+                 φ
+                 θ
                  zoom-factor
                  rotation-factor
                  min-radius
                  max-radius
-                 gamma-direction
-                 theta-direction
+                 θ-direction
+                 φ-direction
                  view-changed) viewer
       (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
         (let* ((linear-scale (- 1.0
@@ -129,35 +110,35 @@
                                    (min 2.0 (log radius)))))
 
                (radial-scale (/ -1.0 rotation-factor))
-               (d-gamma (* gamma-direction radial-scale sn:ry))
-               (d-theta (* theta-direction radial-scale sn:rz)))
-          (incf gamma d-gamma)
-          (incf theta d-theta)
+               (d-θ (* θ-direction radial-scale sn:ry))
+               (d-φ (* φ-direction radial-scale sn:rz)))
+          (incf θ d-θ)
+          (incf φ d-φ)
           (cond
-            ((> gamma pi)
-             (setf gamma (- gamma (* 2 pi))))
-            ((< gamma (- pi))
-             (setf gamma (+ gamma (* 2 pi))))
-            ((> theta pi)
-             (decf theta (* 2 pi))
+            ((> θ pi)
+             (setf θ (- θ (* 2 pi))))
+            ((< θ (- pi))
+             (setf θ (+ θ (* 2 pi))))
+            ((> φ pi)
+             (decf φ (* 2 pi))
              (setf up (v- up))
-             ;;(setf gamma (- gamma pi))
+             ;;(setf θ (- θ pi))
              )
-            ((< theta (- pi) )
-             (format t "reset theta low~%")
-             (incf theta (* 2 pi))
+            ((< φ (- pi) )
+             (format t "reset φ low~%")
+             (incf φ (* 2 pi))
              (setf up (v- up))
-             ;;(setf gamma (+ gamma pi))
+             ;;(setf θ (+ θ pi))
              )
 
-            ((> theta (/ pi 2))
+            ((> φ (/ pi 2))
              (setf up (vec3 0 1 0)))
-            ((< theta (/ pi 2))
+            ((< φ (/ pi 2))
              (setf up (vec3 0 -1 0)))
 
-            ;; ((< theta (/ (- pi) 2))
+            ;; ((< φ (/ (- pi) 2))
             ;;  (setf up (vec3 0 1 0)))
-            ;; ((> theta (/ (- pi) 2))
+            ;; ((> φ (/ (- pi) 2))
             ;;  (setf up (vec3 0 -1 0)))
             ;; )
             )

@@ -26,5 +26,7 @@
                (:file "sgl-automata")
                (:file "1d-automata")
                (:file "2d-automata")
-               (:file "game-of-life"))
+               (:file "2d-viewer")
+               (:file "game-of-life")
+               (:file "hashlife"))
   :in-order-to ((test-op (test-op sgl-automata.test))))

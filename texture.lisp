@@ -4,28 +4,6 @@
 
 (in-package #:simple-gl)
 
-(defclass texture ()
-  ((tex-type :initform :texture-2d :initarg :type)
-   (textures :initform nil :type (or null list))
-   (size :initform #(1 1) :initarg :size :type sequence)
-   (parameters :initform '((:texture-wrap-s . :repeat)
-                           (:texture-wrap-t . :repeat)
-                           (:texture-base-level . 0)
-                           (:texture-max-level . 8)
-                           (:texture-min-filter . :linear-mipmap-linear)
-                           (:texture-mag-filter . :linear)))))
-
-(defclass texture-1d (texture)
-  ((tex-type :initform :texture-1d :initarg :type)))
-
-(defclass texture-2d (texture)
-  ((tex-type :initform :texture-2d :initarg :type)))
-
-(defclass texture-3d (texture)
-  ((tex-type :initform :texture-3d :initarg :type)))
-
-(defgeneric fill-texture (obj))
-
 (defmethod update ((texture texture) elapsed-seconds)
   (declare (ignorable texture elapsed-seconds))
   nil)

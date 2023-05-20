@@ -4,14 +4,6 @@
 
 (in-package #:simple-gl)
 
-(defclass mouse-click ()
-  ((cursor-pos :initarg :cursor-pos)
-   (button :initarg :button)
-   (action :initarg :action)
-   (mod-keys :initarg :mod-keys)
-   (time :initarg :time))
-  (:documentation "Mouse click information."))
-
 (defparameter *want-forward-context*
   #+(or windows linux freebsd) t
   #+darwin t
@@ -92,113 +84,6 @@
     "GLFW error callback.  Writes errors to *error-stream*"
     (format *error-stream* "Error: ~a~%" message)))
 
-(defclass viewer ()
-  ((window
-    :initform nil
-    :documentation "The GLFW window for this viewer.")
-
-   (viewer-mutex
-    :initform (bt:make-lock "viewer-lock")
-    :documentation "Mutex to synchronize multi-threaded access to this viewer.")
-
-   (objects
-    :initform nil
-    :initarg :objects
-    :type (or null cons)
-    :accessor objects
-    :documentation "The list of objects shown in this viewer.")
-
-   (camera-position
-    :initarg :camera-position
-    :initform (vec3 0 0 1)
-    :accessor camera-position
-    :documentation "Camera location of the viewer.")
-
-   (view-changed
-    :initform t
-    :documentation "t when the view has changed recently.")
-
-   (aspect-ratio
-    :initform 1.0
-    :initarg :aspect-ratio
-    :type real
-    :accessor aspect-ratio
-    :documentation "Aspect ratio of the view window.")
-
-   (show-fps
-    :initform nil
-    :initarg :show-fps
-    :type t
-    :accessor show-fps
-    :documentation "t to show FPS to *error-stream*.  nil to disable.")
-
-   (desired-fps
-    :initform 60
-    :initarg :desired-fps
-    :type fixnum
-    :accessor desired-fps
-    :documentation "Target FPS. The viewer should achieve this frame rate as long as render and update calls are fast enough.")
-
-   (last-update-time
-    :initform 0
-    :documentation "Timestamp when the last update call finished")
-
-   (seconds-between-updates
-    :initform (/ 1 30)
-    :initarg :seconds-between-updates
-    :documentation "Ideal number of seconds between each update call.  Should be ~ (1 / desired-fps)")
-
-   ;; Should cull-face, front-face, and blend be per-object?
-   (cull-face
-    :initform nil
-    :initarg :cull-face
-    :accessor cull-face
-    :documentation "T to (gl:enable :cull-face), nil to (gl:disable :cull-face)")
-
-   (front-face
-    :initform :ccw
-    :type (or :ccw :cw)
-    :initarg :front-face
-    :accessor front-face
-    :documentation "Winding order of faces. :ccw or :cw.")
-
-   (blend
-    :initform t
-    :initarg :blend
-    :accessor blend
-    :documentation "Enable (t) or disable (nil) blending.")
-
-   (enable-update
-    :initform t
-    :initarg :enable-update
-    :accessor enable-update
-    :documentation "t to enable calls to (update), nil to disable. Used to pause or continue animations.")
-
-   (background-color
-    :initform (vec4 0.08f0 0.08f0 0.08f0 1.0)
-    :initarg :background
-    :accessor background-color
-    :documentation "The background color.")
-
-   (discarded-objects
-    :initform nil
-    :documentation "Objects that have been removed from the viewer, but still need to be cleaned up by OpenGL.")
-
-   (initial-height
-    :initform 800
-    :initarg :initial-height
-    :documentation "Requested initial window height.")
-   
-   (initial-width
-    :initform 800
-    :initarg :initial-width
-    :documentation "Requested initial window width.")
-
-   (previous-seconds
-    :initform 0.0
-    :documentation "Timestamp of previous render loop.")
-   )
-  (:documentation "A collection of objects and a viewport."))
 
 (defmacro with-viewer-lock ((viewer) &body body)
   `(with-slots (viewer-mutex) ,viewer
@@ -232,9 +117,6 @@
       :do
          (cleanup object))
     (setf discarded-objects nil)))
-
-(defgeneric reset-view-safe (viewer)
-  (:documentation "Reset view to its initial conditions."))
 
 (defun reset-view (viewer)
   (with-viewer-lock (viewer)
@@ -499,8 +381,10 @@
           (cffi:foreign-enum-keyword '%gl:enum severity)
           id
           message))
+
 (defun glfw-initialization ()
   )
+
 (defmethod display ((viewer viewer))
   "High level function to display a viewer and start processing in a background thread."
 
@@ -566,12 +450,12 @@
                                    blend
                                    cull-face front-face background-color)
                           viewer
-                        #+spacenav(sn:sn-open)
-                        #+spacenav(sn:sensitivity 0.125d0)
 
                         ;; Load objects for the first time
                         (initialize viewer)
 
+                        #+spacenav(sn:sn-open)
+                        ;;#+spacenav(sn:sensitivity 0.5d0)
 
                         (loop
                           :with start-time = (glfw:get-time)
@@ -699,15 +583,15 @@
       (loop for (nil . object) in (objects viewer) :do
         (show-info object :indent (1+ indent))))))
 
-(defgeneric add-object (viewer name object))
 (defmethod add-object (viewer name object)
   (with-viewer-lock (viewer)
-    (with-slots (objects view-changed) viewer
+    (with-slots (objects view-changed camera-position) viewer
       (when (null (assoc name objects))
+        (set-uniform object "camera_position" camera-position :vec3)
+        (set-uniform object "view_transform" (view-matrix viewer) :mat4))
         (push (cons name object) objects)
-        (setf view-changed t)))))
+        (setf view-changed t))))
 
-(defgeneric rm-object (viewer name))
 (defmethod rm-object (viewer name)
   (with-viewer-lock (viewer)
     (with-slots (objects discarded-objects view-changed) viewer
@@ -716,7 +600,7 @@
         (setf objects (remove name objects :key #'car))
         (setf view-changed t)))))
 
-(defgeneric replace-object (viewer name object))
+
 (defmethod replace-object (viewer name object)
   (with-viewer-lock (viewer)
     (with-slots (objects discarded-objects view-changed) viewer
@@ -726,14 +610,6 @@
         (push (cons name object) objects)
         (setf view-changed t)))))
 
-;; Note: This won't work with functions like #'fill-texture because they run in the wrong thread.
-(defgeneric call-with-object (viewer name function))
-(defmethod call-with-object (viewer name function)
-  (with-viewer-lock (viewer)
-    (with-slots (objects discarded-objects view-changed) viewer
-      (when-let  (it (assoc-value objects name))
-        (setf view-changed (not (null (funcall function it))))))))
-
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
 
@@ -741,6 +617,5 @@
   (sgl::with-viewer-lock (viewer)
     (sleep timeout)))
 
-(defgeneric view-matrix (viewer))
 (defmethod view-matrix ((viewer viewer))
   (meye 4))

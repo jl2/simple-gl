@@ -19,13 +19,18 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-automata "shaders/") sgl:*shader-dirs*))
 
-
 (defclass cellular-automata (instanced-opengl-object)
   ((styles :initform (list (cons :automata
                                  (sgl:make-style-from-files "sgl-automata-vertex.glsl"
                                                             "point-fragment.glsl"))))
    (max-instances :initform 100000 :initarg :max-instances :type fixnum)
-   (instance-count :initform 0 :type fixnum)))
+   (color :initform (vec4 0.1 0.8 0.1 1.0) :initarg :color)
+   (instance-count :initform 0 :type fixnum)
+   (current-iteration :initform 0 :type fixnum)
+   (generated-iteration :initform -1 :type fixnum)
+   (animating :initform nil :type (or t nil) :initarg :animating)
+   (min-pt :initform (vec2 -100 -100) :initarg :min-pt)
+   (max-pt :initform (vec2 100 100) :initarg :max-pt)))
 
 (declaim (inline apply-rule left-element right-element compute-next-row add-row-instance))
 
@@ -38,50 +43,51 @@
 
 (defmethod update ((object cellular-automata) elapsed-seconds)
   (declare (ignorable elapsed-seconds))
-  (with-slots (max-instances instance-count) object
-    (when (< instance-count max-instances)
-      (let ((rval (add-current-instances object)))
-        (compute-next object)
-        (ensure-list rval)))))
+  (with-slots (animating current-iteration generated-iteration) object
+    (when animating
+      (incf current-iteration))
+    (let ((rval (add-current-instances object)))
+      (ensure-list rval))))
 
 (defmethod initialize-buffers ((object cellular-automata) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
 
   ;; Fill vertex and index buffers with data for a single OpenGL quad
-  (let ((cell-width 1.0))
+  (with-slots (color) object
+    (let ((cell-width 1.0))
+      (set-buffer object
+                  :vertices
+                  (make-instance
+                   'attribute-buffer
+                   :pointer (to-gl-array
+                             :float
+                             28
+                             (list 0.0f0 0.0f0 0.0f0
+                                   (vx color) (vy color) (vz color) (vw color)
+
+                                   cell-width 0.0f0 0.0f0
+                                   (vx color) (vy color) (vz color) (vw color)
+
+                                   cell-width cell-width 0.0f0
+                                   (vx color) (vy color) (vz color) (vw color)
+
+                                   0.0f0 cell-width 0.0f0
+                                   (vx color) (vy color) (vz color) (vw color)))
+                   :stride nil
+                   :attributes '(("in_position" . :vec3)
+                                 ("in_color" . :vec4))
+                   :usage :static-draw
+                   :free t)))
     (set-buffer object
-                :vertices
+                :indices
                 (make-instance
-                 'attribute-buffer
-                 :pointer (to-gl-array
-                           :float
-                           28
-                           (list 0.0f0 0.0f0 0.0f0
-                                 0.1f0 0.8f0 0.1f0 1.0f0
-
-                                 cell-width 0.0f0 0.0f0
-                                 0.1f0 0.8f0 0.1f0 1.0f0
-
-                                 cell-width cell-width 0.0f0
-                                 0.1f0 0.8f0 0.1f0 1.0f0
-
-                                 0.0f0 cell-width 0.0f0
-                                 0.1f0 0.8f0 0.1f0 1.0f0))
+                 'index-buffer
+                 :idx-count 6
+                 :pointer (to-gl-array :unsigned-int 6 #(0 1 2 0 2 3))
                  :stride nil
-                 :attributes '(("in_position" . :vec3)
-                               ("in_color" . :vec4))
-                 :usage :dynamic-draw
+                 :usage :static-draw
                  :free t)))
-  (set-buffer object
-              :indices
-              (make-instance
-               'index-buffer
-               :idx-count 6
-               :pointer (to-gl-array :unsigned-int 6 #(0 1 2 0 2 3))
-               :stride nil
-               :usage :static-draw
-               :free t))
 
   ;; Create an empty instance buffer that will be filled with vec3 translations
   (with-slots (max-instances instance-count) object
@@ -90,9 +96,10 @@
                 :obj-transform (make-instance
                                 'instance-buffer
                                 ;; Not technically empty, but this gets overwritten immediately
-                                :pointer (to-gl-array :float
-                                                      (* max-instances 3)
-                                                      (vec3 0.0f0 0.0f0 0.0f0))
+                                :pointer (to-gl-array
+                                          :float
+                                          (* max-instances 3)
+                                          (vec3 0.0f0 0.0f0 0.0f0))
                                 :stride nil
                                 :attributes '(("translation" . :vec3))
                                 :usage :dynamic-draw

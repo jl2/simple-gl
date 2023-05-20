@@ -1,4 +1,4 @@
-;; game-of-life.lisp
+;; hashlife.lisp
 ;;
 ;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
@@ -16,54 +16,54 @@
 
 (in-package :sgl-automata)
 
-(defclass sgl-hashlife (cellular-automata)
-  ())
-
-(defclass sgl-slowlife (cellular-automata)
-  ((pts :initform nil :initarg :pts :type list)))
+(defclass hashlife (cellular-automata)
+  ((node :initarg :node :type hl:qtnode)
+   (level :initarg :level :initform 0 :type fixnum)))
 
 
-(defun naive-life (file-name)
-  "Create a cellular automata of the specified size."
-  (make-instance 'sgl-slowlife :pts (hl:read-life-file file-name)))
-
-(defmethod compute-next ((object sgl-slowlife))
-  (with-slots (instance-count pts) object
-    (let ((new-pts (hl:baseline-life pts)))
-      (setf pts new-pts))))
-
-
-(defmethod add-current-instances ((object sgl-slowlife))
+(defmethod add-current-instances ((object hashlife))
   "Draw the next row of automata data by adding translations to the instance buffer."
-  (with-slots (pts buffers instance-count max-instances) object
-    (let ((buffer (get-buffer object :obj-transform))
-          (cell-width 0.5)
-          (cell-height 0.5))
-      (setf instance-count 0)
-      (with-slots (pointer) buffer
-        ;; Loop over each cell
-        (loop
-          ;; Track whether any quads have been added
-          :with updated = nil
-          :for (px . py) :in pts
-          
-          ;; Calculate the quad location
-          :for x-float real = (- 1.0f0 (* cell-width px))
-          :for y-float real = (- 1.0f0 (* cell-height py))
-          :do
-          
-             ;; If the cell is 'on' then add a quad
-             (format t "Adding quad ~a ~a~%" x-float y-float)
-             (sgl:fill-pointer-offset
-              (vec3 x-float y-float 0.0f0)
-                                        ;(* -0.1f0 current-board-idx))
-              pointer
-              (* instance-count 3))
-             (setf updated t)
-             (incf instance-count)
-          :finally
-             ;; Copy the buffer to OpenGL if anything changed.
-             (return buffer)
-             ;; (when updated
-             ;;   (return buffer))
-          )))))
+  (with-slots (buffers instance-count max-instances node level min-pt max-pt
+               current-iteration generated-iteration) object
+    (when (/= current-iteration generated-iteration)
+
+      (let ((buffer (get-buffer object :obj-transform))
+            (cell-width 1.0)
+            (cell-height 1.0))
+        (declare (type single-float cell-width cell-height))
+        (setf instance-count 0)
+        (with-slots (pointer) buffer
+          (let ((pts (hl:expand (hl:advance node current-iteration)
+                                :level level)))
+            (multiple-value-bind (min-x min-y max-x max-y) (hl:game-bounds pts)
+              (declare (ignorable max-x max-y))
+              (loop
+                :for icount :below max-instances
+                :for pt :in pts
+                :for moved-pt = (hl:pt (- (hl:pt-x pt) min-x)
+                                       (- (hl:pt-y pt) min-y))
+                :for x-float = (* cell-width (hl:pt-x moved-pt))
+                :for y-float = (* cell-height (hl:pt-y moved-pt))
+                :for real-pt = (vec3 x-float y-float (hl:pt-gray pt))
+                :when (in-box moved-pt min-pt max-pt)
+                  :do
+                     (sgl:fill-pointer-offset real-pt
+                                              pointer
+                                              (* icount 3))))
+            (setf instance-count (min max-instances
+                                      (length pts)))))
+        (setf generated-iteration current-iteration)
+        buffer))))
+
+
+
+(defun create-hashlife (filename &key
+                                       (color (vec4 0.1 0.9 0.1 1.0))
+                                       (max-instances (* 100 100)))
+  "Read a game of life initial position from a file."
+  (make-instance 'hashlife
+                 :max-instances max-instances
+                 :color color
+                 :node (hl:make-hashlife filename)))
+
+(defmethod compute-next ((object hashlife)))

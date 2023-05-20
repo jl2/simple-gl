@@ -5,32 +5,6 @@
 (in-package #:simple-gl)
 
 
-(defclass opengl-object ()
-  ((vao :initform 0
-        :type fixnum
-        :accessor vao)
-   (name :initform "GL Object"
-         :initarg :name
-         :type string)
-   (styles :initform (list (cons :point-style (point-style)))
-           :type (or null list)
-           :accessor styles
-           :initarg :styles)
-   (textures :initform nil
-             :type (or null list)
-             :accessor textures
-             :initarg :textures)
-   (buffers :initform nil
-            :type (or null list)
-            :accessor buffers
-            :initarg :buffers)
-   (uniforms :initform nil
-             :type (or null list)
-             :accessor uniforms
-             :initarg :uniforms)
-   (primitive-type :initform :triangles))
-  (:documentation "Base class for all objects that can be rendered in a scene."))
-
 (defmethod initialized-p ((object opengl-object))
   (not (zerop (vao object))))
 
@@ -136,9 +110,6 @@
     (initialize-buffers object)
     (initialize-uniforms object)
     (initialize-textures object)))
-
-(defgeneric rebuild-style (object))
-(defgeneric refill-textures (object))
 
 (defmethod reload ((object opengl-object))
   ;; TODO: What should reload do, really?

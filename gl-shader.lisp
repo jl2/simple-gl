@@ -20,30 +20,11 @@
     :finally (return (merge-pathnames fname path))))
 
 ;; Shader
-(define-condition shader-error (error)
-  ((status :initarg :status :reader shader-compile-status)
-   (object :initarg :object :reader shader-object)
-   (info-log :initarg :info-log :reader shader-compile-info-log)))
 
 (defmethod print-object ((shader-error shader-error) stream)
   (with-slots (status object info-log) shader-error
     (format stream "OpenGL Compiler Error: ~a~%~%~a~%~%Info log:~%==========~%~a" status (get-source object) info-log)))
 
-(defclass gl-shader ()
-  ((shader :initform 0 :type fixnum :accessor shader)
-   (shader-type :initarg :shader-type))
-  (:documentation "An opengl shader class."))
-
-
-(defgeneric get-source (shader)
-  (:documentation "Return shader source code as a string."))
-
-(defgeneric compile-shader (shader)
-  (:documentation "Read source from source file and compile shader"))
-
-(defclass gl-file-shader (gl-shader)
-  ((source-file :initarg :source-file :type (or pathname string) :accessor source-file))
-  (:documentation "An OpenGL shader whose source code is stored in a file."))
 
 (defmethod print-object ((object gl-file-shader) stream)
   (with-slots (source-file) object

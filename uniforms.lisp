@@ -4,14 +4,6 @@
 
 (in-package #:simple-gl)
 
-;; TODO: Consider creating float-uniform, mat4-uniform, etc. subclasses that call the
-;; correct gl:uniform* functions, and remove the big cond in use-uniform.
-(defclass uniform ()
-  ((name :initarg :name :type string)
-   (type :initarg :type)
-   (value :initarg :value :initform nil :type t)
-   (modified :initform t))
-  (:documentation "A uniform variable parameter to a shader."))
 
 (defmethod show-info ((uniform uniform) &key (indent 0))
   (let ((this-ws (indent-whitespace indent)))
@@ -21,9 +13,6 @@
 (defmethod print-object ((object uniform) stream)
   (with-slots (name type value modified) object
     (format stream "~a ~a = ~a (~a)~%" type name value (if modified "modified" "not modified"))))
-
-(defgeneric use-uniform (uniform program)
-  (:documentation "Pass the uniform's value into the OpenGL program."))
 
 (defmethod update ((uniform uniform) elapsed-seconds)
   (declare (ignorable uniform elapsed-seconds))
@@ -91,18 +80,12 @@
                  (error "Don't know how to set type ~a" type)))
           (setf modified nil))))))
 
-(defgeneric set-value (uniform new-value &optional new-type)
-  (:documentation "Set a generic's value and optionally type."))
-
 (defmethod set-value (uniform new-value &optional (new-type nil))
   (with-slots (value modified type) uniform
     (setf value new-value)
     (when new-type
       (setf type new-type))
     (setf modified t)))
-
-(defgeneric get-value (uniform)
-  (:documentation "Set a generic's value and optionally type."))
 
 (defmethod get-value (uniform)
   (with-slots (value modified type) uniform

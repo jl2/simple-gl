@@ -16,94 +16,59 @@
 
 (in-package :sgl-automata)
 
-;; (sgl:display-in
-;;  (sgla:create-2d-cellular-automata 256 256)
-;;  (make-instance 'sgl:viewer
-;;                 :desired-fps 120))
-
-;; (tmt:with-body-in-main-thread
-;;     ()
-;;   (sgl:display-in
-;;    (sgla:create-game-of-life 512 512
-;;                              :max-instances (* 512 512))
-;;    (make-instance 'sgl:viewer
-;;                   :desired-fps 120
-;;                   :xform (m* (mperspective 60.0 1.0 0.1 1000.0)
-;;                              (mlookat (vec3 1.5 1.5 2.0)
-;;                                       (vec3 0 0 0)
-;;                                       +vy+)))))
-
-
 (defclass game-of-life (cellular-automata)
-  ((pts :initarg :pts :type list)
-   (iterator :initform #'hl:iterate-baseline-life :initarg :iterator)))
+  ((pts :initarg :pts)
+   (level :initarg :level :initform 0)))
+
+(defun in-box (hlp min-pt max-pt)
+  (and (< (hl:pt-x hlp) (vx max-pt))
+       (> (hl:pt-x hlp) (vx min-pt))
+       (< (hl:pt-y hlp) (vy max-pt))
+       (> (hl:pt-y hlp) (vy min-pt))))
 
 (defmethod add-current-instances ((object game-of-life))
   "Draw the next row of automata data by adding translations to the instance buffer."
-  (with-slots (buffers instance-count max-instances pts) object
-    (let ((buffer (get-buffer object :obj-transform))
-          (cell-width 0.8 ;;(/ 2.0f0 (coerce (1+  (- max-x min-x)) 'single-float))
-                      )
-          (cell-height 0.8 ;; (/ 2.0f0 (1+ (- max-y min-y)))
-                       ))
-      (declare (type single-float cell-width cell-height))
-      (setf instance-count 0)
-      (with-slots (pointer) buffer
-        ;; Loop over each cell in the data
-        ;; (format t "min-x ~a  max-x ~a  min-y ~a  max-y ~a  cell-width ~a  cell-height ~a~%" min-x max-x  min-y max-y cell-width cell-height)
-        ;; (lparallel:pmap
-        ;;  nil
-        ;;  (lambda (pt)
-        ;;    (let ((x-float (- 1.0f0 (* cell-width (car pt))))
-        ;;          (y-float (- 1.0f0 (* cell-height (cdr pt)))))
-        ;;      (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0)
-        ;;                               pointer
-        ;;                               (* instance-count 3))))
-        ;;  pts)
-        (loop
-          :for pt :in pts
-          :for x-float = (- 1.0f0 (* cell-width (car pt)))
-          :for y-float = (- 1.0f0 (* cell-height (cdr pt)))
-          :do
-             (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0)
-                                      pointer
-                                      (* instance-count 3)))
-        (setf instance-count (length pts)))
-      
-      ;; (loop
-      ;;   :for (x . y) :in pts
-      ;;   :for x-float real = (- 1.0f0 (* cell-width x))
-      ;;   :for y-float real = (- 1.0f0 (* cell-height y))
-      ;;   :do
-      ;;      ;;(format t "x ~a y ~a xf ~a  yf ~a~%" x y x-float y-float)
-      ;;      (sgl:fill-pointer-offset (vec3 x-float y-float 0.0f0)
-      ;;                               pointer
-      ;;                               (* instance-count 3))
-      ;;      (incf instance-count)))
-      buffer)))
+  (with-slots (buffers instance-count max-instances pts min-pt max-pt
+               current-iteration generated-iteration) object
+    (when (/= current-iteration generated-iteration)
+      (let ((buffer (get-buffer object :obj-transform))
+            (cell-width 1.0
+                        )
+            (cell-height 1.0
+                         ))
+        (declare (type single-float cell-width cell-height))
+        (setf instance-count 0)
+        (with-slots (pointer) buffer
+          (loop
+            :for icount :below max-instances
+            :for pt :in (hl:baseline-advance pts current-iteration)
+            :for x-float = (* cell-width (hl::pt-x pt))
+            :for y-float = (* cell-height (hl::pt-y pt))
+            :when (in-box pt min-pt max-pt)
+              :do
+                 (sgl:fill-pointer-offset (vec3 x-float y-float (hl:pt-gray pt))
+                                          pointer
+                                          (* icount 3))
+                 (incf instance-count )))
+        (setf generated-iteration current-iteration)
+        buffer))))
 
 (defun create-random-game-of-life (width height
                                    &key
-                                     (iterator #'hl:iterate-baseline-life)
                                      (max-instances (* width height)))
   "Create a cellular automata of the specified size."
   (make-instance 'game-of-life
                  :max-instances max-instances
-                 :iterator iterator
-                 :pts (loop :for i :below (* width height)
-                            :collecting (cons (random width) (random height)))))
+                 :game (loop :for i :below (* width height)
+                            :collecting (hl:pt (random width) (random height)))))
 
 (defun create-game-of-life (filename &key
-                                       (iterator #'hl:iterate-baseline-life)
+                                       (color (vec4 0.1 0.9 0.1 1.0))
                                        (max-instances (* 100 100)))
-  "Create a cellular automata of the specified size."
+  "Read a game of life initial position from a file."
   (make-instance 'game-of-life
                  :max-instances max-instances
-                 :iterator iterator
-                 :pts (hl:read-game-file filename)))
+                 :color color
+                 :pts (hl:make-life filename)))
 
-(defmethod compute-next ((object game-of-life))
-  (with-slots (instance-count iterator pts) object
-    (setf pts (funcall iterator pts))
-;;    (format t "pts: ~a~%" pts)
-    (setf instance-count (length pts))))
+(defmethod compute-next ((object game-of-life)))

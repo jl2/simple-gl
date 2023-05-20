@@ -4,12 +4,10 @@
 
 (in-package #:simple-gl)
 
-(defclass stl-file (instanced-opengl-object)
-  ((file-name :initarg :file-name :type (or string path))
-   (tri-count :initform 0 :type (unsigned-byte 32))))
-
 (declaim (ftype (function
-                 ((simple-array (unsigned-byte 8)) fixnum) (unsigned-byte 16)) get-u2)
+                 ((simple-array (unsigned-byte 8)) fixnum)
+                 (unsigned-byte 16))
+                get-u2)
          (inline get-u2))
 (defun get-u2 (arr idx)
   "Interpret two bytes in arr as an '(unsigned-byte 32)"
@@ -18,8 +16,11 @@
    (type (simple-array (unsigned-byte 8)) arr))
   (the (unsigned-byte 16) (+ (* (aref arr (1+ idx)) 256) (aref arr idx))))
 
+
 (declaim (ftype (function
-                 ((simple-array (unsigned-byte 8)) fixnum) (unsigned-byte 32)) get-u4)
+                 ((simple-array (unsigned-byte 8)) fixnum)
+                 (unsigned-byte 32))
+                get-u4)
          (inline get-u4))
 (defun get-u4 (arr idx)
   "Interpret the four bytes in arr as an '(unsigned-byte 32)"
@@ -32,7 +33,9 @@
                              (aref arr idx))))
 
 (declaim (ftype (function
-                 ((simple-array (unsigned-byte 8)) fixnum) (signed-byte 32)) get-s4)
+                 ((simple-array (unsigned-byte 8)) fixnum)
+                 (signed-byte 32))
+                get-s4)
          (inline get-s4))
 (defun get-s4 (arr idx)
   "Interpret four bytes in arr as an '(signed-byte 32)"
@@ -43,9 +46,13 @@
                                        (aref arr (+ 2 idx))) 256)
                                  (aref arr (+ 1 idx))) 256)
                            (aref arr idx))))
+
 (declaim (ftype (function
-                 ((simple-array (unsigned-byte 8)) fixnum) single-float) get-float)
+                 ((simple-array (unsigned-byte 8)) fixnum)
+                 single-float)
+                get-float)
          (inline get-float))
+
 (defun get-float (arr idx)
   "Interpret four bytes in arr as a single-float."
   (declare
