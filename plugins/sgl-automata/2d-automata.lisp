@@ -150,7 +150,7 @@
                   0
                   (+ j 1))))
       (declare (type fixnum ip jp in jn))
-      (+ 
+      (+
        (2d-get current-board-data width ip jp)
        (2d-get current-board-data width ip j)
        (2d-get current-board-data width ip jn)
@@ -159,4 +159,3 @@
        (2d-get current-board-data width in jp)
        (2d-get current-board-data width in j)
        (2d-get current-board-data width in jn)))))
-

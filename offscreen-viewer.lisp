@@ -135,4 +135,3 @@
     (with-slots (objects) viewer
       (dolist (object objects)
         (show-info object :indent (1+ indent))))))
-
