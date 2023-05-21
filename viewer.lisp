@@ -495,8 +495,6 @@
                                                (vz background-color)
                                                (vw background-color))
 
-                               (gl:clear :color-buffer
-                                         :depth-buffer)
 
                                (if cull-face
                                    (gl:enable :cull-face)
@@ -509,7 +507,8 @@
                                      (t (gl:disable :blend)))
                                (gl:front-face front-face)
 
-
+                               (gl:clear :color-buffer
+                                         :depth-buffer)
                                (render viewer))
 
                           :do
