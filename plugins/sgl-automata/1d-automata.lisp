@@ -21,8 +21,7 @@
    (rule :initform 90 :initarg :rule :type fixnum)
    (current-row-idx :initform 0 :initarg :current-row-idx :type fixnum)
    (current-row-data :initform nil :initarg :current-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
-   (next-row-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))
-   ))
+   (next-row-data :initform nil :initarg :next-row-data :type (or null (SIMPLE-ARRAY BIT (*))))))
 
 (defclass 1d-cellular-automata-wrapping (1d-cellular-automata)
   ())
@@ -69,30 +68,30 @@
         ;; Loop over each cell in the data
         (loop
           ;; Track whether any quads have been added
-          with updated = nil
+          :with updated = nil
 
           ;; Calculate the quad location
-          for x-offset fixnum from 0
-          for x-float real = (- 1.0f0 (* cell-size x-offset))
-          for y-offset fixnum = current-row-idx
-          for y-float real = (1- (* 2 (/ (1- y-offset) width)))
+          :for x-offset fixnum :from 0
+          :for x-float real = (- 1.0f0 (* cell-size x-offset))
+          :for y-offset fixnum = current-row-idx
+          :for y-float real = (1- (* 2 (/ (1- y-offset) width)))
 
           ;; Bail out when there's no room for a new quad.
-          until (>= instance-count max-instances)
+          :until (>= instance-count max-instances)
 
           ;; If the cell is 'on' then add a quad
-          for rv bit across current-row-data
-          when (= 1 rv) do
+          :for rv bit :across current-row-data
+          :when (= 1 rv) do
                 (sgl:fill-pointer-offset (vec3 x-float y-float 0.0)
                                          pointer
                                          (* instance-count 3))
                 (setf updated t)
                 (incf instance-count)
 
-          finally
+          :finally
              ;; Copy the buffer to OpenGL if anything changed.
              (when updated
-               (reload buffer)))))))
+               buffer))))))
 
 (defun apply-rule (rule lb cb rb)
   "Compute output cell value based on left, center, and right cells."

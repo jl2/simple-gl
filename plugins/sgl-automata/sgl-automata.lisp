@@ -25,6 +25,7 @@
                                                             "point-fragment.glsl"))))
    (max-instances :initform 100000 :initarg :max-instances :type fixnum)
    (color :initform (vec4 0.1 0.8 0.1 1.0) :initarg :color)
+   (level :initform 0 :initarg level)
    (instance-count :initform 0 :type fixnum)
    (current-iteration :initform 0 :type fixnum)
    (generated-iteration :initform -1 :type fixnum)

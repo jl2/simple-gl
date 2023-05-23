@@ -35,24 +35,26 @@
       (let ((buffer (get-buffer object :obj-transform)))
         (setf instance-count 0)
         (with-slots (pointer) buffer
-          (multiple-value-bind (min-x min-y max-x max-y) (hl:find-bounds node level)
-            (declare (ignorable max-x max-y))
+          (let ((real-node (hl:advance node current-iteration)))
+            (multiple-value-bind (min-x min-y max-x max-y) (hl:find-bounds real-node level)
 
-            (hl:for-each-cell (hl:ffwd node current-iteration)
-                              level
-                              (lambda (x y gray)
-                                (let ((pt (vec3 x
-                                                y
-                                                gray)))
+              (declare (ignorable max-x max-y))
+              (hl:for-each-cell real-node
+                                level
+                                (lambda (x y gray)
+                                  (let ((pt (vec3 (- x min-x)
+                                                  (- y min-y)
+                                                  gray)))
 
-                                  (when (and (< instance-count max-instances)
-                                             (in-vbox pt min-pt max-pt))
-                                    (sgl:fill-pointer-offset pt
-                                                             pointer
-                                                             (* instance-count 3))
-                                    (incf instance-count))))
-                              (- (ash 1 (- (hl:q-k node) 1)))
-                              (- (ash 1 (- (hl:q-k node) 1))))))
+                                    (when (and (< instance-count max-instances)
+                                               ;;(in-vbox pt min-pt max-pt)
+                                               )
+                                      (sgl:fill-pointer-offset pt
+                                                               pointer
+                                                               (* instance-count 3))
+                                      (incf instance-count))))
+                                0
+                                0))))
         (setf generated-iteration current-iteration)
         buffer))))
 

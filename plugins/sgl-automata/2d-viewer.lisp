@@ -42,16 +42,19 @@
 
               ((and (eq key :n) (find action '(:repeat :press)))
                (incf iter-delta)
+               (setf force-redraw t)
                (setf sgl:view-changed t)
                t)
 
               ((and (eq key :p) (find action '(:repeat :press)))
                (decf iter-delta)
+               (setf force-redraw t)
                (setf sgl:view-changed t)
                t)
 
               ((and (eq key :r) (find action '(:repeat :press)))
                (setf reset t)
+               (setf force-redraw t)
                (setf sgl:view-changed t)
                t)
 
@@ -61,16 +64,19 @@
                t)
               ((and (eq key :i) (find action '(:repeat :press)))
                (setf level-delta 1)
+               (setf force-redraw t)
                (setf sgl:view-changed t)
                t)
               ((and (eq key :o) (find action '(:repeat :press)))
                (setf level-delta -1)
+               (setf force-redraw t)
                (setf sgl:view-changed t)
                t)
 
               ((and (eq key :t) (eq action :press))
                (setf center-pt (vec2 0 0)
                      radius 100)
+               (setf force-redraw t)
                (setf sgl:view-changed t)
                t)
               ((and (eq key :q) (eq action :press))
@@ -79,23 +85,23 @@
                t)
 
               ((and (eq key :left) (find action '(:repeat :press)))
-               (incf (vx center-pt) offset)
+               (decf (vx center-pt) offset)
                (setf sgl:view-changed t)
                t)
 
               ((and (eq key :right) (find action '(:repeat :press)))
-               (decf (vx center-pt) offset)
+               (incf (vx center-pt) offset)
                (setf sgl:view-changed t)
                t)
 
 
               ((and (eq key :up) (find action '(:repeat :press)))
-               (decf (vy center-pt) offset)
+               (incf (vy center-pt) offset)
                (setf sgl:view-changed t)
                t)
 
               ((and (eq key :down) (find action '(:repeat :press)))
-               (incf (vy center-pt) offset)
+               (decf (vy center-pt) offset)
                (setf sgl:view-changed t)
                t)
 
@@ -136,13 +142,30 @@
 
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((viewer 2d-automata-viewer) (event sn:motion-event))
-  (format t "Caught event: ~a~%" event)
   (sgl:with-viewer-lock (viewer)
     (with-slots (center-pt
                  radius
                  level
                  sgl:view-changed) viewer
       (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
-        (setf center-pt (v+ center-pt (vec2 (/  sn:x 100.0) (/ sn:z 100.0))))
-        (setf radius (+ radius (/ sn:y 100.0)))
+
+        (setf center-pt (v+ center-pt (vec2 (* radius (/ sn:x 1600.0)) (* radius (/ sn:z 1600.0)))))
+        (setf radius (max 10
+                          (+ radius (* radius  (/ sn:y 1200.0)))))
         (setf sgl:view-changed t)))))
+
+(defmethod sgl:handle-3d-mouse-event ((viewer 2d-automata-viewer) (event sn:button-event))
+  (sgl:with-viewer-lock (viewer)
+    (with-slots (sgl:view-changed
+                 sgl:objects) viewer
+      (let ((delta (cond ((sn:button-press-p event 0)
+                          -1)
+                         ((sn:button-press-p event 1)
+                          1)
+                         (t 0))))
+        (when (not (zerop delta))
+          (loop :for (name . obj) :in sgl:objects
+                :do
+                   (with-slots (current-iteration) obj
+                     (setf current-iteration (max 0
+                                                  (+ current-iteration delta))))))))))
