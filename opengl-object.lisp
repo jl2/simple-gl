@@ -5,6 +5,39 @@
 (in-package #:simple-gl)
 
 
+(defclass opengl-object ()
+  ((vao :initform 0
+        :type fixnum
+        :accessor vao
+        :documentation "The OpenGL VAO handle.")
+   (name :initform "GL Object"
+         :initarg :name
+         :type string
+         :documentation "The name of the object.")
+   (styles :initform (list (cons :point-style (point-style)))
+           :type (or null list)
+           :accessor styles
+           :initarg :styles
+           :documentation "A list of styles that apply to this object.")
+   (textures :initform nil
+             :type (or null list)
+             :accessor textures
+             :initarg :textures
+             :documentation "A list of textures used by this object.")
+   (buffers :initform nil
+            :type (or null list)
+            :accessor buffers
+            :initarg :buffers
+            :documentation "A list of buffers used by this object.")
+   (uniforms :initform nil
+             :type (or null list)
+             :accessor uniforms
+             :initarg :uniforms
+             :documentation "A list of uniforms used by this object.")
+   (primitive-type :initform :triangles
+                   :documentation "OpenGL primitive type (:triangles, :points, :lines, etc.)"))
+  (:documentation "Base class for all objects that can be rendered in a scene."))
+
 (defmethod initialized-p ((object opengl-object))
   (not (zerop (vao object))))
 
@@ -154,23 +187,6 @@
   (set-uniform object "view_transform" (meye 4) :mat4)
   t)
 
-(defun constant-attribute-buffer (data float-count attributes &key (free t) (usage :static-draw))
-  (make-instance 'attribute-buffer
-                 :pointer (to-gl-array :float
-                                       float-count
-                                       data)
-                 :stride nil
-                 :attributes attributes
-                 :usage usage
-                 :free free))
-
-(defun constant-index-buffer (count &key (free t))
-  (make-instance 'index-buffer
-                 :idx-count count
-                 :pointer (to-gl-array :unsigned-int
-                                       count
-                                       (loop :for i :below count :collecting i))
-                 :free free))
 
 
 (defmethod initialize-buffers ((object opengl-object) &key)

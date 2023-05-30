@@ -4,6 +4,25 @@
 
 (in-package #:simple-gl)
 
+(defclass style ()
+  ((enabled :initform t
+            :initarg :enabled
+            :accessor enabledp
+            :documentation "Whether this shader is enabled or not.")
+   (program :initform 0
+            :accessor program
+            :type fixnum
+            :documentation "OpenGL program handle.")
+   (shaders :initform nil
+            :type (or null list)
+            :accessor shaders
+            :initarg :shaders
+            :documentation "List of shaders for this style.")
+   (poly-mode :initform :fill
+              :accessor poly-mode
+              :initarg :poly-mode
+              :documentation "Polygon mode (:fill or :line) for this style.")))
+
 (defmethod update ((style style) elapsed-seconds)
   (declare (ignorable style elapsed-seconds))
   nil)

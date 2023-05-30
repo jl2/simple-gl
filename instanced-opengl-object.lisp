@@ -4,6 +4,20 @@
 
 (in-package #:simple-gl)
 
+(defclass instanced-opengl-object (opengl-object)
+  ((styles :initform (list (cons :instanced-point-style (point-style-instanced)))
+           :type (or null list)
+           :accessor styles
+           :initarg :styles)
+   (max-instances :initform 100
+                  :initarg :max-instances
+                  :documentation "Maximum number of instances.  This is used to allocate space ahead of time.")
+   (instance-count :initform 0
+                   :initarg :instance-count
+                   :documentation "Current instance count."))
+  (:documentation "A pool of identical objects using OpenGL instancing.  Instance data is passed in buffers."))
+
+
 (defmethod show-info ((object instanced-opengl-object) &key (indent 0))
   (call-next-method)
   (let ((plus-ws (indent-whitespace (+ 1 indent))))

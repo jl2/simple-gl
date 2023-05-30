@@ -16,6 +16,10 @@
 
 (in-package :simple-gl)
 
+(defclass quad (opengl-object)
+  ()
+  (:documentation "A quad."))
+
 (defmethod initialize-buffers ((object quad) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))

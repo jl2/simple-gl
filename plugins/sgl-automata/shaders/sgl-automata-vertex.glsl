@@ -17,5 +17,5 @@ void main()
 
      gl_Position = pos4;
      position = pos4;
-     diffuse_color = translation.z * in_color;
+     diffuse_color = (1-log(0.75*translation.z)) * in_color;
 }

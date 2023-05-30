@@ -1,12 +1,51 @@
-;; 3d-mouse-nav-viewer.lisp
+;; 3d-viewer.lisp
 ;;
 ;; Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 (in-package #:simple-gl)
 
-(declaim (inline handle-3d-mouse-event))
+(defclass 3d-viewer (viewer)
+  ((radius :initform 120.0
+           :type real
+           :documentation "The distance between the camera and the target.")
 
-(defmethod view-matrix ((viewer 3d-mouse-nav-viewer))
+   (θ :initform (/ pi 2)
+      :type real
+      :documentation "Angle around the x axis.")
+   (φ :initform (/ pi 6)
+      :type real
+      :documentation "Angle around the z axis.")
+   (target :initform (vec3 0.0 0.0 0.0)
+           :initarg :target
+           :type vec3
+           :documentation "")
+   (up :initform (vec3 0 1 0)
+       :initarg :up
+       :type vec3
+       :documentation "")
+   (min-radius :initform 0.1
+               :initarg :min-radius
+               :type real
+               :documentation "")
+   (max-radius :initform 100.0
+               :initarg :max-radius
+               :type real
+               :documentation "")
+   (zoom-factor :initform 2000.0
+                :initarg :zoom-factor
+                :type real
+                :documentation "")
+   (rotation-factor :initform 2000.0
+                    :initarg :rotation-factor
+                    :type real
+                    :documentation "")
+   (rotation :initform t :type (or t nil) :initarg :rotation)
+   (zoom :initform t :type (or t nil) :initarg :zoom))
+
+  (:documentation "A viewer with keyboard and 3d mouse camera rotation around a target point."))
+
+
+(defmethod view-matrix ((viewer 3d-viewer))
   (with-slots (radius φ θ target up) viewer
     (let*  ((tval (* radius (cos φ)))
             (yv (* radius (sin φ)))
@@ -31,7 +70,7 @@
          (set-uniform object "view_transform" view-xform :mat4))
     (setf view-changed t)))
 
-(defmethod handle-key ((viewer 3d-mouse-nav-viewer) window key scancode action mod-keys)
+(defmethod handle-key ((viewer 3d-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
   (with-viewer-lock (viewer)
     (with-slots (aspect-ratio radius φ θ view-changed) viewer
@@ -41,7 +80,7 @@
 
         (cond
 
-          ((and (eq key :f5) (eq action :press))
+          ((and (eq key :r) (eq action :press))
            (reset-view-safe viewer)
            (setf view-changed t)
            t)
@@ -91,58 +130,34 @@
 
 
 #+spacenav
-(defmethod handle-3d-mouse-event ((viewer 3d-mouse-nav-viewer) (event sn:motion-event))
+(defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:motion-event))
   (with-viewer-lock (viewer)
     (with-slots (up
                  radius
                  φ
                  θ
+                 zoom
+                 rotation
                  zoom-factor
                  rotation-factor
                  min-radius
                  max-radius
-                 θ-direction
-                 φ-direction
                  view-changed) viewer
       (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
-        (let* ((linear-scale (- 1.0
-                                (* (/ sn:z zoom-factor)
-                                   (min 2.0 (log radius)))))
-
-               (radial-scale (/ -1.0 rotation-factor))
-               (d-θ (* θ-direction radial-scale sn:ry))
-               (d-φ (* φ-direction radial-scale sn:rz)))
-          (incf θ d-θ)
-          (incf φ d-φ)
-          (cond
-            ((> θ pi)
-             (setf θ (- θ (* 2 pi))))
-            ((< θ (- pi))
-             (setf θ (+ θ (* 2 pi))))
-            ((> φ pi)
-             (decf φ (* 2 pi))
-             (setf up (v- up))
-             ;;(setf θ (- θ pi))
-             )
-            ((< φ (- pi) )
-             (format t "reset φ low~%")
-             (incf φ (* 2 pi))
-             (setf up (v- up))
-             ;;(setf θ (+ θ pi))
-             )
-
-            ((> φ (/ pi 2))
-             (setf up (vec3 0 1 0)))
-            ((< φ (/ pi 2))
-             (setf up (vec3 0 -1 0)))
-
-            ;; ((< φ (/ (- pi) 2))
-            ;;  (setf up (vec3 0 1 0)))
-            ;; ((> φ (/ (- pi) 2))
-            ;;  (setf up (vec3 0 -1 0)))
-            ;; )
-            )
-          (setf radius (min (max min-radius
-                                 (* radius linear-scale))
-                            max-radius))
-          (setf view-changed t))))))
+        (setf radius (if zoom
+                         (max 1.0
+                              (+ radius (* radius
+                                           (/ sn:y
+                                              1200.0))))
+                         radius)
+              θ (if rotation (mod (+ θ
+                            (/ sn:rx
+                               2000.0))
+                                  (* 4 pi))
+                    θ)
+              φ (if rotation (mod (+ θ
+                            (/ sn:rz
+                               2000.0))
+                                  (* 4 pi))
+                    θ)
+              view-changed t)))))

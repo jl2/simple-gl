@@ -4,6 +4,70 @@
 
 (in-package #:simple-gl)
 
+
+(defclass buffer ()
+  ((bo :initform 0 :initarg :bo)
+   (pointer :initarg :pointer :accessor pointer)
+   (target :initform :array-buffer :initarg :target :accessor target)
+   (usage :initform :static-draw :initarg :usage :accessor usage)
+   (stride :initform nil :initarg :stride)
+   (free :initform t :initarg :free))
+  (:documentation "An OpenGL buffer object."))
+
+(defclass attribute-buffer (buffer)
+  ((stride :initform nil)
+   (target :initform :array-buffer :initarg :target)
+   (attributes :initform '(("in_position" . :vec3) ("in_color" . :vec4))
+               :initarg :attributes))
+  (:documentation "An OpenGL vertex buffer containing (mutable) vertex data that is passed into a shader."))
+
+(defclass index-buffer (buffer)
+  ((target :initform :element-array-buffer)
+   (idx-count :initform 0 :initarg :idx-count :accessor idx-count)
+   (stride :initform 1))
+  (:documentation "A GL_ELEMENT_ARRAY buffer containing integer indices for drawing."))
+
+(defclass uniform-buffer (buffer)
+  ((target :initform :uniform-buffer :initarg :target)
+   (block-index :initform 0 :initarg :block-index)
+   (block-name :initarg :block-name)
+   (bind-location :initform 0 :initarg :bind-location))
+  (:documentation "A mutable buffer containing uniform values.."))
+
+
+(defclass instance-buffer (attribute-buffer)
+  ((attributes :initform '(("obj_transform" . :mat4)) :initarg :attributes)
+   (divisor :initform 1 :type fixnum :initarg :divisor))
+  (:documentation "A mutable buffer containing instance data."))
+
+(defgeneric compute-stride (buffer)
+  (:documentation "Use the 'attributes' slot to compute the stride of the buffer data."))
+
+(defgeneric associate-attributes (buffer program)
+  (:documentation "Call gl:vertex-attrib-pointer and gl:enable-vertex-attrib-array as appropriate~
+                  to associate attribute data with shader variables."))
+(defgeneric fill-pointer-offset (data ptr offset)
+  (:documentation "Low-level function for filling an OpenGL buffer using a pointer and offset."))
+
+
+(defun constant-attribute-buffer (data float-count attributes &key (free t) (usage :static-draw))
+  (make-instance 'attribute-buffer
+                 :pointer (to-gl-array :float
+                                       float-count
+                                       data)
+                 :stride nil
+                 :attributes attributes
+                 :usage usage
+                 :free free))
+
+(defun constant-index-buffer (count &key (free t))
+  (make-instance 'index-buffer
+                 :idx-count count
+                 :pointer (to-gl-array :unsigned-int
+                                       count
+                                       (loop :for i :below count :collecting i))
+                 :free free))
+
 (defmethod bind ((buffer buffer))
   (with-slots (bo target usage free pointer) buffer
     (cond ((= bo 0)
@@ -16,7 +80,7 @@
              (gl:free-gl-array pointer)
              (setf pointer nil)))
           (t
-             (gl:bind-buffer target bo)))))
+           (gl:bind-buffer target bo)))))
 
 (defmethod show-info ((object buffer) &key (indent 0))
   (let ((this-ws (indent-whitespace indent))

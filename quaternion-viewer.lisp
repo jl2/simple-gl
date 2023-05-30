@@ -4,6 +4,16 @@
 
 (in-package #:simple-gl)
 
+(defclass quaternion-viewer (viewer)
+  ((radius :initform 100.0 :type real)
+   (quaternion :initform (vec4 0.0 0.0 0.0 0.0) :initarg :quaternion :type vec4)
+   (min-radius :initform 0.1 :initarg :min-radius :type real)
+   (max-radius :initform 100.0 :initarg :max-radius :type real)
+   (zoom-factor :initform 2000.0 :initarg :zoom-factor :type real)
+   (rotation-factor :initform 2000.0 :initarg :rotation-factor :type real))
+  (:documentation "A viewer with 3d mouse camera navigation."))
+
+
 (defmethod view-matrix ((viewer quaternion-viewer))
   (with-slots (radius target up) viewer
     (m*

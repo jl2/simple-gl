@@ -4,6 +4,13 @@
 
 (in-package #:simple-gl)
 
+(defclass offscreen-viewer (viewer)
+  ((fbo :initform nil)
+   (should-close :initform nil)
+   (output-directory :initform "/tmp/simple-gl-offscreen-render/"
+                     :initarg :output-directory))
+  (:documentation "A collection of objects and a viewport that renders PNG images to a directory."))
+
 (defmethod render ((viewer offscreen-viewer))
   (with-slots (initial-height initial-width output-directory objects) viewer
     (loop

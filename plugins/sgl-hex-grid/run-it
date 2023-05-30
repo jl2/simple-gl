@@ -2,5 +2,5 @@
 
 
 sbcl --eval "(ql:quickload '(:spacenav :sgl-hex-grid :3d-vectors))" \
-     --eval "(sgl:display-in (make-instance 'shg:sgl-hex-grid :radius 1.0) (make-instance 'simple-gl:3d-mouse-nav-viewer))" \
+     --eval "(sgl:display-in (make-instance 'shg:sgl-hex-grid :radius 1.0) (make-instance 'simple-gl:3d-viewer))" \
      --eval "(quit)"

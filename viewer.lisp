@@ -18,7 +18,156 @@
 (defvar *viewers* (make-hash-table :test 'equal)
   "All viewers that have been created.")
 
-(declaim (inline find-viewer add-viewer rm-viewer rm-all-viewers))
+(defclass mouse-click ()
+  ((cursor-pos :initarg :cursor-pos)
+   (button :initarg :button)
+   (action :initarg :action)
+   (mod-keys :initarg :mod-keys)
+   (time :initarg :time))
+  (:documentation "Mouse click information."))
+
+(defparameter *default-radius* 1.0)
+(defparameter *default-φ* 0.0)
+(defparameter *default-θ* 0.0)
+
+(defclass viewer ()
+  ((window
+    :initform nil
+    :documentation "The GLFW window for this viewer.")
+
+   (viewer-mutex
+    :initform (bt:make-lock "viewer-lock")
+    :documentation "Mutex to synchronize multi-threaded access to this viewer.")
+
+   (objects
+    :initform nil
+    :initarg :objects
+    :type (or null cons)
+    :accessor objects
+    :documentation "The list of objects shown in this viewer.")
+
+   (camera-position
+    :initarg :camera-position
+    :initform (vec3 0 0 1)
+    :accessor camera-position
+    :documentation "Camera location of the viewer.")
+
+   (view-changed
+    :initform t
+    :documentation "t when the view has changed recently.")
+
+   (aspect-ratio
+    :initform 1.0
+    :initarg :aspect-ratio
+    :type real
+    :accessor aspect-ratio
+    :documentation "Aspect ratio of the view window.")
+
+   (show-fps
+    :initform nil
+    :initarg :show-fps
+    :type t
+    :accessor show-fps
+    :documentation "t to show FPS to *error-stream*.  nil to disable.")
+
+   (desired-fps
+    :initform 60
+    :initarg :desired-fps
+    :type fixnum
+    :accessor desired-fps
+    :documentation "Target FPS. The viewer should achieve this frame rate as long as render and update calls are fast enough.")
+
+   (last-update-time
+    :initform 0
+    :documentation "Timestamp when the last update call finished")
+
+   (seconds-between-updates
+    :initform (/ 1 30)
+    :initarg :seconds-between-updates
+    :documentation "Ideal number of seconds between each update call.  Should be ~ (1 / desired-fps)")
+
+   ;; Should cull-face, front-face, and blend be per-object?
+   (cull-face
+    :initform nil
+    :initarg :cull-face
+    :accessor cull-face
+    :documentation "T to (gl:enable :cull-face), nil to (gl:disable :cull-face)")
+
+   (front-face
+    :initform :ccw
+    :type (or :ccw :cw)
+    :initarg :front-face
+    :accessor front-face
+    :documentation "Winding order of faces. :ccw or :cw.")
+
+   (blend
+    :initform t
+    :initarg :blend
+    :accessor blend
+    :documentation "Enable (t) or disable (nil) blending.")
+
+   (enable-update
+    :initform t
+    :initarg :enable-update
+    :accessor enable-update
+    :documentation "t to enable calls to (update), nil to disable. Used to pause or continue animations.")
+
+   (background-color
+    :initform (vec4 0.08f0 0.08f0 0.08f0 1.0)
+    :initarg :background
+    :accessor background-color
+    :documentation "The background color.")
+
+   (discarded-objects
+    :initform nil
+    :documentation "Objects that have been removed from the viewer, but still need to be cleaned up by OpenGL.")
+
+   (initial-height
+    :initform 800
+    :initarg :initial-height
+    :documentation "Requested initial window height.")
+
+   (initial-width
+    :initform 800
+    :initarg :initial-width
+    :documentation "Requested initial window width.")
+
+   (previous-seconds
+    :initform 0.0
+    :documentation "Timestamp of previous render loop.")
+   )
+  (:documentation "A collection of objects and a viewport."))
+
+
+(defgeneric add-object (viewer name object)
+  (:documentation "Add an object with the given name to the viewer."))
+
+(defgeneric rm-objcet (viewer name)
+  (:documentation "Remove the named object from the viewer."))
+
+(defgeneric replace-object (viewer name object)
+  (:documentation "Replace the named object with the new object."))
+
+(defgeneric view-matrix (viewer)
+  (:documentation "Return the view transformation the viewer is using."))
+
+(defgeneric rebuild-style (object)
+  (:documentation "Return the view transformation."))
+
+(defgeneric refill-textures (object)
+  (:documentation "Return the view transformation."))
+;; Input handlers
+(defgeneric handle-key (object window key scancode action mod-keys)
+  (:documentation "Handle a GLFW key press.  Return non-nil if handled."))
+
+(defgeneric handle-click (object window click-info)
+  (:documentation "Handle a mouse click."))
+
+(defgeneric handle-scroll (object window cpos x-scroll y-scroll)
+  (:documentation "Handle scrolling."))
+
+(defgeneric handle-resize (object window width height)
+  (:documentation "Handle window resize."))
 
 (defun find-viewer (window)
   "Find a viewer associated with the given GLFW window."
@@ -152,6 +301,16 @@
         (ensure-initialized object)
         (refill-textures object))
       (setf view-changed t))))
+
+(defmethod update-all-view-transforms-safe (viewer))
+(defmethod update-all-view-transforms-safe ((viewer viewer))
+  (with-slots (view-changed objects) viewer
+    (when view-changed
+      (loop
+        :for (name . obj) :in objects
+        :do
+           (set-uniform obj "view_transform" (view-matrix viewer) :mat4))
+      (setf view-changed nil))))
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
   (cond
@@ -586,9 +745,10 @@
   (with-viewer-lock (viewer)
     (with-slots (objects view-changed camera-position) viewer
       (when (null (assoc name objects))
+        (push (cons name object) objects)
         (set-uniform object "camera_position" camera-position :vec3)
         (set-uniform object "view_transform" (view-matrix viewer) :mat4))
-        (push (cons name object) objects)
+
         (setf view-changed t))))
 
 (defmethod rm-object (viewer name)

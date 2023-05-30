@@ -19,7 +19,7 @@
 : T
 
 #+begin_src lisp
-  (defparameter *viewer* (make-instance 'sgl:3d-mouse-nav-viewer))
+  (defparameter *viewer* (make-instance 'sgl:3d-viewer))
 
   (sgl:add-object *viewer*
                   :dynamic-system (sglds:create-dynamic-system 10 200 10
@@ -32,7 +32,7 @@
 : #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {102643A73B}> :STATUS :SCHEDULED {10264EDB93}>
       
 #+begin_src lisp
-  (defparameter *viewer* (make-instance 'sgl:3d-mouse-nav-viewer))
+  (defparameter *viewer* (make-instance 'sgl:3d-viewer))
 
   (sgl:add-object *viewer*
                   :attractor (sglds:create-strange-attractor 10000 3.0))

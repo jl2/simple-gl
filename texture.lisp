@@ -4,6 +4,25 @@
 
 (in-package #:simple-gl)
 
+(defclass texture ()
+  ((tex-type :initform :texture-2d
+             :initarg :type
+             :documentation "OpenGL texture type (:texture-2d, :texture-1d, :texture-3d, etc.)")
+   (textures :initform nil
+             :type (or null list)
+             :documentation "OpenGL texture handles.")
+   (size :initform #(1 1)
+         :initarg :size
+         :type sequence
+         :documentation "n-dimensional array specifying the size of the texture.")
+   (parameters :initform '((:texture-wrap-s . :repeat)
+                           (:texture-wrap-t . :repeat)
+                           (:texture-base-level . 0)
+                           (:texture-max-level . 8)
+                           (:texture-min-filter . :linear-mipmap-linear)
+                           (:texture-mag-filter . :linear))
+               :documentation "OpenGL texture parameters.")))
+
 (defmethod update ((texture texture) elapsed-seconds)
   (declare (ignorable texture elapsed-seconds))
   nil)

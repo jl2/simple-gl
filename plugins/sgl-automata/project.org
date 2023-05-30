@@ -52,4 +52,7 @@ Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
 * Plan
-** TODO Fill in a TODO list.
+** TODO: Make cellular-automata squares *centered* at x,y rather than have a corner there
+** TODO: 3d-automata-viewer
+** TODO: 3d-automata
+

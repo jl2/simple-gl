@@ -46,9 +46,17 @@
 
            ;; Viewer
            #:viewer
-           #:3d-mouse-nav-viewer
+           #:2d-viewer
+           #:3d-viewer
            #:quaternion-viewer
-
+           #:radius
+           #:φ
+           #:θ
+           #:zoom
+           #:pan
+           #:rotation
+           #:center-pt
+           #:update-all-view-transforms-safe
            #:add-object
            #:rm-object
            #:replace-object
@@ -121,7 +129,7 @@
            #:make-style-from-files
            #:use-style
            #:build-style
-           #:simple-gl-shader
+           #:find-gl-shader
            #:read-shader
            #:point-style
 

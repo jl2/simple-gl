@@ -4,6 +4,22 @@
 
 (in-package #:simple-gl)
 
+;; TODO: Consider creating float-uniform, mat4-uniform, etc. subclasses that call the
+;; correct gl:uniform* functions, and remove the big cond in use-uniform.
+(defclass uniform ()
+  ((name :initarg :name
+         :type string
+         :documentation "Uniform variable name.")
+   (type :initarg :type
+         :documentation "Uniform variable type.")
+   (value :initarg :value
+          :initform t
+          :type t
+          :documentation "Current uniform value.")
+   (modified :initform t
+             :documentation "Whether the uniform's current value has been sent to OpenGL."))
+  (:documentation "A uniform variable parameter to a shader."))
+
 
 (defmethod show-info ((uniform uniform) &key (indent 0))
   (let ((this-ws (indent-whitespace indent)))

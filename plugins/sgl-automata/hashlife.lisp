@@ -20,53 +20,51 @@
   ((node :initarg :node :type hl:qtnode)
    (level :initarg :level :initform 0 :type fixnum)))
 
-(defun in-vbox (hlp min-pt max-pt)
-  (and (< (vx hlp) (vx max-pt))
-       (> (vx hlp) (vx min-pt))
-       (< (vy hlp) (vy max-pt))
-       (> (vy hlp) (vy min-pt))))
-
 (defmethod add-current-instances ((object hashlife))
   "Draw the next row of automata data by adding translations to the instance buffer."
-  (with-slots (buffers instance-count max-instances node level min-pt max-pt
+  (with-slots (buffers instance-count max-instances node level
                current-iteration generated-iteration) object
     (when (/= current-iteration generated-iteration)
 
       (let ((buffer (get-buffer object :obj-transform)))
         (setf instance-count 0)
         (with-slots (pointer) buffer
-          (let ((real-node (hl:advance node current-iteration)))
-            (multiple-value-bind (min-x min-y max-x max-y) (hl:find-bounds real-node level)
+          (let* ((real-node (hl:advance node current-iteration))
+                 (offset (/ (hl:node-size real-node) 2)))
+            ;;multiple-value-bind (min-x min-y max-x max-y) (hl:find-bounds real-node level)
 
-              (declare (ignorable max-x max-y))
-              (hl:for-each-cell real-node
-                                level
-                                (lambda (x y gray)
-                                  (let ((pt (vec3 (- x min-x)
-                                                  (- y min-y)
-                                                  gray)))
+            ;;(declare (ignorable max-x max-y))
+            (hl:for-each-cell real-node
+                              level
+                              (lambda (x y gray)
+                                (let ((pt (vec3 (- x offset)
+                                                (- y offset)
+                                                gray)))
 
-                                    (when (and (< instance-count max-instances)
-                                               ;;(in-vbox pt min-pt max-pt)
-                                               )
-                                      (sgl:fill-pointer-offset pt
-                                                               pointer
-                                                               (* instance-count 3))
-                                      (incf instance-count))))
-                                0
-                                0))))
+                                  (when (and (< instance-count max-instances))
+                                    (sgl:fill-pointer-offset pt
+                                                             pointer
+                                                             (* instance-count 3))
+                                    (incf instance-count))))
+                              0
+                              0)))
         (setf generated-iteration current-iteration)
         buffer))))
 
 
 
-(defun create-hashlife (filename &key
+(defun create-hashlife (filename-or-pts-or-node &key
                                    (color (vec4 0.1 0.9 0.1 1.0))
                                    (max-instances (* 100 100)))
   "Read a game of life initial position from a file."
   (make-instance 'hashlife
                  :max-instances max-instances
                  :color color
-                 :node (hl:make-hashlife filename)))
+                 :node (etypecase filename-or-pts-or-node
+                         (string (hl:make-hashlife filename-or-pts-or-node))
+                         (list (hl:construct filename-or-pts-or-node))
+                         (hl:qtnode filename-or-pts-or-node))))
 
-(defmethod compute-next ((object hashlife)))
+(defmethod compute-next ((object hashlife))
+  (with-slots (node current-iteration) object
+    (hl:advance node (* 2 current-iteration))))

@@ -13,13 +13,49 @@
 (defparameter *shader-dirs* (list (asdf:system-relative-pathname :simple-gl "shaders/"))
   "Directory containing simple-gl shaders.")
 
-(defun simple-gl-shader (fname)
+(defun find-gl-shader (fname)
   (loop
     :for path :in *shader-dirs*
     :until (probe-file (merge-pathnames fname path))
     :finally (return (merge-pathnames fname path))))
 
+
 ;; Shader
+(define-condition shader-error (error)
+  ((status :initarg :status
+           :reader shader-compile-status
+           :documentation "The compile status.")
+   (object :initarg :object
+           :reader shader-object
+           :documentation "The shader object that caused the shader-error.")
+   (info-log :initarg :info-log
+             :reader shader-compile-info-log
+             :documentation "The compile info log text from OpenGL.")))
+
+(defclass gl-shader ()
+  ((shader :initform 0
+           :type fixnum
+           :accessor shader
+           :documentation "The OpenGL shader handle object.")
+   (shader-type :initarg :shader-type
+                :documentation "The type of shader."))
+
+  (:documentation "An opengl shader class."))
+
+(defgeneric get-source (shader)
+  (:documentation "Return shader source code as a string."))
+
+(defgeneric compile-shader (shader)
+  (:documentation "Read source from source file and compile shader"))
+
+(defclass gl-file-shader (gl-shader)
+  ((source-file :initarg :source-file
+                :type (or pathname string)
+                :accessor source-file
+                :documentation "The filename of the OpenGL shader file."))
+  (:documentation "An OpenGL shader whose source code is stored in a file."))
+
+
 
 (defmethod print-object ((shader-error shader-error) stream)
   (with-slots (status object info-log) shader-error
@@ -91,7 +127,7 @@
   (let ((stype (if type type (lookup-shader-type file-name)))
         (real-name (if (uiop:file-exists-p file-name)
                        file-name
-                       (simple-gl-shader file-name))))
+                       (find-gl-shader file-name))))
     (when (not (uiop:file-exists-p real-name))
       (error "~a ~a do not exist!" file-name real-name))
     (make-instance 'gl-file-shader :source-file real-name :shader-type stype)))

@@ -4,6 +4,12 @@
 
 (in-package #:simple-gl)
 
+
+(defclass stl-file (instanced-opengl-object)
+  ((file-name :initarg :file-name :type (or string path))
+   (tri-count :initform 0 :type (unsigned-byte 32))))
+
+
 (declaim (ftype (function
                  ((simple-array (unsigned-byte 8)) fixnum)
                  (unsigned-byte 16))
