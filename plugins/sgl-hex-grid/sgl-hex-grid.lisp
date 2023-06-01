@@ -19,20 +19,20 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-hex-grid "shaders/") sgl:*shader-dirs*))
 
-(defclass sgl-hex-grid (opengl-object)
+(defclass sgl-hex-grid (sgl:opengl-object)
   ((hex-grids :initform (make-array 2
                                     :element-type 'hg:hex-grid
                                     :initial-contents (list (hg:make-hex-grid)
                                                             (hg:make-hex-grid)))
               :initarg :hex-grids)
    (state-idx :initform 0)
-   (primitive-type :initform :points)
+   (sgl:primitive-type :initform :points)
    (y-coord :initform 0.0 :initarg :y-coord)
    (hex-radius :initform 1.0 :initarg :hex-radius)
-   (styles :initarg :styles
+   (sgl:styles :initarg :styles
            :initform (list (cons :hex-grid
                                  (make-instance
-                                  'style
+                                  'sgl:style
                                   ;; :shaders (list (sgl:read-shader "dumb-vertex.glsl")
                                   ;;                (sgl:read-shader "dumb-geometry.glsl")
                                   ;;                (sgl:read-shader "dumb-fragment.glsl"))
@@ -69,27 +69,27 @@
                      :hex-radius hex-radius
                      :y-coord y-coord))))
 
-(defmethod initialize-uniforms ((object sgl-hex-grid) &key)
+(defmethod sgl:initialize-uniforms ((object sgl-hex-grid) &key)
   (with-slots (y-coord) object
     (let* ((wsize (glfw:get-window-size))
            (ar (/ (cadr wsize) (car wsize)  1.0)))
-    (set-uniform object "obj_transform" (m* (mscaling (vec3 ar 1.0 1.0))
+    (sgl:set-uniform object "obj_transform" (m* (mscaling (vec3 ar 1.0 1.0))
                                             (mrotation (vec3 0 0 1) (/ pi 3))
                                             (mscaling (vec3 0.018 0.018 1.0))) :mat4)
-    (set-uniform object "y_coordinate" y-coord :float))))
+    (sgl:set-uniform object "y_coordinate" y-coord :float))))
 
-(defmethod update ((object sgl-hex-grid) elapsed-seconds )
-  (set-uniform object "time" elapsed-seconds :float)
+(defmethod sgl:update ((object sgl-hex-grid) elapsed-seconds )
+  (sgl:set-uniform object "time" elapsed-seconds :float)
   (with-slots (hex-grids state-idx) object
     (let* ((cur-grid (aref hex-grids state-idx))
            (next-grid (aref hex-grids (next-state-idx object)))
            (state-buffer (sgl:get-buffer object :states))
            (state-ptr (if state-buffer
-                          (slot-value state-buffer 'pointer)
+                          (slot-value state-buffer 'sgl:pointer)
                           nil))
            (radii-buffer (sgl:get-buffer object :radii))
            (radii-ptr (if radii-buffer
-                          (slot-value radii-buffer 'pointer)
+                          (slot-value radii-buffer 'sgl:pointer)
                           nil))
            (coord (copy-structure (hg:min-hex cur-grid)))
            (cur-idx 0))
@@ -135,8 +135,8 @@
       (hg:swap-states object)
       (list radii-buffer state-buffer))))
 
-(defmethod initialize-buffers ((object sgl-hex-grid) &key)
-  (when (buffers object)
+(defmethod sgl:initialize-buffers ((object sgl-hex-grid) &key)
+  (when (sgl:buffers object)
     (error "Object buffers already setup!"))
   (with-slots (state-idx hex-grids hex-radius) object
     (let* ((cur-grid (aref hex-grids state-idx))
@@ -163,36 +163,36 @@
                 (incf (hg:oddr-row coord))
                 (incf cur-idx))
            (incf (hg:oddr-col coord)))
-      (set-buffer object
+      (sgl:set-buffer object
                   :vertices
-                  (make-instance 'attribute-buffer
+                  (make-instance 'sgl:attribute-buffer
                                  :pointer coords
                                  :stride nil
                                  :attributes '(("in_position" . :vec2))
                                  :usage :dynamic-draw
                                  :free t))
 
-      (set-buffer object
+      (sgl:set-buffer object
                   :radii
-                  (make-instance 'attribute-buffer
+                  (make-instance 'sgl:attribute-buffer
                                  :pointer radii
                                  :stride nil
                                  :attributes '(("radius" . :float))
                                  :usage :dynamic-draw
                                  :free nil))
 
-      (set-buffer object
+      (sgl:set-buffer object
                   :states
-                  (make-instance 'attribute-buffer
+                  (make-instance 'sgl:attribute-buffer
                                  :pointer states
                                  :stride nil
                                  :attributes '(("state" . :int))
                                  :usage :static-draw
                                  :free nil))
 
-      (set-buffer object
+      (sgl:set-buffer object
                   :indices
-                  (make-instance 'index-buffer
+                  (make-instance 'sgl:index-buffer
                                  :idx-count (hg:hex-count cur-grid)
                                  :pointer indices
                                  :stride nil

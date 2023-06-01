@@ -23,7 +23,6 @@
         #:alexandria
         #:3d-vectors
         #:3d-matrices
-        #:simple-gl
         #:hex-grid)
 
   (:export

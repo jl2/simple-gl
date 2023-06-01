@@ -23,6 +23,7 @@ vec4 poly_vert(vec2 center, float radius, float angle0, int sides, int num, floa
      vec2 pt = center + vec2( 0.45 * radius * cos(this_theta),
                               0.45 * radius * sin(this_theta));
      return vec4(pt.x,
+
                  pt.y,
                  ycoord,
                  1);
@@ -42,14 +43,12 @@ void main() {
      if (state == 0) {
           EndPrimitive();
           return;
-//          hex_color = color0;
+
      } else if (state == 1) {
           hex_color = color1;
      } else {
           hex_color = color2;
      }
-     // for (int j = 0; j < 3; ++j) {
-     //      float ycoord = 0.1 * j + y_coordinate;
      float ycoord = y_coordinate;
           for (int i = 0; i < 6; ++i) {
                diffuse_color = hex_color;

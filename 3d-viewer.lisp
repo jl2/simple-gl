@@ -150,14 +150,17 @@
                                            (/ sn:y
                                               1200.0))))
                          radius)
-              θ (if rotation (mod (+ θ
+              θ (if rotation
+                    (mod (+ θ
                             (/ sn:rx
                                2000.0))
-                                  (* 4 pi))
+                         (* 2 pi))
                     θ)
-              φ (if rotation (mod (+ θ
+              φ (if rotation
+                    (mod (+ θ
                             (/ sn:rz
                                2000.0))
-                                  (* 4 pi))
-                    θ)
-              view-changed t)))))
+                         (* 2 pi))
+                    φ)
+              view-changed t)
+        (format t "θ ~a~%φ ~a~%radius ~a~%" θ φ radius)))))
