@@ -19,6 +19,18 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-blend2d-texture "shaders/") sgl:*shader-dirs*))
 
+(defun blend2d-texture-style ()
+  (list
+   (cons :blt
+         (sgl:make-style-from-files "blt-vertex.glsl" "blt-fragment.glsl"))))
+
+(defun blend2d-quad (size)
+  (make-instance 'sgl:quad
+                 :styles (list
+                          (cons :blt
+                                (sgl:make-style-from-files "blt-vertex.glsl" "blt-fragment.glsl")))
+                 :textures (list (make-instance 'sgl-blend2d-texture:sgl-blend2d-texture :size `#(,size ,size)))))
+
 (defclass sgl-blend2d-texture (texture)
   ((tex-type :initform :texture-2d)
    (textures :initform nil)

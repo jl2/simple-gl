@@ -24,5 +24,7 @@
         )
   (:export #:sgl-blend2d-texture
            #:sgl-text-draw
+           #:blend2d-texture-style
+           #:blend2d-quad
            #:fill-texture
            #:draw-image))

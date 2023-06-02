@@ -279,7 +279,7 @@
         :for (nil . object) :in objects
         :do
            (ensure-initialized object)
-           (reload object))
+           (reload-buffers object))
       (setf view-changed t))))
 
 (defun rebuild-shaders (viewer)

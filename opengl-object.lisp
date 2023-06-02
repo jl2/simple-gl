@@ -81,7 +81,6 @@
   (declare (ignorable object window cpos x-scroll y-scroll))
   nil)
 
-
 #+spacenav
 (defmethod handle-3d-mouse-event ((object opengl-object) (event sn:motion-event))
   (declare (ignorable object event))
@@ -144,16 +143,14 @@
     (initialize-uniforms object)
     (initialize-textures object)))
 
-(defmethod reload ((object opengl-object))
-  ;; TODO: What should reload do, really?
+(defmethod reload-buffers ((object opengl-object))
+
   (with-slots (buffers) object
     (dolist (buffer buffers)
       (cleanup (cdr buffer)))
     (setf buffers nil)
     (initialize-buffers object)
-    (initialize-uniforms object)
-    (initialize-textures object))
-  t)
+  t))
 
 
 (defmethod rebuild-style ((object opengl-object))

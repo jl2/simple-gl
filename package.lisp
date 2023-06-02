@@ -114,7 +114,6 @@
            #:idx-count
            #:instance-buffer
            #:fill-pointer-offset
-           #:reload
            #:pointer
            #:to-gl-array
            #:fill-buffer
