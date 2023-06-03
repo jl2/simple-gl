@@ -52,7 +52,7 @@
         (gl-fset gl-array 14 imag-max)
         (gl-fset gl-array 18 real-max)
         (gl-fset gl-array 19 imag-min)))
-    (reload (assoc-value sgl:buffers :vertices))))
+    (sgl:reload-buffers object)))
 
 (defmethod sgl:initialize-buffers ((object complex-window) &key)
   (multiple-value-bind (real-min real-max imag-min imag-max) (compute-min-max object)
@@ -344,5 +344,5 @@
          (cur-height (cadr win-size)))
     (glfw:set-cursor-position (coerce (/ cur-width 2.0) 'double-float)
                               (coerce (/ cur-height 2.0) 'double-float)))
-  (sgl:reload object)
+  (sgl:reload-buffers object)
   t)
