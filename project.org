@@ -1,7 +1,7 @@
 * simple-gl
 
 ** About
-This is a high level library for using OpenGL.
+A high level library for using OpenGL.
 
 ** Overview
 
