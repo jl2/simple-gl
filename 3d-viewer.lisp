@@ -9,7 +9,7 @@
         :initarg :pos
         :type vec3
         :documentation "Camera position.")
-   (rot :initform (vec4 0 0 1 0.0)
+   (quat :initform (vec4 0 0 0 1.0)
         :initarg :pos
         :type vec4
         :documentation "Orientation quaternion (x,y,z,w) w:real xyz: imaginary")
@@ -17,8 +17,12 @@
               :initarg :view-xform
               :type mat4
               :documentation "Default view matrix.")
-   (rotation :initform t :type (or t nil) :initarg :rotation)
-   (zoom :initform t :type (or t nil) :initarg :zoom))
+   (rotation :initform t
+             :type (or t nil)
+             :initarg :rotation)
+   (zoom :initform t
+         :type (or t nil)
+         :initarg :zoom))
 
   (:documentation "A viewer with keyboard and 3d mouse camera rotation around a target point."))
 
@@ -50,17 +54,17 @@
             ))))
 
 (defmethod view-matrix ((viewer 3d-viewer))
-  (with-slots (rot pos view-xform) viewer
+  (with-slots (quat pos view-xform) viewer
     (m* view-xform
         (3d-matrices:mtranslation pos)        
-        (mat4-quat rot)
+        (mat4-quat quat)
 
         )))
 
 (defmethod reset-view-safe (viewer)
-  (with-slots (view-changed objects pos rot) viewer
+  (with-slots (view-changed objects pos quat) viewer
     (setf pos (vec3 0 0 -5))
-    (setf rot (vec4 0 0 0 1.0))
+    (setf quat (vec4 0 0 0.0 0))
 
     (loop
       :with view-xform = (view-matrix viewer)
@@ -73,7 +77,7 @@
 (defmethod handle-key ((viewer 3d-viewer) window key scancode action mod-keys)
   (declare (ignorable window scancode mod-keys))
   (with-viewer-lock (viewer)
-    (with-slots (aspect-ratio rotation zoom pos rot view-changed) viewer
+    (with-slots (aspect-ratio rotation zoom pos quat view-changed) viewer
       (let* (
              (x 0)
              (y 0)
@@ -175,7 +179,7 @@
                          (* rz rz)))))
             (when (and rotation
                        (not (zerop len)))
-              (setf rot (quaternion-rotate rot
+              (setf quat (quaternion-rotate quat
                                            (* len 0.01)
                                            (vec3 (/ rx len -1)
                                                  (/ ry len -1)
@@ -185,7 +189,7 @@
                             (vec3-qrot (vec3 (- x)
                                              (- y)
                                              z)
-                                       rot)))))
+                                       quat)))))
           t))))
 
   ;; TODO: Figure out a way to avoid locking the mutex a second time here,
@@ -243,7 +247,7 @@
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:motion-event))
   (with-viewer-lock (viewer)
-    (with-slots (pos rot zoom rotation view-changed) viewer
+    (with-slots (pos quat zoom rotation view-changed) viewer
       (setf view-changed t)
       (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
         
@@ -253,19 +257,13 @@
                        (* sn:rz sn:rz)))))
           (when (and rotation
                      (not (zerop len)))
-            (setf rot (quaternion-rotate rot
+            (setf quat (quaternion-rotate quat
                                          (* len 0.001)
                                          (vec3 (/ sn:rx len -1)
                                                (/ sn:ry len -1)
                                                (/ sn:rz len 1)))))
           (when zoom
             (setf pos (v+ pos
-
-                          (vec3-qrot
-                           (vec3 (* sn:x -0.00015)
-                                 (* sn:y -0.00015)
-                                 (* sn:z 0.00015))
-                           ;;(quat-invert rot)
-                           rot
-                           ))))
-          (format t "rot: ~a pos ~a~%" rot pos))))))
+                          (vec3 0
+                                0
+                                (* sn:z 0.015))))))))))
