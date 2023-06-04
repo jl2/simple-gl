@@ -64,7 +64,7 @@
 (defmethod reset-view-safe (viewer)
   (with-slots (view-changed objects pos quat) viewer
     (setf pos (vec3 0 0 -5))
-    (setf quat (vec4 0 0 0.0 0))
+    (setf quat (vec4 0 0 0.0 1))
 
     (loop
       :with view-xform = (view-matrix viewer)
@@ -249,21 +249,21 @@
   (with-viewer-lock (viewer)
     (with-slots (pos quat zoom rotation view-changed) viewer
       (setf view-changed t)
-      (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
+      (with-slots (sn:x sn:y sn:z sn:rx sn:ry sn:rz) event
         
-        (let ((len (sqrt
-                    (+ (* sn:rx sn:rx)
-                       (* sn:ry sn:ry)
-                       (* sn:rz sn:rz)))))
+        (let ((len (sqrt (+ (* sn:rx sn:rx)
+                            (* sn:ry sn:ry)
+                            (* sn:rz sn:rz)))))
           (when (and rotation
                      (not (zerop len)))
             (setf quat (quaternion-rotate quat
-                                         (* len 0.001)
-                                         (vec3 (/ sn:rx len -1)
-                                               (/ sn:ry len -1)
-                                               (/ sn:rz len 1)))))
+                                          (* len 0.00085)
+                                          (vec3 (/ sn:rx len 1)
+                                                (/ sn:ry len -1)
+                                                (/ sn:rz len 1)))))
           (when zoom
-            (setf pos (v+ pos
-                          (vec3 0
-                                0
-                                (* sn:z 0.015))))))))))
+            (setf pos (vec3 0
+                            0
+                            (min -3.0
+                                 (+ (vz pos)
+                                    (* sn:z 0.01)))))))))))

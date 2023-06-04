@@ -769,6 +769,7 @@
         (push (cons name object) objects)
         (setf view-changed t)))))
 
+
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
 
@@ -778,3 +779,14 @@
 
 (defmethod view-matrix ((viewer viewer))
   (meye 4))
+
+(defmacro with-object-in-viewer-lock ((variable name viewer) &body body)
+  (with-gensyms (obj
+                 name-sym
+                 viewer-sym)
+    `(let ((,name-sym ,name)
+           (,viewer-sym ,viewer))
+       (when-let (,obj (assoc ,name-sym (slot-value ,viewer-sym 'objects)))
+         (with-viewer-lock (,viewer-sym)
+           (let ((,variable (cdr ,obj)))
+             ,@body))))))

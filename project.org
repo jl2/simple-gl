@@ -44,39 +44,23 @@ The goal of this refactoring is to improve REPL interactivity with viewers and o
 This is an example of how it will be used from a REPL:
 
 #+begin_src lisp
-  (ql:quickload :simple-gl)
-  (defparameter *viewer* (make-instance 'sgl:viewer))
-  (sgl:add-object *viewer*
-                    :torus-thing (make-instance
-                                  'sgl:stl-file
-                                  :file-name "/home/jeremiah/data/3d-models/torus-thing.stl"))
-#+end_src lisp
-#+begin_src lisp
-  (ql:quickload '(:spacenav :simple-gl))
+  (ql:quickload '(:spacenav :simple-gl :sgl-automata :sgl-blend2d-texture))
   (defparameter *viewer* (make-instance 'sgl:3d-viewer))
   (sgl:add-object *viewer*
-                    :torus-thing (make-instance
-                                  'sgl:stl-file
-                                  :file-name "/home/jeremiah/data/3d-models/torus-thing.stl"))
-#+end_src lisp
-
-#+begin_src lisp
-  (ql:quickload :simple-gl)
-  (defparameter *viewer* (make-instance 'sgl:viewer))
+                  :cube (make-instance
+                         'sgl:stl-file
+                         :file-name "/home/jeremiah/data/3d-models/cube.stl"))
+  (sgl:add-object *viewer*
+                  :hashlife (sgl-automata:create-hashlife "CYCLTRON.LIF"))
+  (sgl:add-object *viewer*
+                  :textured (sgl-blend2d-texture:blend2d-quad 2048))
   (sgl:display *viewer*)
-  (sgl:add-object *viewer* :first-object (sgl:create-object 'sgl:instanced-opengl-object))
-  (sgl:hide-viewer *viewer*)
-  (sgl:add-object *viewer* :second-object (make-instance 'sgl:opengl-object))
-  (sgl:show-viewer *viewer*)
-  (sgl:add-object *viewer* :third-object (make-instance 'sgl:opengl-object))
-  (sgl:with-viewer-lock () *viewer*
-         ;; Do something...
-         )
-  (sgl:rm-object *viewer* :second-object)
-  (when (sgl:viewer-isplayed-p *viewer*)
-    (sgl:hide-viewer *viewer*))
-
 #+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1035F4ACCB}> :STATUS :SCHEDULED {1035750CC3}>
+
+
 
 
 * TODO Items

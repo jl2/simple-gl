@@ -6,7 +6,9 @@
 
 
 (defclass stl-file (instanced-opengl-object)
-  ((file-name :initarg :file-name :type (or string path))
+  ((styles :initform (list (cons :stl-style
+                                 (make-style-from-files "stl-plastic-vertex.glsl" "stl-plastic-fragment.glsl"))))
+   (file-name :initarg :file-name :type (or string path))
    (tri-count :initform 0 :type (unsigned-byte 32))))
 
 
@@ -15,6 +17,7 @@
                  (unsigned-byte 16))
                 get-u2)
          (inline get-u2))
+
 (defun get-u2 (arr idx)
   "Interpret two bytes in arr as an '(unsigned-byte 32)"
   (declare
@@ -58,7 +61,6 @@
                  single-float)
                 get-float)
          (inline get-float))
-
 (defun get-float (arr idx)
   "Interpret four bytes in arr as a single-float."
   (declare
@@ -148,33 +150,31 @@
                (multiple-value-bind (norm p1 p2 p3) (read-triangle buffer 0)
 
                  (when (v= (vec3 0 0 0) norm)
-;;                   (format t "Found 0 normal! ~a ~a ~a~%" p1 p2 p3)
                    (setf norm (vunit (vc (v- p1 p2) (v- p1 p3) ))))
 
 
                  (setf cur-offset (fill-pointer-offset p1 vertices cur-offset))
-
                  (setf cur-offset (fill-pointer-offset norm vertices cur-offset))
 
                  (setf cur-offset (fill-pointer-offset p2 vertices cur-offset))
-
                  (setf cur-offset (fill-pointer-offset norm vertices cur-offset))
 
                  (setf cur-offset (fill-pointer-offset p3 vertices cur-offset))
-
                  (setf cur-offset (fill-pointer-offset norm vertices cur-offset))))))
+
       (set-buffer obj :vertices (make-instance 'attribute-buffer
                                                :pointer vertices
                                                :attributes '(("in_position" . :vec3)
                                                              ("in_normal" . :vec3))
                                                :free t))
       (set-buffer obj :indices (constant-index-buffer (* 3 tri-count)))
-      (with-slots (instance-count) obj
+      (with-slots (instance-count max-instances) obj
         (setf instance-count 1)
         (set-buffer obj :colors (make-instance 'instance-buffer
-                                               :pointer (to-gl-array :float (* 4 instance-count) (vec4 0.1 0.8 0.2 1.0))
-                                               :attributes '(("in_color" . :vec4))
-                                               :free t))
+                                               :pointer (to-gl-array :float (* 4 max-instances) (vec4 0.1 0.8 0.2 1.0))
+                                               :attributes '(("obj_color" . :vec4))
+                                               :free nil))
         (set-buffer obj :transforms (make-instance 'instance-buffer
-                                                   :pointer (to-gl-array :float (* 16 instance-count) (meye 4))
-                                                   :free t))))))
+                                                   :pointer (to-gl-array :float (* 16 max-instances) (meye 4))
+                                                   :attributes '(("obj_transform" . :mat4))
+                                                   :free nil))))))
