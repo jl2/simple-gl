@@ -36,9 +36,18 @@ To create more complicated graphics, create a subclass of `opengl-object`, or `i
     )
 #+end_src
 
-** interaction-refactor branch
-*** Goal
-The goal of this refactoring is to improve REPL interactivity with viewers and opengl-objects.
+** protocol-refactor Branch
+
+*** Purpose
+
+The purpose of this branch is to refactor the library so that it puts more
+emphasis on OpenGL state management, and define exactly when methods like
+"initialize-buffers" are called, and exactly what their responsibilities are.
+Specifically I want to focus on updating state, because that's a pain point right now, for things like
+buffers during animation.
+
+I'd also like to refactor the (display viewer) method to better handle operations that require doing things in the OpenGL thread.
+
 
 *** Example REPL code
 This is an example of how it will be used from a REPL:
