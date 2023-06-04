@@ -5,16 +5,27 @@ A high level library for using OpenGL.
 
 ** Overview
 
-This is a minimalist, modern OpenGL library based on GLFW.  It provides a framework for working
+This is a minimalist, modern OpenGL library using GLFW.  It provides a framework for working
 with shaders, buffers, textures, and user input.  The goal is to be a "playground" for OpenGL
 development and make it easy to prototype OpenGL code.
 
-The smallest possible example, showing how to create a window with two instanced triangles (ESC to exit):
-   #+begin_src lisp
-     (ql:quickload :simple-gl)
-     (sgl:display-in (make-instance 'sgl:instanced-opengl-object) (make-instance 'sgl:viewer))
-   #+end_src
-   #+RESULTS:
+*** Example REPL code
+This is an example of how it's used from a REPL:
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :sgl-automata :sgl-blend2d-texture))
+  (defparameter *viewer* (make-instance 'sgl:3d-viewer))
+  (sgl:add-object *viewer*
+                  :cube (make-instance
+                         'sgl:stl-file
+                         :file-name "/home/jeremiah/data/3d-models/torus.stl"))
+  (sgl:add-object *viewer*
+                  :textured (sgl-blend2d-texture:blend2d-quad 2048))
+  (sgl:display *viewer*)
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {103BFF26AB}> :STATUS :SCHEDULED {103BFCB683}>
 
 To create more complicated graphics, create a subclass of `opengl-object`, or `instanced-opengl-object` and overload the 'initialize-buffers' method.
 
@@ -43,53 +54,65 @@ To create more complicated graphics, create a subclass of `opengl-object`, or `i
 The purpose of this branch is to refactor the library so that it puts more
 emphasis on OpenGL state management, and define exactly when methods like
 "initialize-buffers" are called, and exactly what their responsibilities are.
-Specifically I want to focus on updating state, because that's a pain point right now, for things like
-buffers during animation.
+Specifically I want to focus on updating state, because that's a pain point
+right now, for things like buffers during animation.
 
-I'd also like to refactor the (display viewer) method to better handle operations that require doing things in the OpenGL thread.
+I'd also like to refactor the (display viewer) method to better handle
+operations that require doing things in the OpenGL thread.
 
 
-*** Example REPL code
-This is an example of how it will be used from a REPL:
+** Future Ideas
 
-#+begin_src lisp
-  (ql:quickload '(:spacenav :simple-gl :sgl-automata :sgl-blend2d-texture))
-  (defparameter *viewer* (make-instance 'sgl:3d-viewer))
-  (sgl:add-object *viewer*
-                  :cube (make-instance
-                         'sgl:stl-file
-                         :file-name "/home/jeremiah/data/3d-models/cube.stl"))
-  (sgl:add-object *viewer*
-                  :hashlife (sgl-automata:create-hashlife "CYCLTRON.LIF"))
-  (sgl:add-object *viewer*
-                  :textured (sgl-blend2d-texture:blend2d-quad 2048))
-  (sgl:display *viewer*)
-#+end_src
+*** Things to Borrow From Emacs
 
-#+RESULTS:
-: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1035F4ACCB}> :STATUS :SCHEDULED {1035750CC3}>
+Some Emacs features that would be nice to have or interesting to try:
+
+**** Modes
+Instead of viewer subclasses, assign a major-mode to the viewer, such as
+"automata-mode", "2d-complex-fractal-mode" or "3d-view-mode".  Input handling,
+rendering, updating, etc. would be handled by the mode.
+
+Are viewer subclasses and "major-modes" equivalent?  Would the architecture be
+clearer by treating viewer subclasses more like modes?
+
+What data should be associated with a mode?  What's the boundary between the
+viewer and a major mode?  Should the list of objects in viewer belong in the
+viewer or in the modes?
+
+Minor modes would also be possible, but I'm not sure how useful they can be with
+unrelated major-modes.  Maybe they are more dependant on major-modes than Emacs
+minor-modes.
+
+**** Keybindings
+Instead of a handle-key method, use a map of (kbd "...") entries to handlers.
+The viewer's key handler converts the current key stroke into a (kbd "...") and
+calls the appropriate function.
+
+One advantage is being able to print out the keyboard handlers.  Another is the
+ability to change handlers at runtime.  Could have an "initialize-keyhandlers"
+method?
+
+Care should be taken to allow handling multiple keys with the same handler (such
+as arrow keys, movement keys, etc.) which may need the key itself as a
+parameter.  The handler should take parameters (viewer (kbd "...") window key
+scancode action mod-keys) to allow that kind of re-use.  It's discouraged to
+register the same handler for all keys.
+
 
 
 
 
 * TODO Items
-** TODO Split APIs for allocating, binding, filling, and refilling objects
 ** TODO Better document API and library usage
-** TODO Create 3d mouse navigation viewer that moves through the world using vector directions
 ** TODO Refactor glfw out of viewer base class and into glfw-viewer
 ** TODO offscreen-viewer classes
 ** TODO Make rebuilding styles safer.  Right now, rebuilding with a syntax error causes a crash.
-** DONE Add mutex to viewer class
-** DONE Remove add-viewer, rm-viewer, find-viewer, etc.
-** DONE Add display method that runs in the main thread and displays the viewer
-** DONE Add methods and functions that lock viewer's mutex and manipulate viewer state (from any thread).
 
 
 ** License
 ISC
 
-
-Copyright (c) 2022 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+Copyright (c) 2023 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
 
 
 
