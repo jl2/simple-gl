@@ -225,8 +225,8 @@
                    dot)))))))
 
 (defun quat-invert (quat)
-  (let* ((len-sq (3d-vectors:vsqrlength (vxyz quat)))
-         (scale (if (not (zerop len-sq))
+  (let* ((len-sq (3d-vectors:vsqrlength quat))
+         (scale (if (> len-sq 0.01)
                     (/ 1.0 len-sq)
                     1.0)))
 
@@ -241,8 +241,9 @@
     (vxyz
      (quat-mul
       
-      (quat-mul quat vq)
-      inv-q))))
+      (quat-mul vq quat)
+      inv-q
+      ))))
 
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:motion-event))
@@ -259,11 +260,25 @@
             (setf quat (quaternion-rotate quat
                                           (* len 0.00085)
                                           (vec3 (/ sn:rx len 1)
-                                                (/ sn:ry len -1)
+                                                (/ sn:ry len 1)
                                                 (/ sn:rz len 1)))))
           (when zoom
-            (setf pos (vec3 0
-                            0
-                            (min -3.0
-                                 (+ (vz pos)
-                                    (* sn:z 0.01)))))))))))
+            ;; Move along z only...
+            ;; (setf pos (vec3 0
+            ;;                 0
+            ;;                 (min -3.0
+            ;;                      (+ (vz pos)
+            ;;                         (* sn:z 0.01)))))
+            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.001)
+                                               (* sn:z 0.001)
+                                               (* sn:y -0.001))
+                                         quat)))))))))
+
+(defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
+  (sgl:with-viewer-lock (viewer)
+    (with-slots (sgl:view-changed
+                 sgl:objects) viewer
+      (when (sn:button-press-p event 1)
+        (reset-view-safe viewer)
+        (setf view-changed t)
+        t))))

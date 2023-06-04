@@ -6,7 +6,6 @@ layout(location = 2) in vec4 obj_color;
 layout(location = 3) in mat4 obj_transform;
 
 uniform mat4 view_transform;
-uniform vec3 camera_position = vec3(0,0,-5);
 
 out vec3 normal;
 out vec3 obj_position;
@@ -25,5 +24,6 @@ void main()
      position = vec3(pos4);
      normal = normalize(norm_view_transform * in_normal);
      diffuse_color = obj_color;
-     cam_position = camera_position;
+//    cam_position = vec3(view_transform[3][0], view_transform[3][1], view_transform[3][2]);
+     cam_position = vec3(0,0,-10);
 }

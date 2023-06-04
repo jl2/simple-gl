@@ -598,7 +598,6 @@
 
                       ;; Initialize OpenGL state
                       (gl:enable :line-smooth
-                                 :polygon-smooth
                                  :depth-test
                                  :program-point-size)
 
