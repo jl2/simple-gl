@@ -270,7 +270,7 @@
             ;;                      (+ (vz pos)
             ;;                         (* sn:z 0.01)))))
             (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.001)
-                                               (* sn:y -0.001)
+                                               (* sn:y 0.001)
                                                (* sn:z 0.001))
                                          quat)))))))))
 
