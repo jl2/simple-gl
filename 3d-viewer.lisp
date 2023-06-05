@@ -13,10 +13,6 @@
         :initarg :pos
         :type vec4
         :documentation "Orientation quaternion (x,y,z,w) w:real xyz: imaginary")
-   (view-xform :initform (mperspective 80.0 1.0 0.1 100)
-              :initarg :view-xform
-              :type mat4
-              :documentation "Default view matrix.")
    (rotation :initform t
              :type (or t nil)
              :initarg :rotation)
@@ -260,25 +256,24 @@
             (setf quat (quaternion-rotate quat
                                           (* len 0.00085)
                                           (vec3 (/ sn:rx len 1)
-                                                (/ sn:ry len 1)
+                                                (/ sn:ry len -1)
                                                 (/ sn:rz len 1)))))
           (when zoom
-            ;; Move along z only...
-            ;; (setf pos (vec3 0
-            ;;                 0
-            ;;                 (min -3.0
-            ;;                      (+ (vz pos)
-            ;;                         (* sn:z 0.01)))))
-            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.001)
-                                               (* sn:z 0.001)
-                                               (* sn:y 0.001))
+            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x -0.004)
+                                               (* sn:y -0.004)
+                                               (* sn:z 0.004))
                                          quat)))))))))
 
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
   (sgl:with-viewer-lock (viewer)
     (with-slots (sgl:view-changed
+                 rotation
                  sgl:objects) viewer
-      (when (sn:button-press-p event 1)
-        (reset-view-safe viewer)
-        (setf view-changed t)
-        t))))
+      (cond ((sn:button-press-p event 1)
+             (reset-view-safe viewer)
+             (setf view-changed t)
+             t)
+            ((sn:button-press-p event 0)
+             (setf rotation (not rotation))
+             t)
+            ))))

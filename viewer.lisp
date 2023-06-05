@@ -135,6 +135,11 @@
    (previous-seconds
     :initform 0.0
     :documentation "Timestamp of previous render loop.")
+
+   (view-xform :initform (mperspective 80.0 1.0 0.1 100)
+               :initarg :view-xform
+               :type mat4
+               :documentation "Default view matrix.")
    )
   (:documentation "A collection of objects and a viewport."))
 
@@ -422,12 +427,13 @@
 
 (defmethod handle-resize ((viewer viewer) window width height)
   (with-viewer-lock (viewer)
-    (with-slots (aspect-ratio) viewer
+    (with-slots (aspect-ratio view-xform view-changed) viewer
       (gl:viewport 0 0 width height)
-      (setf aspect-ratio
-            (if (< width height )
-                (/ height width 1.0)
-                (/ width height 1.0))))
+      (setf aspect-ratio (if (< width height )
+                             (/ height width 1.0)
+                             (/ width height 1.0))
+            view-xform (mperspective 80.0 aspect-ratio 0.1 100)
+            view-changed t))
     (loop
       :for (nil . object) :in (objects viewer)
       :do
