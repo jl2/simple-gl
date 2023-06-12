@@ -1,0 +1,12 @@
+* sgl-maze
+** About
+2 and 3 dimensional mazes using OpenGL.
+
+** License
+ISC
+
+Copyright (c) 2023 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
+
+
+* Plan
+** TODO Fill in a TODO list.
