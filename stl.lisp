@@ -4,7 +4,6 @@
 
 (in-package #:simple-gl)
 
-
 (defclass stl-file (instanced-opengl-object)
   ((styles :initform (list (cons :stl-style
                                  (make-style-from-files "stl-plastic-vertex.glsl" "stl-plastic-fragment.glsl"))))
@@ -170,11 +169,13 @@
       (set-buffer obj :indices (constant-index-buffer (* 3 tri-count)))
       (with-slots (instance-count max-instances) obj
         (setf instance-count 1)
-        (set-buffer obj :colors (make-instance 'instance-buffer
-                                               :pointer (to-gl-array :float (* 4 max-instances) (vec4 0.1 0.8 0.2 1.0))
-                                               :attributes '(("obj_color" . :vec4))
-                                               :free nil))
-        (set-buffer obj :transforms (make-instance 'instance-buffer
-                                                   :pointer (to-gl-array :float (* 16 max-instances) (meye 4))
-                                                   :attributes '(("obj_transform" . :mat4))
-                                                   :free nil))))))
+        (set-buffer obj :colors (make-instance
+                                 'instance-buffer
+                                 :pointer (to-gl-array :float (* 4 max-instances) (vec4 0.1 0.8 0.2 1.0))
+                                 :attributes '(("obj_color" . :vec4))
+                                 :free nil))
+        (set-buffer obj :transforms (make-instance
+                                     'instance-buffer
+                                     :pointer (to-gl-array :float (* 16 max-instances) (meye 4))
+                                     :attributes '(("obj_transform" . :mat4))
+                                     :free nil))))))

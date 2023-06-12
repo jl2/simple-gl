@@ -72,9 +72,9 @@
 
           ;; Calculate the quad location
           :for x-offset fixnum :from 0
-          :for x-float real = (- 1.0f0 (* cell-size x-offset))
+          :for x-float = (- 1.0f0 (* cell-size x-offset))
           :for y-offset fixnum = current-row-idx
-          :for y-float real = (1- (* 2 (/ (1- y-offset) width)))
+          :for y-float = (1- (* 2 (/ (1- y-offset) width)))
 
           ;; Bail out when there's no room for a new quad.
           :until (>= instance-count max-instances)
