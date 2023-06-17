@@ -122,24 +122,20 @@
     :initform nil
     :documentation "Objects that have been removed from the viewer, but still need to be cleaned up by OpenGL.")
 
-   (initial-height
+   (height
     :initform 800
-    :initarg :initial-height
+    :initarg :height
     :documentation "Requested initial window height.")
 
-   (initial-width
+   (width
     :initform 800
-    :initarg :initial-width
+    :initarg :width
     :documentation "Requested initial window width.")
 
    (previous-seconds
     :initform 0.0
     :documentation "Timestamp of previous render loop.")
 
-   (view-xform :initform (mperspective 80.0 1.0 0.1 100)
-               :initarg :view-xform
-               :type mat4
-               :documentation "Default view matrix.")
    )
   (:documentation "A collection of objects and a viewport."))
 
@@ -425,19 +421,20 @@
                   (handle-key object window key scancode action mod-keys)))))))
 
 
-(defmethod handle-resize ((viewer viewer) window width height)
+(defmethod handle-resize ((viewer viewer) window new-width new-height)
   (with-viewer-lock (viewer)
-    (with-slots (aspect-ratio view-xform view-changed) viewer
-      (gl:viewport 0 0 width height)
-      (setf aspect-ratio (if (< width height )
+    (with-slots (aspect-ratio width height view-changed) viewer
+      (setf width new-width
+            height new-height
+            aspect-ratio (if (< width height )
                              (/ height width 1.0)
                              (/ width height 1.0))
-            view-xform (mperspective 80.0 aspect-ratio 0.1 100)
-            view-changed t))
+            view-changed t)
+      (gl:viewport 0 0 new-width new-height))
     (loop
       :for (nil . object) :in (objects viewer)
       :do
-         (handle-resize object window width height))))
+         (handle-resize object window new-width new-height))))
 
 (defmethod handle-click ((viewer viewer) window click-info)
   (with-viewer-lock (viewer)
@@ -564,8 +561,8 @@
   (flet
       ((window-main ()
          (let* ((window (glfw:create-window :title "OpenGL Viewer"
-                                            :width (slot-value viewer 'initial-width)
-                                            :height (slot-value viewer 'initial-height)
+                                            :width (slot-value viewer 'width)
+                                            :height (slot-value viewer 'height)
                                             :decorated t
                                             :opengl-profile :opengl-core-profile
                                             :context-version-major 4

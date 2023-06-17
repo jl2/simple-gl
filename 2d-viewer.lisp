@@ -8,29 +8,35 @@
 
 (defclass 2d-viewer (viewer)
   ((center-pt :initform (vec2 0 0) :type vec2 :initarg :center-pt)
-   (θ :initform 0.0f0 :type real :initarg :theta)
+   (ϴ :initform 0.0f0 :type real :initarg :theta)
    (radius :initform 100 :type number :initarg :radius)
    (rotation :initform t :type (or t nil) :initarg :rotation)
    (zoom :initform t :type (or t nil) :initarg :zoom)
    (pan :initform t :type (or t nil) :initarg :pan))
   (:documentation "A 2d viewer with panning and rotation using the 3d mouse and the keyboard."))
 
-
 (defmethod sgl::view-matrix ((viewer 2d-viewer))
-  (with-slots (center-pt radius θ) viewer
+  (with-slots (center-pt aspect-ratio width height radius ϴ) viewer
     (m*
-        (mortho (- (vx center-pt) radius)
-                (+ (vx center-pt) radius)
-                (- (vy center-pt) radius)
-                (+ (vy center-pt) radius)
-                (- radius) radius)
-        (mrotation (vec3 0 0 1) θ)
+     (if (< width height )
+         (mortho (- (vx center-pt) radius)
+             (+ (vx center-pt) radius)
+             (- (vy center-pt) (* aspect-ratio radius))
+             (+ (vy center-pt) (* aspect-ratio radius))
+             (* -100 radius) (* 100 radius))
+
+         (mortho (- (vx center-pt) (* aspect-ratio radius))
+             (+ (vx center-pt) (* aspect-ratio radius))
+             (- (vy center-pt) radius)
+             (+ (vy center-pt) radius)
+             (* -100 radius) (* 100 radius)))
+     (mrotation (vec3 0 0 1) (* 2  ϴ))
         )))
 
 (defmethod sgl::reset-view-safe ((viewer 2d-viewer))
-  (with-slots (sgl:view-changed center-pt radius θ) viewer
+  (with-slots (sgl:view-changed center-pt radius ϴ) viewer
     (setf center-pt (vec2 0 0)
-          θ 0.0f0
+          ϴ 0.0f0
           radius 100
           view-changed t)))
 
@@ -91,7 +97,7 @@
   (sgl:with-viewer-lock (viewer)
     (with-slots (center-pt
                  radius
-                 θ
+                 ϴ
                  rotation
                  zoom
                  pan
@@ -109,11 +115,24 @@
                                            (/ sn:y
                                               1200.0))))
                          radius)
-              θ (if rotation
-                    (mod (+ θ
+              ϴ (if rotation
+                    (mod (+ ϴ
                             (/ sn:ry
                                2000.0))
                          (* 4 pi))
-                    θ)
-              sgl:view-changed t
-              )))))
+                    ϴ)
+              sgl:view-changed t)))))
+
+(defmethod handle-3d-mouse-event ((viewer 2d-viewer) (event sn:button-event))
+  (sgl:with-viewer-lock (viewer)
+    (with-slots (sgl:view-changed
+                 rotation
+                 sgl:objects) viewer
+      (cond ((sn:button-press-p event 1)
+             (reset-view-safe viewer)
+             (setf view-changed t)
+             t)
+            ((sn:button-press-p event 0)
+             (setf rotation (not rotation))
+             t)
+            ))))

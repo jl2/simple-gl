@@ -18,7 +18,11 @@
              :initarg :rotation)
    (zoom :initform t
          :type (or t nil)
-         :initarg :zoom))
+         :initarg :zoom)
+   (field-of-view :initform 80.0 :initarg :field-of-view :type real)
+   (near :initform 0.1 :initarg :near :type real)
+   (far :initform 100.0 :initarg :far :type real)
+   )
 
   (:documentation "A viewer with keyboard and 3d mouse camera rotation around a target point."))
 
@@ -49,12 +53,13 @@
                    1.0) ;; 15
             ))))
 
+
 (defmethod view-matrix ((viewer 3d-viewer))
-  (with-slots (quat pos view-xform) viewer
-    (m* view-xform
+  (with-slots (field-of-view aspect-ratio near far quat pos) viewer
+    (m*
+        (mperspective field-of-view aspect-ratio near far)
         (3d-matrices:mtranslation pos)        
         (mat4-quat quat)
-
         )))
 
 (defmethod reset-view-safe (viewer)
@@ -240,7 +245,7 @@
       (quat-mul vq quat)
       inv-q
       ))))
-
+r
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:motion-event))
   (with-viewer-lock (viewer)
@@ -254,14 +259,14 @@
           (when (and rotation
                      (not (zerop len)))
             (setf quat (quaternion-rotate quat
-                                          (* len 0.00085)
+                                          (* len 0.00045)
                                           (vec3 (/ sn:rx len 1)
-                                                (/ sn:ry len -1)
+                                                (/ sn:ry len 1)
                                                 (/ sn:rz len 1)))))
           (when zoom
-            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x -0.004)
-                                               (* sn:y -0.004)
-                                               (* sn:z 0.004))
+            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.008)
+                                               (* sn:y 0.008)
+                                               (* sn:z 0.008))
                                          quat)))))))))
 
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))

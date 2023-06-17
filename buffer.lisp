@@ -68,6 +68,16 @@
                                        (loop :for i :below count :collecting i))
                  :free free))
 
+(defun constant-instance-buffer (data float-count attributes &key (free t) (usage :static-draw))
+  (make-instance 'attribute-buffer
+                 :pointer (to-gl-array :float
+                                       float-count
+                                       data)
+                 :stride nil
+                 :attributes attributes
+                 :usage usage
+                 :free free))
+
 (defmethod bind ((buffer buffer))
   (with-slots (bo target usage free pointer) buffer
     (cond ((= bo 0)
@@ -390,3 +400,16 @@
     :do
        (format t "~a " (gl:glaref array i)))
   (terpri))
+
+(defun from-gl-array (array &optional count)
+  "Return a Lisp array with the contents of array to standard out."
+  (let* ((real-count (if count
+                      (min count
+                           (gl::gl-array-size array))
+                      (gl::gl-array-size array)))
+         (rval (make-array real-count)))
+    (loop
+      :for i :below real-count
+      :do
+         (setf (aref rval i) (gl:glaref array i)))
+    rval))

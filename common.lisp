@@ -10,11 +10,17 @@
 
 (deftype color () 'vec4)
 
+(defun deg2rad (deg)
+  (* deg
+     (/ pi
+        180)))
 
 
 
-
-
+(defun rad2deg (rad)
+  (/ rad
+     (/ pi 180))
+  )
 
 
 

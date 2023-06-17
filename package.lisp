@@ -29,6 +29,9 @@
 
            #:new-sgl-plugin
 
+           #:deg2rad
+           #:rad2deg
+
            ;; Shared methods
            #:cleanup
            #:update
@@ -110,6 +113,8 @@
            #:buffer
            #:attribute-buffer
            #:constant-attribute-buffer
+           #:constant-instance-buffer
+           #:constant-index-buffer
            #:index-buffer
            #:idx-count
            #:instance-buffer
@@ -118,6 +123,7 @@
            #:to-gl-array
            #:fill-buffer
            #:show-gl-array
+           #:from-gl-array
            #:rebuild-style
            #:refill-textures
            #:reload-buffers
