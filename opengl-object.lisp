@@ -10,6 +10,8 @@
         :type fixnum
         :accessor vao
         :documentation "The OpenGL VAO handle.")
+   (primitive-type :initform :triangles
+                   :documentation "OpenGL primitive type (:triangles, :points, :lines, etc.)")
    (name :initform "GL Object"
          :initarg :name
          :type string
@@ -34,8 +36,13 @@
              :accessor uniforms
              :initarg :uniforms
              :documentation "A list of uniforms used by this object.")
-   (primitive-type :initform :triangles
-                   :documentation "OpenGL primitive type (:triangles, :points, :lines, etc.)"))
+
+   ;; TODO: Should this be a list?
+   (current-style :initform nil
+                  :accessor current-style
+                  :initarg :current-style
+                  :documentation "The currently active style.  Object is rendered using (assoc current-style styles)")
+   )
   (:documentation "Base class for all objects that can be rendered in a scene."))
 
 (defmethod initialized-p ((object opengl-object))
@@ -88,7 +95,7 @@
       (loop for buffer in buffers do
         (handle-3d-mouse-event (cdr buffer) event))
       (loop for texture in textures do
-        (handle-3d-mouse-event texture event))
+        (handle-3d-mouse-event (cdr texture) event))
       (loop for uniform in uniforms do
         (handle-3d-mouse-event (cdr uniform) event)))
   nil)
@@ -97,18 +104,29 @@
   (declare (ignorable object elapsed-seconds))
   (with-slots (textures styles buffers) object
     (concatenate 'list
-                 (loop :for tex :in textures
+                 (loop :for (nil . tex) :in textures
                        :for updated = (update tex elapsed-seconds)
                        :when updated
                          :collect tex)
                  (loop :for (nil . style) :in styles
                        :for updated = (update style elapsed-seconds)
                        :when updated
-                         :return style)
+                         :collect style)
                  (loop :for (nil . buffer) :in buffers
                        :for updated = (update buffer elapsed-seconds)
                        :when updated
                          :collect buffer))))
+
+(defun set-uniforms (obj)
+  (with-slots (uniforms) obj
+    (cond ((and overwrite
+                (assoc name uniforms :test #'string=))
+           (set-value (alexandria:assoc-value uniforms name :test #'string=) value type))
+          ((null (assoc name uniforms :test #'string=))
+           (push (cons name (make-instance 'uniform :name name
+                                                    :type type
+                                                    :value value))
+                 uniforms)))))
 
 (defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj
@@ -184,12 +202,24 @@
   (set-uniform object "view_transform" (meye 4) :mat4)
   t)
 
-
+(defclass triangle-vertex-color-buffer (attribute-buffer)
+  ())
+(defclass buffer ()
+  ((bo :initform 0 :initarg :bo)
+   (pointer :initarg :pointer :accessor pointer)
+   (target :initform :array-buffer :initarg :target :accessor target)
+   (usage :initform :static-draw :initarg :usage :accessor usage)
+   (stride :initform nil :initarg :stride)
+   (free :initform t :initarg :free))
+  (:documentation "An OpenGL buffer object."))
 
 (defmethod initialize-buffers ((object opengl-object) &key)
   (when (buffers object)
     (error "Object buffers already setup!"))
-
+  (loop
+    :for texture :in (textures object)
+    :do
+       (initialize texture))
   (set-buffer object :vertices
               (constant-attribute-buffer
                (list
@@ -220,7 +250,7 @@
       (gl:bind-vertex-array vao)
 
       (dolist (texture textures)
-        (cleanup texture))
+        (cleanup (cdr texture)))
 
       (dolist (uniform uniforms)
         (cleanup (cdr uniform)))
@@ -253,6 +283,10 @@
                         (gl:make-null-gl-array :unsigned-int)
                         :count (idx-count (assoc-value buffers :indices))))))
 
+
+(defun get-buffer (object buffer-name)
+  (assoc-value (buffers object) buffer-name))
+
 (defun set-buffer (object buffer-name buffer)
   (declare (type opengl-object object)
            (type buffer buffer))
@@ -268,16 +302,13 @@
     (loop :for (nil . style) :in styles :do
       (associate-attributes buffer (program style)))))
 
-(defun get-buffer (object buffer-name)
-  (assoc-value (buffers object) buffer-name))
-
 (defun add-style (object name new-style)
   (declare (type opengl-object object))
   (with-slots (styles) object
     (when (null (assoc name styles))
       (push (cons name new-style) styles))))
 
-(defun add-texture (object texture)
+(defun add-texture (object name texture)
   (declare (type opengl-object object)
            (type texture texture))
-  (push texture (textures object)))
+  (push (cons name texture) (textures object)))

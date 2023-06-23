@@ -125,7 +125,6 @@
            #:show-gl-array
            #:from-gl-array
            #:rebuild-style
-           #:refill-textures
            #:reload-buffers
 
            ;; Styles/shaders

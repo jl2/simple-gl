@@ -16,9 +16,11 @@
 
 (in-package :simple-gl)
 
-(defclass quad (opengl-object)
-  ()
+(defclass quad-positions (attribute-buffer)
+  ((attributes :initform '(("in_color" . :vec4))
+               :initarg :attributes))
   (:documentation "A quad."))
+
 
 (defmethod initialize-buffers ((object quad) &key)
   (when (buffers object)

@@ -155,8 +155,6 @@
 (defgeneric rebuild-style (object)
   (:documentation "Return the view transformation."))
 
-(defgeneric refill-textures (object)
-  (:documentation "Return the view transformation."))
 ;; Input handlers
 (defgeneric handle-key (object window key scancode action mod-keys)
   (:documentation "Handle a GLFW key press.  Return non-nil if handled."))
@@ -272,8 +270,8 @@
   (with-viewer-lock (viewer)
     (reset-view-safe viewer)))
 
-(defun rebuild-buffers (viewer)
-  (format t "Refilling buffers~%")
+(defun reload-buffers (viewer)
+  (format t "Rebuilding buffers~%")
   (with-viewer-lock (viewer)
     (with-slots (objects view-changed) viewer
       (loop
@@ -294,13 +292,13 @@
            (rebuild-style object))
       (setf view-changed t))))
 
-(defun rebuild-textures (viewer)
+(defun refill-textures (viewer)
   (format t "Reloading textures...~%")
   (with-viewer-lock (viewer)
     (with-slots (objects view-changed) viewer
       (loop :for (nil . object) :in objects :do
         (ensure-initialized object)
-        (refill-textures object))
+        (reload-textures object))
       (setf view-changed t))))
 
 (defmethod update-all-view-transforms-safe (viewer))

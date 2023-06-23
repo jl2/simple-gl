@@ -50,6 +50,7 @@
                (:file "gl-shader")
                (:file "style")
                (:file "buffer")
+               (:file "gl-array-utils")
                (:file "opengl-object")
                (:file "quad")
                (:file "instanced-opengl-object")

@@ -15,12 +15,25 @@ This is an example of how it's used from a REPL:
 #+begin_src lisp
   (ql:quickload '(:spacenav :simple-gl :sgl-automata :sgl-blend2d-texture))
   (defparameter *viewer* (make-instance 'sgl:3d-viewer))
-  (sgl:add-object *viewer*
-                  :cube (make-instance
-                         'sgl:stl-file
-                         :file-name "/home/jeremiah/data/3d-models/torus.stl"))
-  (sgl:add-object *viewer*
-                  :textured (sgl-blend2d-texture:blend2d-quad 2048))
+  (defparameter *cube* (make-instance 'sgl:opengl-object
+                                       :buffers (list (make-instance 'sgl:stl-vertex-normal-buffer
+                                                                     :filename "/home/jeremiah/data/3d-models/cube.stl")
+                                                      (make-instance 'sgl:instance-buffer
+                                                                     :attributes '(("in_color" . :vec4))
+                                                                     :max-instances 100
+                                                                     :initial-data (vec4 0.0 0.9 0.1 1.0))
+                                                      (make-instance 'sgl:instance-buffer
+                                                                     :attributes '(("obj_transform" . :mat4))
+                                                                     :max-instances 100
+                                                                     :initial-data (meye 4)))
+                                       :styles (list `(:plastic-shader . ,(sgl:make-style-from-files
+                                                                           "stl-plastic-vertex.glsl"
+                                                                           "stl-plastic-fragment.glsl")))
+                                       :current-style :plastic-shader
+                                       :uniforms nil
+                                       :textures nil)
+  (sgl:add-object *viewer* :cube *cube*)
+  (sgl:add-object *viewer* :textured-quad (sgl-blend2d-texture:blend2d-quad 2048))
   (sgl:display *viewer*)
 #+end_src
 
@@ -57,8 +70,43 @@ emphasis on OpenGL state management, and define exactly when methods like
 Specifically I want to focus on updating state, because that's a pain point
 right now, for things like buffers during animation.
 
-I'd also like to refactor the (display viewer) method to better handle
-operations that require doing things in the OpenGL thread.
+
+The first step will be to refactor buffers to be congruent with shaders,
+textures, and uniforms.  Standardize on thse methods:
+
+*** These methods will run in a thread with a valid OpenGL context:
+
+**** initialize
+gl:gen-buffers - moved out of bind, gl:gen-textures, build-style (gl:create-program, gl:compile-shader, etc.)
+
+**** bind
+No longer initialize/gl:gen-buffers, only bind.  gl:bind-texture, gl:bind-buffer, etc.
+
+**** fill
+Transfer data to OpenGL.  gl:buffer-data, gl:buffer-sub-data, gl:tex-sub-image-*, possibly gl:program-uniform*
+
+**** cleanup
+Dispose of any OpenGL resources.
+
+**** show-info
+Print any relevant OpenGL information related to the object. Maybe just things that can't be seen in the inspector?
+
+*** These methods can be called outside of an OpenGL context.
+**** update
+Change state.  Return a list of objects that need to be `fill`ed in the OpenGL context.  update runs in a threadpool
+where multiple objects are updated at once.  The idea is to do the heavy lifting in update and make fill fast.
+Right now update will wait for all objects to finish updating before calling fill, but this may be optimized so that
+objects that aren't finished updating simply don't draw, or draw using their previous data.
+
+
+
+`buffers` will subclass `attribute-buffer`, `instance-buffer`
+
+An opengl-object will be a collection of named shaders, buffers, uniforms, and textures
+that can be enabled or disabled.
+
+I'd also like to refactor the (display viewer) method to be more explicit about
+operations that need to run in the OpenGL thread.
 
 
 ** Future Ideas

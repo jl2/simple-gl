@@ -50,17 +50,31 @@
 (defgeneric initialize (object &key)
   (:documentation "Initialize an OpenGL object.  Default implementation calls the initialize-* methods."))
 
-(defgeneric initialize-shaders (object &key)
+(defgeneric build-shaders (object &key)
   (:documentation "Initialize the shaders associated with an OpenGL object."))
 
-(defgeneric initialize-buffers (object &key)
+(defgeneric load-buffers (object &key)
   (:documentation "Initialize the buffers associated with an OpenGL object."))
 
-(defgeneric initialize-uniforms (object &key)
+(defgeneric set-uniforms (object &key)
   (:documentation "Initialize the uniforms associated with an OpenGL object."))
 
-(defgeneric initialize-textures (object &key)
+(defgeneric rebuild-shaders (object &key)
+  (:documentation "Initialize the shaders associated with an OpenGL object."))
+
+(defgeneric reload-buffers (object &key)
+  (:documentation "Initialize the buffers associated with an OpenGL object."))
+
+(defgeneric reset-uniforms (object &key)
+  (:documentation "Initialize the uniforms associated with an OpenGL object."))
+
+
+(defgeneric refill-textures (object &key)
   (:documentation "Initialize the textures associated with object."))
+
+(defgeneric fill-textures (object &key)
+  (:documentation "Initialize the textures associated with object."))
+
 
 (defgeneric render (object)
   (:documentation "Render an OpenGL object."))
