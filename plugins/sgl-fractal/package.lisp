@@ -18,7 +18,7 @@
 
   (:nicknames)
 
-  (:use #:cl #:j-utils #:alexandria #:simple-gl)
+  (:use #:cl #:alexandria #:simple-gl)
   (:export #:complex-window
            #:complex-window
            #:complex-fractal-viewer
