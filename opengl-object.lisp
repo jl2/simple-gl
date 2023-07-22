@@ -161,7 +161,7 @@
     (initialize-uniforms object)
     (initialize-textures object)))
 
-(defmethod reload-buffers ((object opengl-object))
+(defmethod reload-buffers ((object opengl-object) &key)
 
   (with-slots (buffers) object
     (dolist (buffer buffers)
@@ -190,7 +190,7 @@
   t)
 
 
-(defmethod refill-textures ((object opengl-object))
+(defmethod refill-textures ((object opengl-object) &key)
   (bind object)
   (with-slots (textures buffers uniforms) object
     (loop :for texture :in textures :do

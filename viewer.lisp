@@ -270,7 +270,7 @@
   (with-viewer-lock (viewer)
     (reset-view-safe viewer)))
 
-(defun reload-buffers (viewer)
+(defmethod reload-buffers ((viewer viewer) &key)
   (format t "Rebuilding buffers~%")
   (with-viewer-lock (viewer)
     (with-slots (objects view-changed) viewer
@@ -292,7 +292,7 @@
            (rebuild-style object))
       (setf view-changed t))))
 
-(defun refill-textures (viewer)
+(defmethod refill-textures ((viewer viewer) &key)
   (format t "Reloading textures...~%")
   (with-viewer-lock (viewer)
     (with-slots (objects view-changed) viewer
