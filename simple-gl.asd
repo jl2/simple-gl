@@ -47,6 +47,7 @@
                (:file "2d-viewer")
                (:file "quaternion-viewer")
                (:file "texture")
+               (:file "png-texture")
                (:file "gl-shader")
                (:file "style")
                (:file "buffer")

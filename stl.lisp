@@ -125,6 +125,9 @@
                 header
                 (babel:octets-to-string header :end (position 0 header)))))))
 
+(defclass stl-vertex-normal-buffer (attribute-buffer)
+  ())
+
 
 (defmethod initialize-buffers ((obj stl-file) &key)
   (declare

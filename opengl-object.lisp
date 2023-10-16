@@ -92,41 +92,31 @@
 (defmethod handle-3d-mouse-event ((object opengl-object) (event sn:motion-event))
   (declare (ignorable object event))
     (with-slots (uniforms buffers textures) object
-      (loop for buffer in buffers do
-        (handle-3d-mouse-event (cdr buffer) event))
-      (loop for texture in textures do
-        (handle-3d-mouse-event (cdr texture) event))
-      (loop for uniform in uniforms do
-        (handle-3d-mouse-event (cdr uniform) event)))
+      (loop :for (name . buffer) :in buffers :do
+        (handle-3d-mouse-event buffer event))
+      (loop :for (name . texture) :in textures :do
+        (handle-3d-mouse-event texture event))
+      (loop :for (name .  uniform) :in uniforms :do
+        (handle-3d-mouse-event uniform event)))
   nil)
 
 (defmethod update ((object opengl-object) elapsed-seconds )
   (declare (ignorable object elapsed-seconds))
   (with-slots (textures styles buffers) object
-    (concatenate 'list
-                 (loop :for (nil . tex) :in textures
-                       :for updated = (update tex elapsed-seconds)
-                       :when updated
-                         :collect tex)
-                 (loop :for (nil . style) :in styles
-                       :for updated = (update style elapsed-seconds)
-                       :when updated
-                         :collect style)
-                 (loop :for (nil . buffer) :in buffers
-                       :for updated = (update buffer elapsed-seconds)
-                       :when updated
-                         :collect buffer))))
-
-(defun set-uniforms (obj)
-  (with-slots (uniforms) obj
-    (cond ((and overwrite
-                (assoc name uniforms :test #'string=))
-           (set-value (alexandria:assoc-value uniforms name :test #'string=) value type))
-          ((null (assoc name uniforms :test #'string=))
-           (push (cons name (make-instance 'uniform :name name
-                                                    :type type
-                                                    :value value))
-                 uniforms)))))
+    (concatenate
+     'list
+     (loop :for (nil . tex) :in textures
+           :for updated = (update tex elapsed-seconds)
+           :when updated
+             :collect tex)
+     (loop :for (nil . style) :in styles
+           :for updated = (update style elapsed-seconds)
+           :when updated
+             :collect style)
+     (loop :for (nil . buffer) :in buffers
+           :for updated = (update buffer elapsed-seconds)
+           :when updated
+             :collect buffer))))
 
 (defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj
@@ -141,8 +131,7 @@
 
 (defun get-uniform (obj name)
   (with-slots (uniforms) obj
-    (if-let (previous (assoc name uniforms :test #'string=))
-      (cdr previous))))
+    (assoc-value uniforms name :test #'string=)))
 
 (defmethod initialize :before ((object opengl-object) &key)
   (cleanup object))

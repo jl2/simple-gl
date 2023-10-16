@@ -16,25 +16,25 @@ This is an example of how it's used from a REPL:
   (ql:quickload '(:spacenav :simple-gl :sgl-automata :sgl-blend2d-texture))
   (defparameter *viewer* (make-instance 'sgl:3d-viewer))
   (defparameter *cube* (make-instance 'sgl:opengl-object
-                                       :buffers (list (make-instance 'sgl:stl-vertex-normal-buffer
-                                                                     :filename "/home/jeremiah/data/3d-models/cube.stl")
-                                                      (make-instance 'sgl:instance-buffer
-                                                                     :attributes '(("in_color" . :vec4))
-                                                                     :max-instances 100
-                                                                     :initial-data (vec4 0.0 0.9 0.1 1.0))
-                                                      (make-instance 'sgl:instance-buffer
-                                                                     :attributes '(("obj_transform" . :mat4))
-                                                                     :max-instances 100
-                                                                     :initial-data (meye 4)))
-                                       :styles (list `(:plastic-shader . ,(sgl:make-style-from-files
-                                                                           "stl-plastic-vertex.glsl"
-                                                                           "stl-plastic-fragment.glsl")))
-                                       :current-style :plastic-shader
-                                       :uniforms nil
-                                       :textures nil)
-  (sgl:add-object *viewer* :cube *cube*)
-  (sgl:add-object *viewer* :textured-quad (sgl-blend2d-texture:blend2d-quad 2048))
-  (sgl:display *viewer*)
+                                      :buffers (list (make-instance 'sgl:stl-vertex-normal-buffer
+                                                                    :filename "/home/jeremiah/data/3d-models/cube.stl")
+                                                     (make-instance 'sgl:instance-buffer
+                                                                    :attributes '(("in_color" . :vec4))
+                                                                    :max-instances 100
+                                                                    :initial-data (vec4 0.0 0.9 0.1 1.0))
+                                                     (make-instance 'sgl:instance-buffer
+                                                                    :attributes '(("obj_transform" . :mat4))
+                                                                    :max-instances 100
+                                                                    :initial-data (meye 4)))
+                                      :styles (list `(:plastic-shader . ,(sgl:make-style-from-files
+                                                                          "stl-plastic-vertex.glsl"
+                                                                          "stl-plastic-fragment.glsl")))
+                                      :current-style :plastic-shader
+                                      :uniforms nil
+                                      :textures nil))
+    (sgl:add-object *viewer* :cube *cube*)
+    (sgl:add-object *viewer* :textured-quad (sgl-blend2d-texture:blend2d-quad 2048))
+    (sgl:display *viewer*)
 #+end_src
 
 #+RESULTS:

@@ -245,7 +245,7 @@
       (quat-mul vq quat)
       inv-q
       ))))
-r
+
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:motion-event))
   (with-viewer-lock (viewer)
@@ -269,6 +269,7 @@ r
                                                (* sn:z 0.008))
                                          quat)))))))))
 
+#+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
   (sgl:with-viewer-lock (viewer)
     (with-slots (sgl:view-changed

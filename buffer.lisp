@@ -295,4 +295,3 @@
   "Fill buffer with data."
   (with-slots (pointer) buffer
     (fill-pointer-offset data pointer 0)))
-
