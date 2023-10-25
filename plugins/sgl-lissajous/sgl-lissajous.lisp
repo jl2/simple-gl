@@ -110,9 +110,7 @@
                       (make-instance 'sgl:instance-buffer
                                      :pointer (sgl:to-gl-array :float
                                                                (* 1  16)
-                                                               (list 
-                                                                (meye 4))
-                                                               )
+                                                               (list (meye 4)))
                                      :free nil
                                      :attributes '(("obj_transform" . :mat4))))
       (setf sgl:instance-count 1))))
@@ -125,17 +123,18 @@
                            (rep 20.0f0)
                            (r1 20.0f0)
                            (r2 2.0f0))
-  (let (
-        (obj (make-instance 'sgl-lissajous
+  (let ((obj (make-instance 'sgl-lissajous
                             :iterations iterations
                             :theta theta
                             :phi phi
                             :r r1
                             :r2 r2
                             :rep rep
-                            :styles (list (cons :lissajous (sgl:make-style-from-files
-                                                            "lissajous-vertex.glsl"
-                                                            "lissajous-fragment.glsl"
-                                                            ;;"lissajous-geometry.glsl"
-                                                            ))))))
+                            :styles (list
+                                     (cons
+                                      :lissajous
+                                      (sgl:make-style-from-files "lissajous-vertex.glsl"
+                                                                 "lissajous-fragment.glsl"
+                                                                 "lissajous-geometry.glsl"
+                                                                 ))))))
     obj))
