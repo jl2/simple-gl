@@ -12,11 +12,14 @@
 (defparameter *error-stream* t
   "Stream to write error information (usually GLFW errors).")
 
-(defvar  *display-in-main-thread* t
+(defvar *display-in-main-thread* t
   "t if GLFW windows will run in the main thread.")
 
 (defvar *viewers* (make-hash-table :test 'equal)
   "All viewers that have been created.")
+
+(defvar *sgl-thread-count* 24
+  "How many threads to create in the lparallel kernel.")
 
 (defclass mouse-click ()
   ((cursor-pos :initarg :cursor-pos)
@@ -511,7 +514,7 @@
                    :for thing :in obj
                    :when thing
                      :do
-                        ;;(bind object)
+                        ;; (bind object)
                         (reload thing))))))))
 
 (defmethod render ((viewer viewer))
@@ -554,7 +557,7 @@
   (gl-init)
 
   (when (null lparallel:*kernel*)
-    (setf lparallel:*kernel* (lparallel:make-kernel 24)))
+    (setf lparallel:*kernel* (lparallel:make-kernel *sgl-thread-count*)))
 
   (flet
       ((window-main ()
@@ -589,8 +592,6 @@
 
                       ;; GLFW Initialization
                       (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
-
-                      (add-viewer window viewer)
 
                       (glfw:set-key-callback 'keyboard-handler window)
                       (glfw:set-mouse-button-callback 'mouse-handler window)
