@@ -245,7 +245,7 @@
       (quat-mul vq quat)
       inv-q
       ))))
-r
+
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:motion-event))
   (with-viewer-lock (viewer)

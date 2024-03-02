@@ -36,7 +36,8 @@
 
                #:bordeaux-threads
                #:lparallel
-               #:trivial-main-thread)
+               #:trivial-main-thread
+               #:quickproject)
 
   :components ((:file "package")
                (:file "simple-gl")

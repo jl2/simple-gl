@@ -31,6 +31,7 @@
                (:file "game-of-life")
                (:file "3d-game-of-life")
                (:file "hashlife")
+               (:file "main")
                ;;(:file "3d-hashlife")
                )
   :in-order-to ((test-op (test-op sgl-automata.test))))
