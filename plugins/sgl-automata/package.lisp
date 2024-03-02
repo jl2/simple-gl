@@ -22,7 +22,8 @@
         #:simple-gl
         #:3d-vectors
         #:3d-matrices)
-  (:export #:create-1d-cellular-automata
+  (:export #:main
+           #:create-1d-cellular-automata
            #:cellular-automata
            #:2d-automata-viewer
            #:1d-cellular-automata
