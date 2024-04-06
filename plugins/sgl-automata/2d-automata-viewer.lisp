@@ -69,13 +69,17 @@
 
                  (when force-redraw
                    (setf generated-iteration -1))
-                 (setf current-iteration (if reset
-                                             0
-                                             (max 0
-                                                  (+ current-iteration iter-delta))))
+                 (setf current-iteration
+                       (if reset
+                           0
+                           (max 0
+                                (+ current-iteration iter-delta))))
                  (setf level (max 0 (+ level level-delta)))
                  (setf this-animating animating)
-                 (sgl:set-uniform obj "view_transform" (sgl:view-matrix viewer) :mat4)))))))
+                 (sgl:set-uniform obj
+                                  "view_transform"
+                                  (sgl:view-matrix viewer)
+                                  :mat4)))))))
   (call-next-method))
 
 

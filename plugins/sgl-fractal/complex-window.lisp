@@ -13,7 +13,7 @@
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((viewer complex-fractal-viewer) (event sn:motion-event))
   (with-slots (sgl:objects) viewer
-    (format t "sending handle-3d-mouse-event to ~a~%" sgl:objects)
+    ;;(format t "sending handle-3d-mouse-event to ~a~%" sgl:objects)
     (loop
       :for (nil . object) :in (objects viewer)
       :do

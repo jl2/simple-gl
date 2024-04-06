@@ -113,7 +113,7 @@
                          (max 1.0
                               (+ radius (* radius
                                            (/ sn:y
-                                              1200.0))))
+                                              2000.0))))
                          radius)
               ϴ (if rotation
                     (mod (+ ϴ

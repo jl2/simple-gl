@@ -29,7 +29,7 @@
       (let ((buffer (get-buffer object :obj-transform)))
         (setf instance-count 0)
         (with-slots (pointer) buffer
-          (let* ((real-node (hl:advance node current-iteration))
+          (let* ((real-node (hl:ffwd node current-iteration))
                  (offset (/ (hl:node-size real-node) 2)))
             ;;multiple-value-bind (min-x min-y max-x max-y) (hl:find-bounds real-node level)
 

@@ -40,13 +40,13 @@ vec4 juliaSetColor(int maxIter, vec2 pos) {
      tmpval = fract(iter / 8422.0);
      tmpval2 = fract(iter / 11133.0);
 
-//     fi = (0.5 + sin(pi * (iter/200.0))) / 2.0;
-     red = clamp(abs(sin(20*pi*iter/maxIterations)), 0.0, 1.0);
-     green = clamp(abs(cos(zx*20*iter/maxIterations)), 0.0, 1.0);
-     blue = clamp(abs(cos(zy*20*iter/maxIterations)), 0.0, 1.0);
-     // red =   clamp(pow((1.0 + fi), (zy)), 0.0, 1.0);
-     // green = clamp(pow(fi, abs(sin(fi*zy))), 0.0, 1.0);
-     // blue =  clamp(abs(tan(fi - sin(fi * zy))), 0.0, 1.0);
+     fi = (0.5 + sin(pi * (iter/200.0))) / 2.0;
+     // red = clamp(abs(sin(20*pi*iter/maxIterations)), 0.0, 1.0);
+     // green = clamp(abs(cos(zx*20*iter/maxIterations)), 0.0, 1.0);
+     // blue = clamp(abs(cos(zy*20*iter/maxIterations)), 0.0, 1.0);
+     red =   clamp(pow((1.0 + fi), (zy)), 0.0, 1.0);
+     green = clamp(pow(fi, abs(sin(fi*zy))), 0.0, 1.0);
+     blue =  clamp(abs(tan(fi - sin(fi * zy))), 0.0, 1.0);
 
      return vec4(0.5, green, blue, 1.0);
 }

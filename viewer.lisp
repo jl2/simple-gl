@@ -118,6 +118,42 @@
     :accessor background-color
     :documentation "The background color.")
 
+   (decorated
+    :initform t
+    :initarg :decorated
+    :accessor decorated
+    :documentation "Whether to use window decorations.")
+
+   (debug-context
+    :initform nil
+    :initarg :debug-context
+    :accessor debug-context
+    :documentation "t to use a debug OpenGL context.")
+
+   (forward-context
+    :initform *want-forward-context*
+    :initarg :forward-context
+    :accessor forward-context
+    :documentation "t to use a forward context")
+
+   (samples
+    :initform 0
+    :initarg :samples
+    :accessor samples
+    :documentation "The number of samples per pixel.")
+
+   (resizable
+    :initform t
+    :initarg :resizable
+    :accessor resizable
+    :documentation "Whether the window is resizable.")
+
+   (use-shader-callback
+    :initform t
+    :initarg :use-shader-callback
+    :accessor use-shader-callback
+    :documentation "Whether or not to log shader debug messages.")
+
    (discarded-objects
     :initform nil
     :documentation "Objects that have been removed from the viewer, but still need to be cleaned up by OpenGL.")
@@ -135,6 +171,7 @@
    (previous-seconds
     :initform 0.0
     :documentation "Timestamp of previous render loop.")
+
 
    )
   (:documentation "A collection of objects and a viewport."))
@@ -314,111 +351,133 @@
       (setf view-changed nil))))
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
-  (cond
-    ((and (eq key :escape) (eq action :press))
-     (glfw:set-window-should-close window)
-     t)
+  (let ((shift-down (find :shift mod-keys))
+        (alt-down (find :alt mod-keys))
+        (ctrl-down (find :ctrl mod-keys))
+        (super-down (find :super mod-keys)))
 
-    ((and (eq key :f1) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (cull-face) viewer
-         (setf cull-face (if (eq cull-face :cull-face)
-                             nil
-                             :cull-face))
-         (format t "Cull face: ~a~%" cull-face))
-       t))
+    (declare (ignorable shift-down alt-down ctrl-down super-down))
 
-    ((and (eq key :f2) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (front-face) viewer
-         (setf front-face (if (eq front-face :cw)
-                              :ccw
-                              :cw))
-         (format t "Front face: ~a~%" front-face))
-       t))
+    (cond
+      ((and (eq key :escape) (eq action :press))
+       (glfw:set-window-should-close window)
+       t)
 
-    ((and (eq key :f3) (eq action :press))
-     (rebuild-shaders viewer)
-     t)
+      ((and (eq key :f1)
+            (eq action :press)
+            alt-down)
+       (with-viewer-lock (viewer)
+         (with-slots (use-shader-callback) viewer
+           (setf use-shader-callback (not use-shader-callback))
+           (%gl:debug-message-callback (if use-shader-callback
+                                           (cffi:callback gl-debug-callback)
+                                           (cffi:null-pointer))
+                                       (cffi:null-pointer))
+           (%gl:debug-message-control :dont-care
+                                      :dont-care
+                                      :dont-care 0 (cffi:null-pointer) (if use-shader-callback :true :false))))
+         t)
 
-    ((and (eq key :f4) (eq action :press))
-     (rebuild-textures viewer)
-     t)
+      ((and (eq key :f1) (eq action :press))
+       (with-viewer-lock (viewer)
+         (with-slots (cull-face) viewer
+           (setf cull-face (if (eq cull-face :cull-face)
+                               nil
+                               :cull-face))
+           (format t "Cull face: ~a~%" cull-face))
+         t))
 
-    ((and (eq key :f5) (eq action :press))
-     (rebuild-buffers viewer)
-     t)
+      ((and (eq key :f2) (eq action :press))
+       (with-viewer-lock (viewer)
+         (with-slots (front-face) viewer
+           (setf front-face (if (eq front-face :cw)
+                                :ccw
+                                :cw))
+           (format t "Front face: ~a~%" front-face))
+         t))
 
+      ((and (eq key :f3) (eq action :press))
+       (rebuild-shaders viewer)
+       t)
 
-    ((and (eq key :f6) (eq action :press))
-     (format t "Toggling blending ~%")
-     (with-viewer-lock (viewer)
-       (with-slots (blend) viewer
-         (setf blend (not blend)))
-       t))
+      ((and (eq key :f4) (eq action :press))
+       (rebuild-textures viewer)
+       t)
 
-    ((and (eq key :f7) (eq action :press))
-     (show-open-gl-info)
-     (show-info viewer)
-     t)
-
-    ((and (eq key :f8) (eq action :press))
-     (with-viewer-lock (viewer)
-       (show-gl-state))
-     t)
-
-    ((and (eq key :f9) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (show-fps) viewer
-         (setf show-fps (not show-fps)))
-       t))
-
-    ((and (eq key :f10) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (enable-update) viewer
-         (cond ((integerp enable-update)
-                (setf enable-update t))
-               ((null enable-update)
-                (setf enable-update t))
-               (t
-                (setf enable-update nil)))
-         (format t "enable-update: ~a~%" enable-update))
-       t))
-
-    ((and (eq key :f11) (eq action :press))
-     (with-viewer-lock (viewer)
-       (with-slots (enable-update) viewer
-         (cond ((null enable-update)
-                (setf enable-update 1))
-               ((integerp enable-update)
-                (incf enable-update)))
-         (format t "enable-update: ~a~%" enable-update))
-       t))
+      ((and (eq key :f5) (eq action :press))
+       (rebuild-buffers viewer)
+       t)
 
 
-    ((and (eq key :f12) (eq action :press))
-     ;; TODO: Run this in a background thread?
-     (let* ((win-size (glfw:get-window-size))
-            (width (car win-size))
-            (height(cadr win-size))
-            (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
-            (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~4,'0d.png" (random 10000))))
-       (format t "Screenshot to: ~a~%" fname)
-       (zpng:write-png
-        (make-instance 'zpng:png :color-type :truecolor-alpha
-                                 :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
-                                                                                 :initial-contents data)
-                                 :width width
-                                 :height height)
-        fname)
-       t))
-    (t
-     (with-viewer-lock (viewer)
-       (funcall #'some #'identity
-                (loop
-                  :for (nil . object) :in (objects viewer)
-                  :collect
-                  (handle-key object window key scancode action mod-keys)))))))
+      ((and (eq key :f6) (eq action :press))
+       (format t "Toggling blending ~%")
+       (with-viewer-lock (viewer)
+         (with-slots (blend) viewer
+           (setf blend (not blend)))
+         t))
+
+      ((and (eq key :f7) (eq action :press))
+       (show-open-gl-info)
+       (show-info viewer)
+       t)
+
+      ((and (eq key :f8) (eq action :press))
+       (with-viewer-lock (viewer)
+         (show-gl-state))
+       t)
+
+      ((and (eq key :f9) (eq action :press))
+       (with-viewer-lock (viewer)
+         (with-slots (show-fps) viewer
+           (setf show-fps (not show-fps)))
+         t))
+
+      ((and (eq key :f10) (eq action :press))
+       (with-viewer-lock (viewer)
+         (with-slots (enable-update) viewer
+           (cond ((integerp enable-update)
+                  (setf enable-update t))
+                 ((null enable-update)
+                  (setf enable-update t))
+                 (t
+                  (setf enable-update nil)))
+           (format t "enable-update: ~a~%" enable-update))
+         t))
+
+      ((and (eq key :f11) (eq action :press))
+       (with-viewer-lock (viewer)
+         (with-slots (enable-update) viewer
+           (cond ((null enable-update)
+                  (setf enable-update 1))
+                 ((integerp enable-update)
+                  (incf enable-update)))
+           (format t "enable-update: ~a~%" enable-update))
+         t))
+
+
+      ((and (eq key :f12) (eq action :press))
+       ;; TODO: Run this in a background thread?
+       (let* ((win-size (glfw:get-window-size))
+              (width (car win-size))
+              (height(cadr win-size))
+              (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
+              (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~4,'0d.png" (random 10000))))
+         (format t "Screenshot to: ~a~%" fname)
+         (zpng:write-png
+          (make-instance 'zpng:png :color-type :truecolor-alpha
+                                   :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
+                                                                                   :initial-contents data)
+                                   :width width
+                                   :height height)
+          fname)
+         t))
+      (t
+       (with-viewer-lock (viewer)
+         (funcall #'some #'identity
+                  (loop
+                    :for (nil . object) :in (objects viewer)
+                    :collect
+                    (handle-key object window key scancode action mod-keys))))))))
 
 
 (defmethod handle-resize ((viewer viewer) window new-width new-height)
@@ -537,6 +596,7 @@
                                            (severity :int) (length :int)
                                            (message :string) (param :pointer))
   (declare (ignorable param length))
+
   (format t "~a ~a ~a ~a~%    ~s~%"
           (cffi:foreign-enum-keyword '%gl:enum source)
           (cffi:foreign-enum-keyword '%gl:enum type)
@@ -563,14 +623,14 @@
          (let* ((window (glfw:create-window :title "OpenGL Viewer"
                                             :width (slot-value viewer 'width)
                                             :height (slot-value viewer 'height)
-                                            :decorated t
+                                            :decorated (slot-value viewer 'decorated)
                                             :opengl-profile :opengl-core-profile
                                             :context-version-major 4
                                             :context-version-minor 0
-                                            :opengl-debug-context t
-                                            :opengl-forward-compat *want-forward-context*
-                                            :samples 0
-                                            :resizable t)))
+                                            :opengl-debug-context (slot-value viewer 'debug-context)
+                                            :opengl-forward-compat (slot-value viewer 'forward-context)
+                                            :samples (slot-value viewer 'samples)
+                                            :resizable (slot-value viewer 'resizable))))
            (when (null window)
              (format t "Could not create-window!")
              (error "Could not create-window!"))
@@ -581,9 +641,6 @@
            (add-viewer window viewer)
 
            (gl:enable :debug-output-synchronous)
-           (%gl:debug-message-callback (cffi:callback gl-debug-callback)
-                                       (cffi:null-pointer))
-           (%gl:debug-message-control :dont-care :dont-care :dont-care 0 (cffi:null-pointer) :true)
 
            (unwind-protect
                 (handler-case
@@ -616,7 +673,7 @@
                         (initialize viewer)
 
                         #+spacenav(sn:sn-open)
-                        ;;#+spacenav(sn:sensitivity 0.5d0)
+                        #+spacenav(sn:sensitivity 0.5d0)
 
                         (loop
                           :with start-time = (glfw:get-time)
