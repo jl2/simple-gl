@@ -18,7 +18,8 @@
 
 (defun main (args)
   (let ((viewer (make-instance 'sgla:2d-automata-viewer)))
+
     (sgl:add-object viewer
-                    :game-of-life (sgla:create-hashlife  (car (ensure-list args))
-                                                                :max-instances (* 256 256)))
+                    :game-of-life (sgla:create-hashlife (car (ensure-list args))
+                                                        :max-instances (* 256 256)))
     (sgl:display viewer)))
