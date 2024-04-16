@@ -673,7 +673,7 @@
                         (initialize viewer)
 
                         #+spacenav(sn:sn-open)
-                        #+spacenav(sn:sensitivity 0.5d0)
+                        #+spacenav(sn:sensitivity 0.125d0)
 
                         (loop
                           :with start-time = (glfw:get-time)
