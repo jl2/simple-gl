@@ -16,7 +16,7 @@ const float light_power = 190.0;
 const vec3 ambient_color = vec3(0.03, 0.03, 0.03);
 const vec3 spec_color = vec3(1.0, 1.0, 1.0);
 const float shininess = 128.0;
-const float screen_gamma = 1.3; // Assume the monitor is calibrated to the sRGB color space
+const float screen_gamma = 1.3;
 
 void main() {
      out_color = diffuse_color;
@@ -32,12 +32,12 @@ void main() {
 
 
 
-          vec3 view_dir = -normalize(obj_position - cam_position);
+     vec3 view_dir = -normalize(obj_position - cam_position);
 
-          // Blinn-Phong
-          vec3 half_dir = normalize(light_dir - view_dir);
-          float spec_angle = max(dot( normal, half_dir), 0.0);
-          specular = pow(spec_angle, shininess);
+     // Blinn-Phong
+     vec3 half_dir = normalize(light_dir - view_dir);
+     float spec_angle = max(dot( normal, half_dir), 0.0);
+     specular = pow(spec_angle, shininess);
 
 
      vec3 color_linear = ambient_color +
