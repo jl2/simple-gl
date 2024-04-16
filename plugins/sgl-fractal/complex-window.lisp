@@ -123,14 +123,22 @@
   (with-slots (center radius) window
     (+ (realpart center) (realpart radius))))
 
+(defun map-val (x old-xmin old-xmax new-xmin new-xmax)
+  "Map a value from the range [old-xmin old-xmax] to the range [new-xmin, new-xmax]."
+  (+
+   new-xmin
+   (* (/ (- x old-xmin)
+         (- old-xmax old-xmin))
+      (- new-xmax new-xmin))))
+
 (defun cursor-position-to-complex (cpos window)
   (let* ((x-pos (car cpos))
          (y-pos (cadr cpos))
          (win-size (glfw:get-window-size))
          (cur-width (car win-size))
          (cur-height (cadr win-size))
-         (real-mouse (ju:map-val x-pos 0.0 cur-width (real-min window) (real-max window)))
-         (imag-mouse (ju:map-val (- cur-height y-pos) 0.0 cur-height (imag-min window) (imag-max window))))
+         (real-mouse (map-val x-pos 0.0 cur-width (real-min window) (real-max window)))
+         (imag-mouse (map-val (- cur-height y-pos) 0.0 cur-height (imag-min window) (imag-max window))))
     (complex real-mouse imag-mouse)))
 
 (defun zoom-complex-fractal-window (scale cpos fractal)

@@ -20,7 +20,7 @@
   :license  "ISC"
   :version "0.0.1"
   :serial t
-  :depends-on (#:alexandria #:j-utils #:simple-gl)
+  :depends-on (#:alexandria #:simple-gl)
   :components ((:file "package")
                (:file "complex-window")
                (:file "sgl-fractal")
