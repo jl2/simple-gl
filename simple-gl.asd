@@ -46,7 +46,6 @@
                (:file "offscreen-viewer")
                (:file "3d-viewer")
                (:file "2d-viewer")
-               (:file "quaternion-viewer")
                (:file "texture")
                (:file "gl-shader")
                (:file "style")

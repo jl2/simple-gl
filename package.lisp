@@ -51,7 +51,6 @@
            #:viewer
            #:2d-viewer
            #:3d-viewer
-           #:quaternion-viewer
            #:radius
            #:φ
            #:θ
@@ -141,5 +140,6 @@
            ;; Textures
            #:texture
            #:fill-texture
+           #:png-texture
 
            ))
