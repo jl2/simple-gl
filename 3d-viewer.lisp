@@ -259,14 +259,14 @@
           (when (and rotation
                      (not (zerop len)))
             (setf quat (quaternion-rotate quat
-                                          (* len 0.00045)
-                                          (vec3 (/ sn:rx len 1)
-                                                (/ sn:ry len 1)
-                                                (/ sn:rz len 1)))))
+                                          (* len 0.0045)
+                                          (vec3 (/ sn:rx len 1.0)
+                                                (/ sn:ry len -1.0)
+                                                (/ sn:rz len 1.0)))))
           (when zoom
-            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.008)
-                                               (* sn:y 0.008)
-                                               (* sn:z 0.008))
+            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.0048)
+                                               (* sn:z 0.0048)
+                                               (* sn:y -0.0048))
                                          quat)))))))))
 
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
