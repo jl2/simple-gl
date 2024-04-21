@@ -4,34 +4,80 @@
 
 (in-package #:simple-gl)
 
-
 (defclass buffer ()
-  ((bo :initform 0 :initarg :bo)
-   (pointer :initarg :pointer :accessor pointer)
-   (target :initform :array-buffer :initarg :target :accessor target)
-   (usage :initform :static-draw :initarg :usage :accessor usage)
-   (stride :initform nil :initarg :stride)
-   (free :initform t :initarg :free))
+  ((bo
+    :initform 0
+    :initarg :bo
+    :type fixnum
+    :documentation "The OpenGL buffer ID.")
+   (pointer
+    :initarg :pointer
+    :accessor pointer
+    :documentation "The pointer to memory that is passed to OpenGL.")
+   (target
+    :initform :array-buffer
+    :initarg :target
+    :type (or :array-buffer :element-array-buffer)
+    :accessor target
+    :documentation "The OpenGL target for the buffer, typically :array-buffer or :index-buffer.")
+   (usage
+    :initform :static-draw
+    :initarg :usage
+    :type (or :static-draw :dynamic-draw)
+    :accessor usage
+    :documentation "The intended usage of the buffer.  Usually :static-draw or :dynamic-draw")
+   (stride
+    :initform nil
+    :initarg :stride
+    :type (or null fixnum)
+    :documentation "The stride (number of floats) between each buffer entry.")
+   (free
+    :initform t
+    :initarg :free
+    :type boolean
+    :documentation "Whether or not to free the memory used to pass data to OpenGL.  If free is non-nil,
+ pointer will be nil after the buffer data is sent to OpenGL."))
   (:documentation "An OpenGL buffer object."))
 
+
 (defclass attribute-buffer (buffer)
-  ((stride :initform nil)
-   (target :initform :array-buffer :initarg :target)
-   (attributes :initform '(("in_position" . :vec3) ("in_color" . :vec4))
-               :initarg :attributes))
+  ((stride
+    :initform nil)
+   (target
+    :initform :array-buffer
+    :initarg :target)
+   (attributes
+    :initform '(("in_position" . :vec3) ("in_color" . :vec4))
+    :initarg :attributes
+    :documentation "A list of attribute name/type pairs describing the buffer's data."))
   (:documentation "An OpenGL vertex buffer containing (mutable) vertex data that is passed into a shader."))
 
+
 (defclass index-buffer (buffer)
-  ((target :initform :element-array-buffer)
-   (idx-count :initform 0 :initarg :idx-count :accessor idx-count)
-   (stride :initform 1))
+  ((target
+    :initform :element-array-buffer)
+   (idx-count
+    :initform 0
+    :initarg :idx-count
+    :accessor idx-count
+    :documentation "The number of indices.")
+   (stride
+    :initform 1))
   (:documentation "A GL_ELEMENT_ARRAY buffer containing integer indices for drawing."))
 
+
 (defclass uniform-buffer (buffer)
-  ((target :initform :uniform-buffer :initarg :target)
-   (block-index :initform 0 :initarg :block-index)
-   (block-name :initarg :block-name)
-   (bind-location :initform 0 :initarg :bind-location))
+  ((target
+    :initform :uniform-buffer
+    :initarg :target)
+   (block-index
+    :initform 0
+    :initarg :block-index)
+   (block-name
+    :initarg :block-name)
+   (bind-location
+    :initform 0
+    :initarg :bind-location))
   (:documentation "A mutable buffer containing uniform values.."))
 
 
@@ -68,12 +114,16 @@
                                        (loop :for i :below count :collecting i))
                  :free free))
 
-(defun constant-instance-buffer (data float-count attributes &key (free t) (usage :static-draw))
-  (make-instance 'attribute-buffer
+(defun constant-instance-buffer (data float-count attributes &key
+                                                               (divisor 1)
+                                                               (free t)
+                                                               (usage :static-draw))
+  (make-instance 'instance-buffer
                  :pointer (to-gl-array :float
                                        float-count
                                        data)
                  :stride nil
+                 :divisor divisor
                  :attributes attributes
                  :usage usage
                  :free free))
