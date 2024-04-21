@@ -249,9 +249,11 @@
       (use-style style)
       (loop :for (nil . uniform) :in uniforms :do
         (use-uniform uniform (program style)))
-      (gl:draw-elements primitive-type
-                        (gl:make-null-gl-array :unsigned-int)
-                        :count (idx-count (assoc-value buffers :indices))))))
+      (when (and (assoc-value buffers :vertices)
+                 (assoc-value buffers :indices))
+        (gl:draw-elements primitive-type
+                          (gl:make-null-gl-array :unsigned-int)
+                          :count (idx-count (assoc-value buffers :indices)))))))
 
 (defun set-buffer (object buffer-name buffer)
   (declare (type opengl-object object)
