@@ -15,15 +15,24 @@
 
 (in-package :sgl-obj-file)
 
-(defclass sgl-obj (sgl:opengl-object)
-  ((filename :initarg :filename :type (or string pathname))
-   (obj-file :initform nil :type (or null obj-file))))
+(setf sgl:*shader-dirs*
+      (adjoin (asdf:system-relative-pathname :sgl-obj-file "shaders/") sgl:*shader-dirs*))
 
-(defmethod initialize-buffers ((obj sgl-obj) &key)
-  (with-slots (obj-file filename) obj
+(defclass sgl-obj (sgl:instanced-opengl-object)
+  ((sgl:styles :initform (list (cons :stl-style
+                                 (sgl:make-style-from-files "obj-vertex.glsl" "obj-plastic-fragment.glsl"))))
+   (filename :initarg :filename
+             :type (or string pathname))
+   (obj-file :initform nil
+             :type (or null obj-file))
+   (transforms :initform (list (meye 4))
+               :initargs :transforms)))
+
+(defmethod sgl:initialize-buffers ((obj sgl-obj) &key)
+  (with-slots (obj-file filename transforms) obj
     (when (null obj-file)
       (setf obj-file (obj:read-obj-from-file filename)))
-    (with-slots ((objs obj:objects) obj:materials) obj
+    (with-slots ((objs obj:objects) obj:materials) obj-file
       (loop
         :for object :in objs
         :do (with-slots (obj:object-name
@@ -34,69 +43,99 @@
                          obj:v-params) object
               (format t "Filling buffers for ~a~%" obj:object-name)
               ;; TODO: Create attribute
-              (loop
-                :for group :across obj:groups
-                :do (with-slots (obj:faces
-                                 obj:group-name
-                                 obj:lines
-                                 obj:material
-                                 obj:points
-                                 obj:smoothing-group) group
-                      (format t "Filling buffer for ~a~%" obj:group-name)
-                      )))))))
+              (let ((attribute-data (make-array (+ (* 3 (length obj:vertices)))
+                                                :element-type 'float
+                                                :adjustable t
+                                                :initial-element 0.0
+                                                :fill-pointer 0))
+                    (index-count 0)
+                    (idx-format nil))
 
-           
-    ;; (with-slots (objects) obj-file
-    ;;   (loop
-    ;;     :for obj-object :in objects
-    ;;     :do
-    ;;        (with-slots (groups) obj-object
-             
-    ;;               (let ((object (make-instance 'obj-group :obj-group group)))
-    ;;                 (with-slots (obj-reader:face-stride obj-reader:faces) group
-    ;;                   (set-buffer object
-    ;;                               :vertices
-    ;;                               (make-instance
-    ;;                                'attribute-buffer
-    ;;                                :pointer (to-gl-array
-    ;;                                          :float
-    ;;                                          (length obj-reader:faces)
-    ;;                                          obj-reader:faces))
-    ;;                               :stride obj-reader:face-stride
-    ;;                               :attributes (cons ((= 3 obj-reader:face-stride)
-    ;;                                                  '(("in_position" . :vec3)))
-    ;;                                                 ((= 5 obj-reader:face-stride)
-    ;;                                                  '(("in_position" . :vec3) ("in_texture" . :vec2)))
-    ;;                                                 ((= 6 obj-reader:face-stride)
-    ;;                                                  '(("in_position" . :vec3) ("in_normal" . :vec3)))
-    ;;                                                 ((= 8 obj-reader:face-stride)
-    ;;                                                  '(("in_position" . :vec3) ("in_texture" . :vec2) ("in_normal" . :vec3)))
-    ;;                                                 :usage :static-draw
-    ;;                                                 :free t))
-    ;;                   (set-buffer object
-    ;;                               :obj-transform (make-instance
-    ;;                                               'instance-buffer
-    ;;                                               :pointer (to-gl-array :float (* 16 1)
-    ;;                                                                     (list
-    ;;                                                                      (meye 4))
-    ;;                                                                     :stride 16
-    ;;                                                                     :attributes '(("obj_transform" . :mat4))
-    ;;                                                                     :usage :static-draw
-    ;;                                                                     :free t))))
-    ;;                 ))
-    ;;          (let ((vert-data (gl:alloc-gl-array :float (+
-    ;;                                                      (cffi:with-pointer-to-vector-data (vert-ptr obj-reader:vertices)
-    ;;                                                        (set-buffer obj :vertices (make-instance 'attribute-buffer
-    ;;                                                                                                 :pointer (gl::make-gl-array-from-pointer vert-ptr :float (* 3 (length obj-reader:vertices)))
-    ;;                                                                                                 :attributes '(("in_position" . :vec3))
-    ;;                                                                                                 :free nil)))
-    ;;                                                      (cffi:with-pointer-to-vector-data (norm-ptr obj-reader:normals)
-    ;;                                                        (set-buffer obj :vertices (make-instance 'attribute-buffer
-    ;;                                                                                                 :pointer (gl::make-gl-array-from-pointer norm-ptr :float (* 3 (length obj-reader:normals)))
-    ;;                                                                                                 :attributes '(("in_normal" . :vec3))
-    ;;                                                                                                 :free nil)))
-    ;;                                                      (cffi:with-pointer-to-vector-data (tex-ptr obj-reader:tex-coords)
-    ;;                                                        (set-buffer obj :vertices (make-instance 'attribute-buffer
-    ;;                                                                                                 :pointer (gl::make-gl-array-from-pointer tex-ptr :float (* 2 (length obj-reader:tex-coords)))
-    ;;                                                                                                 :attributes '(("in_tex" . :vec2))
-    ;;                                                                                                 :free nil))))))))
+                (loop
+                  :for group :across obj:groups
+                  :do
+                     (with-slots (obj:faces obj:group-name obj:lines obj:material obj:points obj:smoothing-group) group
+                       (format t "Filling buffer for ~a~%" obj:group-name)
+                       (loop
+                         :for face :across obj:faces
+                         :do (with-slots (obj:indices
+                                          obj:idx-format) face
+                               (setf idx-format obj:idx-format)
+                               (flet ((add-vertex (idx)
+                                        (vector-push-extend (aref obj:vertices (+ 0 idx)) attribute-data)
+                                        (vector-push-extend (aref obj:vertices (+ 1 idx)) attribute-data)
+                                        (vector-push-extend (aref obj:vertices (+ 2 idx)) attribute-data))
+
+                                      (add-normal (idx offset)
+                                        (vector-push-extend (aref obj:normals (+ 0 (+ offset idx))) attribute-data)
+                                        (vector-push-extend (aref obj:normals (+ 1 (+ offset idx))) attribute-data)
+                                        (vector-push-extend (aref obj:normals (+ 2 (+ offset idx))) attribute-data))
+
+                                      (add-tex (idx)
+                                        (vector-push-extend (aref obj:tex-coords (+ 0 (+ 1 idx))) attribute-data)
+                                        (vector-push-extend (aref obj:tex-coords (+ 1 (+ 1 idx))) attribute-data))
+
+                                      (add-vdata (idx)
+                                        (vector-push-extend (aref obj:v-params (+ 0 (+ 4 idx))) attribute-data)))
+                                 (loop
+                                   :for idx :below (length obj:indices) :by (obj:stride face)
+                                   :do
+                                      (incf index-count)
+                                      (case obj:idx-format
+                                        (:vertex-texture-normal-vdata
+
+                                         (add-vertex idx)
+                                         (add-tex idx)
+                                         (add-normal idx 2)
+                                         (add-vdata idx))
+
+                                        (:vertex-texture-normal
+                                         (add-vertex idx)
+                                         (add-tex idx)
+                                         (add-normal idx 2))
+
+                                        (:vertex-texture
+                                         (add-vertex idx)
+                                         (add-tex idx))
+
+                                        (:vertex-normal
+                                         (add-vertex idx)
+                                         (add-normal idx 1))
+
+                                        (:vertex
+                                         (add-vertex idx)))))))))
+
+                (sgl:set-buffer obj :vertices (sgl:constant-attribute-buffer
+                                                attribute-data
+                                                (length attribute-data)
+                                                (case idx-format
+                                                  (:vertex-texture-normal-vdata
+                                                   '(("in_position" . :vec3)
+                                                     ("in_texture" . :vec2)
+                                                     ("in_normal" . :vec3)
+                                                     ("in_vdata" . :float)))
+                                                  (:vertex-texture-normal
+                                                   '(("in_position" . :vec3)
+                                                     ("in_texture" . :vec2)
+                                                     ("in_normal" . :vec3)))
+                                                  (:vertex-texture
+                                                   '(("in_position" . :vec3)
+                                                     ("in_texture" . :vec2)))
+                                                  (:vertex-normal
+                                                   '(("in_position" . :vec3)
+                                                     ("in_normal" . :vec3)))
+                                                  (:vertex-vdata
+                                                   '(("in_position" . :vec3)
+                                                     ("in_vdata" . :float)))
+                                                  (:vertex
+                                                   '(("in_position" . :vec3))))
+                                                :free nil))
+                ;;(sgl:to-gl-array :float (length attribute-data) attribute-data)
+                (sgl:set-buffer obj :indices (sgl:constant-index-buffer index-count
+                                                                        :free nil))
+                (setf (slot-value obj 'sgl:instance-count) 1)
+                (sgl:set-buffer obj :obj-transform (sgl:constant-instance-buffer transforms
+                                                                                 (* 16 (length transforms))
+                                                                                 '(("obj_transform" . :mat4))
+                                                                                 :free nil
+                                                                                 ))))))))
