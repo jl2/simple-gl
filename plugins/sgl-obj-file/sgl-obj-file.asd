@@ -22,7 +22,9 @@
 
   :depends-on (#:simple-gl
                #:alexandria
-               #:obj-reader)
+               #:obj-reader
+               #:3d-vectors
+               #:3d-matrices)
 
   :components ((:file "package")
                (:file "main")

@@ -15,7 +15,10 @@
 
 (defpackage :sgl-obj-file
 
-  (:nicknames)
+  (:nicknames #:sgl-obj #:sobj)
 
-  (:use #:cl #:alexandria)
+  (:use #:cl
+        #:alexandria
+        #:3d-vectors
+        #:3d-matrices)
   (:export #:main))
