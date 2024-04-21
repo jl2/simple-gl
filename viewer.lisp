@@ -12,9 +12,6 @@
 (defparameter *error-stream* t
   "Stream to write error information (usually GLFW errors).")
 
-(defvar *display-in-main-thread* t
-  "t if GLFW windows will run in the main thread.")
-
 (defvar *viewers* (make-hash-table :test 'equal)
   "All viewers that have been created.")
 
@@ -175,9 +172,19 @@
     :initform 0.0
     :documentation "Timestamp of previous render loop.")
 
+   (use-main-thread
+    :initform t
+    :initarg :use-main-thread
+    :documentation "Whether or not to run on the main thread.
+Some platforms require this (OSX, for example), and may be
+best practices on other platforms too.")
 
-   )
-  (:documentation "A collection of objects and a viewport."))
+   (error-stream
+    :initform t
+    :initarg :error-stream
+    :documentation "Stream where GLFW will write error logs."))
+
+   (:documentation "A collection of objects and a viewport."))
 
 
 (defgeneric add-object (viewer name object)
@@ -615,7 +622,9 @@
 
   ;; "GLFW Event Loop function that initializes GLFW and OpenGL, creates a window,
   ;;  and runs an event loop."
-  ;; (glfw:set-error-callback 'error-callback)
+  (when (slot-value viewer 'error-stream)
+    (let ((*error-stream* (slot-value viewer 'error-stream)))
+      (glfw:set-error-callback 'error-callback)))
   (gl-init)
 
   (when (null lparallel:*kernel*)
@@ -754,7 +763,7 @@
              (glfw:poll-events)))))
 
     (cond
-      (*display-in-main-thread*
+      ((slot-value viewer 'use-main-thread)
        (tmt:with-body-in-main-thread (:blocking nil)
          (window-main)))
       (t (window-main)))))
