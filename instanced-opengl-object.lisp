@@ -57,7 +57,7 @@
                           '(("in_color" . :vec4))))
 
   (set-buffer object
-              :obj-transform (constant-attribute-buffer (list
+              :obj-transform (constant-instance-buffer (list
                                                          (mtranslation (vec3 -1.0 0.0 0.0))
                                                          (meye 4)
                                                          (mtranslation (vec3 1.0 0.0 0.0)))
