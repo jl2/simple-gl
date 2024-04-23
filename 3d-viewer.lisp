@@ -278,7 +278,7 @@
                      (not (zerop len)))
             (setf quat (quaternion-rotate quat
                                           (* len 0.03)
-                                          (vec3 (/ sn:rx len 1.0)
+                                          (vec3 (/ sn:rx len -1.0)
                                                 (/ sn:ry len -1.0)
                                                 (/ sn:rz len 1.0)))))
           (when zoom-enabled
