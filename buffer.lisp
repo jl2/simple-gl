@@ -298,19 +298,18 @@
                                                    stride
                                                    this-offset)))
                   (gl:enable-vertex-attrib-array attrib-idx)
-                  (format t "attrib-idx ~a~%~
-                                            comp-count ~a~%~
-                                            comp-type ~a~%~
-                                            :false ~a~%~
-                                            stride ~a~%~
-                                            (+ offset (* comp-count 4 i)) ~a~%"
-                          attrib-idx
-                          this-comp-count
-                          comp-type
-                          :false
-                          stride
-                          this-offset)
-
+                  ;; (format t "attrib-idx ~a~%~
+                  ;;                           comp-count ~a~%~
+                  ;;                           comp-type ~a~%~
+                  ;;                           :false ~a~%~
+                  ;;                           stride ~a~%~
+                  ;;                           (+ offset (* comp-count 4 i)) ~a~%"
+                  ;;         attrib-idx
+                  ;;         this-comp-count
+                  ;;         comp-type
+                  ;;         :false
+                  ;;         stride
+                  ;;         this-offset)
                   (%gl:vertex-attrib-divisor attrib-idx divisor))))))
   t)
 

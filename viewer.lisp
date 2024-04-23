@@ -683,7 +683,7 @@ best practices on other platforms too.")
                         (initialize viewer)
 
                         #+spacenav(sn:sn-open)
-                        #+spacenav(sn:sensitivity 0.125d0)
+                        #+spacenav(sn:sensitivity 0.0125d0)
 
                         (loop
                           :with start-time = (glfw:get-time)

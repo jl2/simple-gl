@@ -32,8 +32,11 @@
         (use-uniform uniform (program style)))
 
       (when (> instance-count 0)
+        ;; (format t "idx-count: ~a instance-count: ~a~%" (idx-count (assoc-value buffers :indices)) instance-count)
         (gl:draw-elements-instanced primitive-type
+
                                     (gl:make-null-gl-array :unsigned-int)
+
                                     instance-count
                                     :count (idx-count (assoc-value buffers :indices)))))))
 

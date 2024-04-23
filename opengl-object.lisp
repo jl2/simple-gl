@@ -150,7 +150,7 @@
       (cleanup (cdr buffer)))
     (setf buffers nil)
     (initialize-buffers object)
-  t))
+    t))
 
 
 (defmethod rebuild-style ((object opengl-object))
@@ -267,6 +267,7 @@
       (push (cons buffer-name buffer) buffers))
 
     (bind buffer)
+
     (loop :for (nil . style) :in styles :do
       (associate-attributes buffer (program style)))))
 

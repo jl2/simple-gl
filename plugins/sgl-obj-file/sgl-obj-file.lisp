@@ -29,7 +29,7 @@
                :initargs :transforms)))
 
 (defmethod sgl:initialize-buffers ((obj sgl-obj) &key)
-  (with-slots (obj-file filename transforms) obj
+  (with-slots (obj-file filename transforms sgl:instance-count) obj
     (when (null obj-file)
       (setf obj-file (obj:read-obj-from-file filename)))
     (with-slots ((objs obj:objects) obj:materials) obj-file
@@ -77,6 +77,7 @@
 
                                       (add-vdata (idx)
                                         (vector-push-extend (aref obj:v-params (+ 0 (+ 4 idx))) attribute-data)))
+
                                  (loop
                                    :for idx :below (length obj:indices) :by (obj:stride face)
                                    :do
@@ -104,7 +105,7 @@
 
                                         (:vertex
                                          (add-vertex idx)))))))))
-
+;;                (format t "idx-format: ~a~%" idx-format)
                 (sgl:set-buffer obj :vertices (sgl:constant-attribute-buffer
                                                 attribute-data
                                                 (length attribute-data)
@@ -133,9 +134,18 @@
                 ;;(sgl:to-gl-array :float (length attribute-data) attribute-data)
                 (sgl:set-buffer obj :indices (sgl:constant-index-buffer index-count
                                                                         :free nil))
-                (setf (slot-value obj 'sgl:instance-count) 1)
+                (setf sgl:instance-count 1)
                 (sgl:set-buffer obj :obj-transform (sgl:constant-instance-buffer transforms
                                                                                  (* 16 (length transforms))
                                                                                  '(("obj_transform" . :mat4))
                                                                                  :free nil
                                                                                  ))))))))
+
+(defmethod sgl:initialize-uniforms ((object sgl-obj) &key)
+  (with-slots (obj-file filename transforms) object
+    (when (null obj-file)
+      (setf obj-file (obj:read-obj-from-file filename)))
+    (with-slots ((objs obj:objects) obj:materials) obj-file
+      (sgl:set-uniform object "view_transform" (meye 4) :mat4)
+      ;; TODO: Iterate over obj-file and set material.
+      t)))
