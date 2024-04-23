@@ -23,7 +23,7 @@
    (usage
     :initform :static-draw
     :initarg :usage
-    :type (or :static-draw :dynamic-draw)
+    :type (or :static-draw :dynamic-draw :stream)
     :accessor usage
     :documentation "The intended usage of the buffer.  Usually :static-draw or :dynamic-draw")
    (stride
@@ -130,17 +130,20 @@
 
 (defmethod bind ((buffer buffer))
   (with-slots (bo target usage free pointer) buffer
-    (cond ((= bo 0)
-           (when (null pointer)
-             (error "Cannot fill buffer from nil."))
-           (setf bo (car (gl:gen-buffers 1)))
-           (gl:bind-buffer target bo)
-           (gl:buffer-data target usage pointer)
-           (when (and free pointer)
-             (gl:free-gl-array pointer)
-             (setf pointer nil)))
-          (t
-           (gl:bind-buffer target bo)))))
+    (cond
+      ((null pointer)
+       (error "Cannot fill buffer from nil."))
+      ((= bo 0)
+       (setf bo (car (gl:gen-buffers 1)))
+       (gl:bind-buffer target bo)
+       ;;(format t "Calling buffer-data target ~a ~a~%" target usage)
+       ;; (show-gl-array pointer)
+       (gl:buffer-data target usage pointer)
+       (when (and free pointer)
+         (gl:free-gl-array pointer)
+         (setf pointer nil)))
+      (t
+       (gl:bind-buffer target bo)))))
 
 (defmethod show-info ((object buffer) &key (indent 0))
   (let ((this-ws (indent-whitespace indent))
@@ -226,18 +229,18 @@
                                                      comp-type
                                                      stride
                                                      this-offset))
-                        ;; ((eq comp-type :double)
-                        ;;   (gl:vertex-attrib-lpointer attrib-idx
-                        ;;                              this-comp-count
-                        ;;                              comp-type
-                        ;;                              :false
-                        ;;                              stride
-                        ;;                              this-offset))
+                        ((eq comp-type :double)
+                         (%gl:vertex-attrib-lpointer attrib-idx
+                                                     this-comp-count
+                                                     comp-type
+                                                     nil
+                                                     stride
+                                                     this-offset))
                         (t
                          (gl:vertex-attrib-pointer attrib-idx
                                                    this-comp-count
                                                    comp-type
-                                                   :false
+                                                   nil
                                                    stride
                                                    this-offset)))
                   (gl:enable-vertex-attrib-array attrib-idx)
@@ -280,33 +283,33 @@
                                                     comp-type
                                                     stride
                                                     this-offset))
-                        ;; ((eq comp-type :double)
-                        ;;   (gl:vertex-attrib-lpointer attrib-idx
-                        ;;                              this-comp-count
-                        ;;                              comp-type
-                        ;;                              :false
-                        ;;                              stride
-                        ;;                              this-offset))
+                        ((eq comp-type :double)
+                          (%gl:vertex-attrib-lpointer attrib-idx
+                                                     this-comp-count
+                                                     comp-type
+                                                     nil
+                                                     stride
+                                                     this-offset))
                         (t
                          (gl:vertex-attrib-pointer attrib-idx
                                                    this-comp-count
                                                    comp-type
-                                                   :false
+                                                   nil
                                                    stride
                                                    this-offset)))
                   (gl:enable-vertex-attrib-array attrib-idx)
-                  ;; (format t "attrib-idx ~a~%~
-                  ;;                           comp-count ~a~%~
-                  ;;                           comp-type ~a~%~
-                  ;;                           :false ~a~%~
-                  ;;                           stride ~a~%~
-                  ;;                           (+ offset (* comp-count 4 i)) ~a~%"
-                  ;;         attrib-idx
-                  ;;         this-comp-count
-                  ;;         comp-type
-                  ;;         :false
-                  ;;         stride
-                  ;;         this-offset)
+                  (format t "attrib-idx ~a~%~
+                                            comp-count ~a~%~
+                                            comp-type ~a~%~
+                                            :false ~a~%~
+                                            stride ~a~%~
+                                            (+ offset (* comp-count 4 i)) ~a~%"
+                          attrib-idx
+                          this-comp-count
+                          comp-type
+                          :false
+                          stride
+                          this-offset)
 
                   (%gl:vertex-attrib-divisor attrib-idx divisor))))))
   t)
@@ -320,7 +323,9 @@
   (with-slots (pointer free target) buffer
     (when (null pointer)
       (error "Cannot refill buffer from nil."))
+    ;; (format t "Calling buffer sub-data ~a...~%" target)
     (gl:buffer-sub-data target pointer)
+    ;; (show-gl-array pointer)
     (when (and free pointer)
       (gl:free-gl-array pointer)
       (setf pointer nil))))
