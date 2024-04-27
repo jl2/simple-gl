@@ -283,8 +283,8 @@
                                                 (/ sn:rz len 1.0)))))
           (when zoom-enabled
             (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.02)
-                                               (* sn:z 0.02)
-                                               (* sn:y -0.02))
+                                               (* sn:y -0.02)
+                                               (* sn:z 0.02))
                                          quat)))))))))
 
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
