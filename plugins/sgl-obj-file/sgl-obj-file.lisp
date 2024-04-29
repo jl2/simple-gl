@@ -61,22 +61,27 @@
                          :do (with-slots (obj:indices
                                           obj:idx-format) face
                                (setf idx-format obj:idx-format)
-                               (flet ((add-vertex (idx)
-                                        (vector-push-extend (aref obj:vertices (+ 0 idx)) attribute-data)
-                                        (vector-push-extend (aref obj:vertices (+ 1 idx)) attribute-data)
-                                        (vector-push-extend (aref obj:vertices (+ 2 idx)) attribute-data))
+                               (labels ((idx-idx (component offset idx stride)
+                                          (+ component
+                                             (* stride
+                                                (aref obj:indices (+ offset
+                                                                     idx)))))
+                                        (add-vertex (idx offset)
+                                          (vector-push-extend (aref obj:vertices (idx-idx 0 offset idx 3)) attribute-data)
+                                          (vector-push-extend (aref obj:vertices (idx-idx 1 offset idx 3)) attribute-data)
+                                          (vector-push-extend (aref obj:vertices (idx-idx 2 offset idx 3)) attribute-data))
 
-                                      (add-normal (idx offset)
-                                        (vector-push-extend (aref obj:normals (+ 0 (+ offset idx))) attribute-data)
-                                        (vector-push-extend (aref obj:normals (+ 1 (+ offset idx))) attribute-data)
-                                        (vector-push-extend (aref obj:normals (+ 2 (+ offset idx))) attribute-data))
+                                        (add-normal (idx offset)
+                                          (vector-push-extend (aref obj:normals (idx-idx 0 offset idx 3)) attribute-data)
+                                          (vector-push-extend (aref obj:normals (idx-idx 1 offset idx 3)) attribute-data)
+                                          (vector-push-extend (aref obj:normals (idx-idx 2 offset idx 3)) attribute-data))
 
-                                      (add-tex (idx)
-                                        (vector-push-extend (aref obj:tex-coords (+ 0 (+ 1 idx))) attribute-data)
-                                        (vector-push-extend (aref obj:tex-coords (+ 1 (+ 1 idx))) attribute-data))
+                                        (add-tex (idx offset)
+                                          (vector-push-extend (aref obj:tex-coords (idx-idx 0 offset idx 2)) attribute-data)
+                                          (vector-push-extend (aref obj:tex-coords (idx-idx 1 offset idx 2)) attribute-data))
 
-                                      (add-vdata (idx)
-                                        (vector-push-extend (aref obj:v-params (+ 0 (+ 4 idx))) attribute-data)))
+                                        (add-vdata (idx offset)
+                                          (vector-push-extend (aref obj:v-params (idx-idx 0 offset idx 1)) attribute-data)))
 
                                  (loop
                                    :for idx :below (length obj:indices) :by (obj:stride face)
@@ -85,26 +90,26 @@
                                       (case obj:idx-format
                                         (:vertex-texture-normal-vdata
 
-                                         (add-vertex idx)
-                                         (add-tex idx)
+                                         (add-vertex idx 0)
+                                         (add-tex idx 1)
                                          (add-normal idx 2)
-                                         (add-vdata idx))
+                                         (add-vdata idx 3))
 
                                         (:vertex-texture-normal
-                                         (add-vertex idx)
-                                         (add-tex idx)
+                                         (add-vertex idx 0)
+                                         (add-tex idx 1)
                                          (add-normal idx 2))
 
                                         (:vertex-texture
-                                         (add-vertex idx)
-                                         (add-tex idx))
+                                         (add-vertex idx 0)
+                                         (add-tex idx 1))
 
                                         (:vertex-normal
-                                         (add-vertex idx)
+                                         (add-vertex idx 0)
                                          (add-normal idx 1))
 
                                         (:vertex
-                                         (add-vertex idx)))))))))
+                                         (add-vertex idx 0)))))))))
 ;;                (format t "idx-format: ~a~%" idx-format)
                 (sgl:set-buffer obj :vertices (sgl:constant-attribute-buffer
                                                 attribute-data
