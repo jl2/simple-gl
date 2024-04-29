@@ -282,7 +282,7 @@
                                                 (/ sn:ry len -1.0)
                                                 (/ sn:rz len 1.0)))))
           (when zoom-enabled
-            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x 0.02)
+            (setf pos (v+ pos (vec3-qrot (vec3 (* sn:x -0.02)
                                                (* sn:y -0.02)
                                                (* sn:z 0.02))
                                          quat)))))))))
