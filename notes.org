@@ -1,0 +1,11 @@
+#+begin_src lisp
+  (ql:quickload '(:spacenav :simple-gl :sgl-blend2d-texture :obj-reader :sgl-obj-file))
+  (defparameter *viewer* (make-instance 'sgl:3d-viewer))
+  (sgl:add-object *viewer*
+                  :cube (make-instance 'sgl-obj-file::sgl-obj
+                                       :filename "/home/jeremiah/data/3d-models/cube.obj"))
+  (sgl:display *viewer*)
+#+end_src
+
+#+RESULTS:
+: #<SIMPLE-TASKS:CALL-TASK :FUNC #<FUNCTION (LAMBDA () :IN SIMPLE-GL:DISPLAY) {1037A19DFB}> :STATUS :SCHEDULED {1037B91973}>
