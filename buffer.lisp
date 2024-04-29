@@ -444,7 +444,7 @@
     :for next-off = (fill-pointer-offset obj ptr off)
     :finally (return next-off)))
 
-(defun show-gl-array (array &optional count)
+(defun show-gl-array (array &optional count stride)
   "Print the contents of array to standard out."
   (loop
     :for i :below (if count
@@ -452,15 +452,17 @@
                            (gl::gl-array-size array))
                       (gl::gl-array-size array))
     :do
+       (when (and stride (zerop (mod i stride)))
+         (terpri))
        (format t "~a " (gl:glaref array i)))
   (terpri))
 
 (defun from-gl-array (array &optional count)
   "Return a Lisp array with the contents of array to standard out."
   (let* ((real-count (if count
-                      (min count
-                           (gl::gl-array-size array))
-                      (gl::gl-array-size array)))
+                         (min count
+                              (gl::gl-array-size array))
+                         (gl::gl-array-size array)))
          (rval (make-array real-count)))
     (loop
       :for i :below real-count
