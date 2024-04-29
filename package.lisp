@@ -123,7 +123,7 @@
            #:fill-buffer
            #:show-gl-array
            #:from-gl-array
-           #:rebuild-style
+           #:rebuild-shaders
            #:refill-textures
            #:reload-buffers
 
