@@ -182,7 +182,12 @@ best practices on other platforms too.")
    (error-stream
     :initform t
     :initarg :error-stream
-    :documentation "Stream where GLFW will write error logs."))
+    :documentation "Stream where GLFW will write error logs.")
+
+   (synchronous-output
+    :initform nil
+    :initarg :synchronous-output
+    :documentation "Whether or not to force OpenGL output to be synchronous."))
 
    (:documentation "A collection of objects and a viewport."))
 
@@ -652,7 +657,8 @@ best practices on other platforms too.")
 
            (add-viewer window viewer)
 
-           (gl:enable :debug-output-synchronous)
+           (when (slot-value viewer 'synchronous-output)
+             (gl:enable :debug-output-synchronous))
 
            (unwind-protect
                 (handler-case
