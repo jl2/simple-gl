@@ -661,8 +661,7 @@ best practices on other platforms too.")
              (gl:enable :debug-output-synchronous))
 
            (unwind-protect
-                (handler-case
-                    (progn
+                (progn
 
                       ;; GLFW Initialization
                       (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
@@ -754,14 +753,10 @@ best practices on other platforms too.")
                                ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
                                (when (> rem-time 0)
                                  (sleep rem-time))))))
-
-                  (t (err)
-                    (format t "Caught:  ~a~%" err)
-                    (inspect err)))
-             (progn
-               ;; Cleanup before exit
-               (cleanup viewer)
-               (rm-viewer window))
+                (progn
+                  ;; Cleanup before exit
+                  (cleanup viewer)
+                  (rm-viewer window))
 
              #+spacenav (sn:sn-close)
 
