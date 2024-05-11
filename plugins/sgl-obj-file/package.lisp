@@ -21,4 +21,7 @@
         #:alexandria
         #:3d-vectors
         #:3d-matrices)
-  (:export #:main))
+  (:export #:main
+           #:ensure-loaded
+           #:sgl-obj
+           ))
