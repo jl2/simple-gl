@@ -17,7 +17,7 @@ void main()
      mat3 norm_view_transform = mat3(transpose(inverse(obj_transform)));
 
      vec4 pos4 = final_transform * vec4(in_position, 1.0);
-     obj_position = in_position;
+     obj_position = vec3(pos4);
      position = vec3(pos4);
      cam_position = vec3(0,0,-10);
      normal = normalize(norm_view_transform * in_normal);

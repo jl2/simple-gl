@@ -64,60 +64,121 @@
                  :do
                     (with-slots (obj:faces obj:group-name obj:lines obj:material obj:points obj:smoothing-group) group
                       (format t "Filling buffer for ~a~%" obj:group-name)
+                      (setf idx-format (slot-value (aref obj:faces 0) 'obj:idx-format))
                       (loop
                         :for face :across obj:faces
-                        :do (with-slots (obj:indices
-                                         obj:idx-format) face
-                              (setf idx-format obj:idx-format)
-                              (labels ((idx-idx (component offset idx stride)
-                                         (+ component
-                                            (* stride
-                                               (aref obj:indices (+ offset
-                                                                    idx)))))
-                                       (add-vertex (idx offset)
-                                         (vector-push-extend (aref obj:vertices (idx-idx 0 offset idx 3)) attribute-data)
-                                         (vector-push-extend (aref obj:vertices (idx-idx 1 offset idx 3)) attribute-data)
-                                         (vector-push-extend (aref obj:vertices (idx-idx 2 offset idx 3)) attribute-data))
+                        :do
+                           (with-slots (obj:indices obj:idx-format) face
+                             ;; (cond ((= 3 (length obj:indices))
+                             ;;        (add-triangle obj:indices)
+                             ;;        (case obj:idx-format)
+                             ;;        (add-vertex (aref obj:indices 0))
+                             ;;        (add-normal (aref obj:indices 1))
+                             ;;        (add-texture (aref obj:indices 2))
+                             ;;        )
+                             ;;       ((= 4 (length obj:indices))
+                             ;;        )
+                             ;;       (t
+                             ;;        (error "Only triangles and quads are supported right now.")))
 
-                                       (add-normal (idx offset)
-                                         (vector-push-extend (aref obj:normals (idx-idx 0 offset idx 3)) attribute-data)
-                                         (vector-push-extend (aref obj:normals (idx-idx 1 offset idx 3)) attribute-data)
-                                         (vector-push-extend (aref obj:normals (idx-idx 2 offset idx 3)) attribute-data))
+                             (case obj:idx-format
+                               (:vertex-texture-normal-vdata
 
-                                       (add-tex (idx offset)
-                                         (vector-push-extend (aref obj:tex-coords (idx-idx 0 offset idx 2)) attribute-data)
-                                         (vector-push-extend (aref obj:tex-coords (idx-idx 1 offset idx 2)) attribute-data))
-
-                                       (add-vdata (idx offset)
-                                         (vector-push-extend (aref obj:v-params (idx-idx 0 offset idx 1)) attribute-data)))
 
                                 (loop
-                                  :for idx :below (length obj:indices) :by (obj:stride face)
+                               :for idx :across obj:indices
+                                 :do
+                                 (loop
+                                   :for current-index :across idx
+                                   :for container :in (list obj:vertices
+                                                            obj:tex-coords
+                                                            obj:normals
+                                                            obj:v-params)
+                                   :for component-count :in '(3 2 3 1)
+
+                                   :do
+                                      (incf index-count)
+                                      (loop :for i :below component-count
+
+                                            :do
+
+                                               (vector-push-extend (aref container (+ i (* component-count current-index)))
+                                                                   attribute-data)))))
+                               (:vertex-texture-normal
+                                (loop
+                                  :for idx :across obj:indices
                                   :do
-                                     (incf index-count)
-                                     (case obj:idx-format
-                                       (:vertex-texture-normal-vdata
+                                     (loop
+                                       :for current-index :across idx
+                                       :for container :in (list obj:vertices
+                                                                obj:tex-coords
+                                                                obj:normals)
+                                       :for component-count :in '(3 2 3)
 
-                                        (add-vertex idx 0)
-                                        (add-tex idx 1)
-                                        (add-normal idx 2)
-                                        (add-vdata idx 3))
+                                       :do
+                                          (incf index-count)
+                                          (loop :for i :below component-count
 
-                                       (:vertex-texture-normal
-                                        (add-vertex idx 0)
-                                        (add-tex idx 1)
-                                        (add-normal idx 2))
+                                                :do
 
-                                       (:vertex-texture
-                                        (add-vertex idx 0)
-                                        (add-tex idx 1))
+                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
+                                                                       attribute-data))))
+                                )
+                               (:vertex-normal
+                                (loop
+                                  :for idx :across obj:indices
+                                  :do
+                                     (loop
+                                       :for current-index :across idx
+                                       :for container :in (list obj:vertices
+                                                                obj:normals)
+                                       :for component-count :in '(3 3)
 
-                                       (:vertex-normal
-                                        (add-vertex idx 0)
-                                        (add-normal idx 1))
+                                       :do
+                                          (incf index-count)
+                                          (loop :for i :below component-count
 
-                                       (:vertex
-                                        (add-vertex idx 0)))))))))
+                                                :do
+
+                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
+                                                                       attribute-data))))
+                                )
+                               (:vertex-texture
+                                (loop
+                                  :for idx :across obj:indices
+                                  :do
+                                     (loop
+                                       :for current-index :across idx
+                                       :for container :in (list obj:vertices
+                                                                obj:tex-coords)
+                                       :for component-count :in '(3 3)
+
+                                       :do
+                                          (incf index-count)
+                                          (loop :for i :below component-count
+
+                                                :do
+
+                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
+                                                                       attribute-data))))
+                                )
+                               (:vertex
+                                (loop
+                                  :for idx :across obj:indices
+                                  :do
+                                     (loop
+                                       :for current-index :across idx
+                                       :for container :in (list obj:vertices)
+                                       :for component-count :in '(3)
+
+                                       :do
+                                          (incf index-count)
+                                          (loop :for i :below component-count
+
+                                                :do
+
+                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
+                                                                       attribute-data))))))))))
                ;;                (format t "idx-format: ~a~%" idx-format)
                (sgl:set-buffer
                 obj
@@ -184,8 +245,12 @@
                                (list
                                 ;; (format t "List~a~%" (length value))
                                 (cond
+
+                                  ;; vec4
                                   ((= 4 (length value))
                                    (sgl:set-uniform object uniform-name (apply #'vec4 value) :vec4))
+
+                                  ;; Vec3, but promote Kd to rgba/vec4
                                   ((= 3 (length value))
                                    (if (string= uniform-name "Kd")
                                        (sgl:set-uniform object uniform-name (vec4 (car value)
@@ -193,8 +258,12 @@
                                                                                   (caddr value)
                                                                                   1.0) :vec4)
                                        (sgl:set-uniform object uniform-name (apply #'vec3 value) :vec3)))
+
+                                  ;; vec2
                                   ((= 2 (length value))
                                    (sgl:set-uniform object uniform-name (apply #'vec2 value) :vec2))
+
+                                  ;; real
                                   ((= 1 (length value))
                                    (sgl:set-uniform object uniform-name (car value) :float))))
                              (t (sgl:set-uniform object uniform-name value :float)))

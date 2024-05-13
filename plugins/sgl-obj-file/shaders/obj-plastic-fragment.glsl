@@ -10,9 +10,9 @@ in vec3 cam_position;
 
 layout (location = 0) out vec4 out_color;
 
-uniform vec4 light_pos = vec4(-10.0, 10.0, -20.0, 1.0);
+uniform vec4 light_pos = vec4(-3.0, 3.0, -20.0, 1.0);
 uniform vec3 light_color = vec3(1.0, 1.0, 1.0);
-uniform float light_power = 190.0;
+uniform float light_power = 90.0;
 
 uniform vec4 Kd = vec4(0.8, 0.7, 0.2, 1.0);
 uniform vec3 Ka = vec3(0.03, 0.03, 0.03);
