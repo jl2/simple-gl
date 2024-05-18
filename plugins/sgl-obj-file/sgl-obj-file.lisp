@@ -69,51 +69,20 @@
                         :for face :across obj:faces
                         :do
                            (with-slots (obj:indices obj:idx-format) face
-                             ;; (cond ((= 3 (length obj:indices))
-                             ;;        (add-triangle obj:indices)
-                             ;;        (case obj:idx-format)
-                             ;;        (add-vertex (aref obj:indices 0))
-                             ;;        (add-normal (aref obj:indices 1))
-                             ;;        (add-texture (aref obj:indices 2))
-                             ;;        )
-                             ;;       ((= 4 (length obj:indices))
-                             ;;        )
-                             ;;       (t
-                             ;;        (error "Only triangles and quads are supported right now.")))
-
-                             (case obj:idx-format
-                               (:vertex-texture-normal-vdata
-
-
-                                (loop
-                               :for idx :across obj:indices
-                                 :do
-                                 (loop
-                                   :for current-index :across idx
-                                   :for container :in (list obj:vertices
-                                                            obj:tex-coords
-                                                            obj:normals
-                                                            obj:v-params)
-                                   :for component-count :in '(3 2 3 1)
-
-                                   :do
-                                      (incf index-count)
-                                      (loop :for i :below component-count
-
-                                            :do
-
-                                               (vector-push-extend (aref container (+ i (* component-count current-index)))
-                                                                   attribute-data)))))
-                               (:vertex-texture-normal
-                                (loop
+                             (let ((options `((:vertex-texture-normal-vdata . ((,obj:vertices ,obj:tex-coords ,obj:normals ,obj:v-params) . (3 2 3 1)))
+                                              (:vertex-texture-normal . ((,obj:vertices ,obj:tex-coords ,obj:normals) . (3 2 3)))
+                                              (:vertex-texture-vdata . ((,obj:vertices ,obj:v-params ) . (3 1)))
+                                              (:vertex-normal-vdata . ((,obj:vertices ,obj:normals ,obj:v-params) . (3  3 1)))
+                                              (:vertex-texture . ((,obj:vertices ,obj:tex-coords) . (3 2)))
+                                              (:vertex-normal . ((,obj:vertices ,obj:normals ) . (3 3)))
+                                              (:vertex-vdata . ((,obj:vertices ,obj:v-params) . (3 1))))))
+                               (loop
                                   :for idx :across obj:indices
                                   :do
                                      (loop
                                        :for current-index :across idx
-                                       :for container :in (list obj:vertices
-                                                                obj:tex-coords
-                                                                obj:normals)
-                                       :for component-count :in '(3 2 3)
+                                       :for container :in (car (assoc-value options obj:idx-format))
+                                       :for component-count :in (cdr (assoc-value options obj:idx-format))
 
                                        :do
                                           (incf index-count)
@@ -123,62 +92,7 @@
 
                                                    (vector-push-extend (aref container (+ i (* component-count current-index)))
                                                                        attribute-data))))
-                                )
-                               (:vertex-normal
-                                (loop
-                                  :for idx :across obj:indices
-                                  :do
-                                     (loop
-                                       :for current-index :across idx
-                                       :for container :in (list obj:vertices
-                                                                obj:normals)
-                                       :for component-count :in '(3 3)
-
-                                       :do
-                                          (incf index-count)
-                                          (loop :for i :below component-count
-
-                                                :do
-
-                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
-                                                                       attribute-data))))
-                                )
-                               (:vertex-texture
-                                (loop
-                                  :for idx :across obj:indices
-                                  :do
-                                     (loop
-                                       :for current-index :across idx
-                                       :for container :in (list obj:vertices
-                                                                obj:tex-coords)
-                                       :for component-count :in '(3 3)
-
-                                       :do
-                                          (incf index-count)
-                                          (loop :for i :below component-count
-
-                                                :do
-
-                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
-                                                                       attribute-data))))
-                                )
-                               (:vertex
-                                (loop
-                                  :for idx :across obj:indices
-                                  :do
-                                     (loop
-                                       :for current-index :across idx
-                                       :for container :in (list obj:vertices)
-                                       :for component-count :in '(3)
-
-                                       :do
-                                          (incf index-count)
-                                          (loop :for i :below component-count
-
-                                                :do
-
-                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
-                                                                       attribute-data))))))))))
+                               )))))
                ;;                (format t "idx-format: ~a~%" idx-format)
                (sgl:set-buffer
                 obj
