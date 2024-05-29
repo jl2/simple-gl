@@ -26,4 +26,4 @@ An 'sgl- prefix will be added automatically."
            "~a/sgl-~a/"
            (asdf:system-relative-pathname :simple-gl "plugins")
            (string-downcase (format nil "~a" project-name)))
-   :depends-on (concatenate 'list '(:simple-gl  :alexandria) deps)))
+   :depends-on (concatenate 'list '(:simple-gl  :alexandria #:3d-vectors #:3d-matrices) deps)))
