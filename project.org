@@ -9,6 +9,15 @@ This is a minimalist, modern OpenGL library using GLFW.  It provides a framework
 with shaders, buffers, textures, and user input.  The goal is to be a "playground" for OpenGL
 development and make it easy to prototype OpenGL code.
 
+* TODO Items
+** TODO Add methods for working with instanced-opengl-object - adding, removing, repositioning, etc..
+** TODO Create an API for executing code (functions, I guess) in the OpenGL thread
+** TODO Better document API and library usage
+** TODO Refactor glfw out of viewer base class and into glfw-viewer
+** TODO offscreen-viewer class that renders to images or a video file.
+** TODO Make rebuilding styles safer.  Right now, rebuilding with a syntax error causes a crash.
+** TODO Fractal landscapes with tessellation shaders
+
 *** Example REPL code
 This is an example of how it's used from a REPL:
 
@@ -16,7 +25,7 @@ This is an example of how it's used from a REPL:
   (ql:quickload '(:spacenav :simple-gl :sgl-automata :sgl-blend2d-texture))
   (defparameter *viewer* (make-instance 'sgl:3d-viewer))
   (sgl:add-object *viewer*
-                  :cube (make-instance
+                  :torus (make-instance
                          'sgl:stl-file
                          :file-name "/home/jeremiah/data/3d-models/torus.stl"))
   (sgl:add-object *viewer*
@@ -101,12 +110,6 @@ register the same handler for all keys.
 
 
 
-
-* TODO Items
-** TODO Better document API and library usage
-** TODO Refactor glfw out of viewer base class and into glfw-viewer
-** TODO offscreen-viewer classes
-** TODO Make rebuilding styles safer.  Right now, rebuilding with a syntax error causes a crash.
 
 
 ** License
