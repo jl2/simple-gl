@@ -106,12 +106,15 @@
                  :usage usage
                  :free free))
 
-(defun constant-index-buffer (count &key (free t))
+(defun constant-index-buffer (count &key
+                                      (data (loop :for i :below count
+                                                  :collecting i))
+                                      (free t))
   (make-instance 'index-buffer
                  :idx-count count
                  :pointer (to-gl-array :unsigned-int
                                        count
-                                       (loop :for i :below count :collecting i))
+                                       data)
                  :free free))
 
 (defun constant-instance-buffer (data float-count attributes &key
