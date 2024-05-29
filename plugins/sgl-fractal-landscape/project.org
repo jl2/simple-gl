@@ -1,0 +1,14 @@
+* sgl-fractal-landscape
+
+** About
+3D fractal landscapes using tessellation shaders.
+
+** TODOS
+
+** TODO Implement fractal landscape shaders.
+** TODO Fix wierd view xforms with these objects
+
+** License
+ISC
+
+Copyright (c) 2024 Jeremiah LaRocco <jeremiah_larocco@fastmail.com>
