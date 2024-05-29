@@ -189,7 +189,7 @@ best practices on other platforms too.")
     :initarg :synchronous-output
     :documentation "Whether or not to force OpenGL output to be synchronous."))
 
-   (:documentation "A collection of objects and a viewport."))
+  (:documentation "A collection of objects and a viewport."))
 
 
 (defgeneric add-object (viewer name object)
@@ -391,7 +391,7 @@ best practices on other platforms too.")
            (%gl:debug-message-control :dont-care
                                       :dont-care
                                       :dont-care 0 (cffi:null-pointer) (if use-shader-callback :true :false))))
-         t)
+       t)
 
       ((and (eq key :f1) (eq action :press))
        (with-viewer-lock (viewer)
@@ -579,7 +579,7 @@ best practices on other platforms too.")
                  (initialize obj)
                  (setf last-update-time elapsed-seconds)
 
-            ;; reload buffers that need it
+                 ;; reload buffers that need it
             :when (consp obj)
               :do
                  (setf last-update-time elapsed-seconds)
@@ -663,100 +663,100 @@ best practices on other platforms too.")
            (unwind-protect
                 (progn
 
-                      ;; GLFW Initialization
-                      (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
+                  ;; GLFW Initialization
+                  (setf %gl:*gl-get-proc-address* #'glfw:get-proc-address)
 
-                      (glfw:set-key-callback 'keyboard-handler window)
-                      (glfw:set-mouse-button-callback 'mouse-handler window)
-                      (glfw:set-scroll-callback 'scroll-handler window)
-                      (glfw:set-framebuffer-size-callback 'resize-handler window)
+                  (glfw:set-key-callback 'keyboard-handler window)
+                  (glfw:set-mouse-button-callback 'mouse-handler window)
+                  (glfw:set-scroll-callback 'scroll-handler window)
+                  (glfw:set-framebuffer-size-callback 'resize-handler window)
 
-                      ;; Initialize OpenGL state
-                      (gl:enable :line-smooth
-                                 :depth-test
-                                 :program-point-size)
+                  ;; Initialize OpenGL state
+                  (gl:enable :line-smooth
+                             :depth-test
+                             :program-point-size)
 
-                      (gl:depth-func :lequal)
+                  (gl:depth-func :lequal)
 
-                      ;; The event loop
-                      (with-slots (previous-seconds show-fps desired-fps
-                                   blend
-                                   cull-face front-face background-color)
-                          viewer
+                  ;; The event loop
+                  (with-slots (previous-seconds show-fps desired-fps
+                               blend
+                               cull-face front-face background-color)
+                      viewer
 
-                        ;; Load objects for the first time
-                        (initialize viewer)
+                    ;; Load objects for the first time
+                    (initialize viewer)
 
-                        #+spacenav(sn:sn-open)
-                        #+spacenav(sn:sensitivity 0.0125d0)
+                    #+spacenav(sn:sn-open)
+                    #+spacenav(sn:sensitivity 0.0125d0)
 
-                        (loop
-                          :with start-time = (glfw:get-time)
-                          :for frame-count from 0
-                          :until (glfw:window-should-close-p window)
+                    (loop
+                      :with start-time = (glfw:get-time)
+                      :for frame-count from 0
+                      :until (glfw:window-should-close-p window)
 
-                          :for current-seconds = (glfw:get-time)
-                          :for elapsed-seconds = (- current-seconds previous-seconds)
-                          :for elapsed-time = (- current-seconds start-time)
+                      :for current-seconds = (glfw:get-time)
+                      :for elapsed-seconds = (- current-seconds previous-seconds)
+                      :for elapsed-time = (- current-seconds start-time)
 
-                          :when (and show-fps (> elapsed-seconds 0.25))
-                            :do
-                               (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
-                               (setf previous-seconds current-seconds)
-                               (setf frame-count 0)
-
-
-                          :do ;; This do is important...
-                              (glfw:swap-buffers window)
-
-                          #+spacenav
-                           (when-let (ev (sn:poll-event))
-                             (handle-3d-mouse-event viewer ev)
-                             (sn:remove-events :motion))
-
-                          :do
-                             (with-viewer-lock (viewer)
-
-                               (clean-discarded viewer)
-
-                               ;; Update for next frame
-                               (update viewer elapsed-time)
-
-                               ;; Apply viewer-wide drawing settings
-                               (gl:clear-color (vx background-color)
-                                               (vy background-color)
-                                               (vz background-color)
-                                               (vw background-color))
+                      :when (and show-fps (> elapsed-seconds 0.25))
+                        :do
+                           (format t "~,3f fps~%" (/ frame-count elapsed-seconds))
+                           (setf previous-seconds current-seconds)
+                           (setf frame-count 0)
 
 
-                               (if cull-face
-                                   (gl:enable :cull-face)
-                                   (gl:disable :cull-face))
+                      :do ;; This do is important...
+                          (glfw:swap-buffers window)
 
-                               (cond (blend
-                                      (gl:enable :blend)
-                                      (gl:blend-func :src-alpha
-                                                     :one-minus-src-alpha))
-                                     (t (gl:disable :blend)))
-                               (gl:front-face front-face)
+                      #+spacenav
+                       (when-let (ev (sn:poll-event))
+                         (handle-3d-mouse-event viewer ev)
+                         (sn:remove-events :motion))
 
-                               (gl:clear :color-buffer
-                                         :depth-buffer)
-                               (render viewer))
+                      :do
+                         (with-viewer-lock (viewer)
 
-                          :do
-                             (glfw:poll-events)
-                          :do
-                             (let* ((now (glfw:get-time))
-                                    (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
-                                                 now)))
-                               ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
-                               (when (> rem-time 0)
-                                 (sleep rem-time))))))
-                (progn
-                  ;; Cleanup before exit
-                  (cleanup viewer)
-                  (rm-viewer window))
+                           (clean-discarded viewer)
+
+                           ;; Update for next frame
+                           (update viewer elapsed-time)
+
+                           ;; Apply viewer-wide drawing settings
+                           (gl:clear-color (vx background-color)
+                                           (vy background-color)
+                                           (vz background-color)
+                                           (vw background-color))
+
+
+                           (if cull-face
+                               (gl:enable :cull-face)
+                               (gl:disable :cull-face))
+
+                           (cond (blend
+                                  (gl:enable :blend)
+                                  (gl:blend-func :src-alpha
+                                                 :one-minus-src-alpha))
+                                 (t (gl:disable :blend)))
+                           (gl:front-face front-face)
+
+                           (gl:clear :color-buffer
+                                     :depth-buffer)
+                           (render viewer))
+
+                      :do
+                         (glfw:poll-events)
+                      :do
+                         (let* ((now (glfw:get-time))
+                                (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
+                                             now)))
+                           ;; (format t "Start: ~a now ~a sleep ~a~%" current-seconds Now rem-time)
+                           (when (> rem-time 0)
+                             (sleep rem-time))))))
+             (progn
+               ;; Cleanup before exit
+               (cleanup viewer)
+               (rm-viewer window))
 
              #+spacenav (sn:sn-close)
 
@@ -819,7 +819,7 @@ best practices on other platforms too.")
         (set-uniform object "camera_position" camera-position :vec3)
         (set-uniform object "view_transform" (view-matrix viewer) :mat4))
 
-        (setf view-changed t))))
+      (setf view-changed t))))
 
 (defmethod rm-object (viewer name)
   (with-viewer-lock (viewer)
