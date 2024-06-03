@@ -1,10 +1,13 @@
 #version 460 core
+
 layout( quads, equal_spacing, ccw ) in;
 
 uniform mat4 view_transform;
 
-out vec3 normal;
-out vec3 obj_position;
+in mat3 tcNormal_view_transform[];
+
+out vec3 teNormal;
+out vec3 tePosition;
 
 void main() {
      vec4 p00 = gl_in[ 0].gl_Position;
@@ -48,7 +51,7 @@ void main() {
            + bu1 * ( bv0*p10 + bv1*p11 + bv2*p12 + bv3*p13 )
            + bu2 * ( bv0*p20 + bv1*p21 + bv2*p22 + bv3*p23 )
            + bu3 * ( bv0*p30 + bv1*p31 + bv2*p32 + bv3*p33 ));
-     obj_position = gl_Position.xyz;
+     tePosition = gl_Position.xyz;
 
      vec4 dpdu = dbu0 * ( bv0*p00 + bv1*p01 + bv2*p02 + bv3*p03 )
           + dbu1 * ( bv0*p10 + bv1*p11 + bv2*p12 + bv3*p13 )
@@ -58,5 +61,5 @@ void main() {
           + bu1 * ( dbv0*p10 + dbv1*p11 + dbv2*p12 + dbv3*p13 )
           + bu2 * ( dbv0*p20 + dbv1*p21 + dbv2*p22 + dbv3*p23 )
           + bu3 * ( dbv0*p30 + dbv1*p31 + dbv2*p32 + dbv3*p33 );
-     normal = normalize( cross( dpdu.xyz, dpdv.xyz ) );
+     teNormal = tcNormal_view_transform[gl_PrimitiveID] * normalize( cross( dpdu.xyz, dpdv.xyz ) );
 }

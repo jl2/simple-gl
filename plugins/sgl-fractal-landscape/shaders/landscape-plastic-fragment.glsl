@@ -1,13 +1,11 @@
-#version 430 core
+#version 460 core
+
+layout (location = 0) out vec4 out_color;
 
 uniform mat4 view_transform;
 
-in vec3 normal;
-in vec3 obj_position;
-//in vec3 position;
-
-
-layout (location = 0) out vec4 out_color;
+in vec3 gNormal;
+in vec3 gPosition;
 
 uniform vec3 cam_position = vec3(0.0,0.0,-10.0);
 uniform vec4 light_pos = vec4(-3.0, 3.0, -20.0, 1.0);
@@ -28,40 +26,40 @@ const float screen_gamma = 1.3;
 
 void main() {
 
-     if (obj_position.z > 0.8) {
+     if (gPosition.z > 0.8) {
           out_color = mix(vec4(0,1,0,1),
                           vec4(1,1,1,1),
-                          obj_position.z);
+                          gPosition.z);
      }
-     else if (obj_position.z > 0.2) {
+     else if (gPosition.z > 0.2) {
           out_color = mix(vec4(0.8,0.8,0,1),
                           vec4(0,1,0,1),
-                          obj_position.z);
+                          gPosition.z);
      }
-     else if (obj_position.z <= -0.2) {
+     else if (gPosition.z <= -0.2) {
           out_color = vec4(0,0,0.7,1);
      }
-     else if (obj_position.z <= 0.2) {
+     else if (gPosition.z <= 0.2) {
           out_color = mix(vec4(0, 0, 1, 1),
                           vec4(0.8,0.8,0,1),
-                          obj_position.z);
+                          gPosition.z);
      }
 
-     vec3 light_dir = obj_position.xyz - light_pos.xyz;
+     vec3 light_dir = gPosition.xyz - light_pos.xyz;
      float distance = length(light_dir);
      distance = distance * distance;
      light_dir = normalize(light_dir);
 
      float lambertian = dot(light_dir,
-                            normal);
+                            gNormal);
 
      float specular = 0.0;
 
-     vec3 view_dir = -normalize(obj_position.xyz - cam_position);
+     vec3 view_dir = -normalize(gPosition.xyz - cam_position);
 
      // Blinn-Phong
      vec3 half_dir = normalize(light_dir - view_dir);
-     float spec_angle = max(dot( normal, half_dir), 0.0);
+     float spec_angle = max(dot( gNormal, half_dir), 0.0);
      specular = pow(spec_angle, Ns);
 
 
