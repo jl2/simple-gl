@@ -4,8 +4,6 @@ layout( quads, equal_spacing, ccw ) in;
 
 uniform mat4 view_transform;
 
-in mat3 tcNormal_view_transform[];
-
 out vec3 teNormal;
 out vec3 tePosition;
 
@@ -29,22 +27,25 @@ void main() {
      float u = gl_TessCoord.x;
      float v = gl_TessCoord.y;
 
-     float bu0 = (1.-u) * (1.-u) * (1.-u);
-     float bu1 = 3. * u * (1.-u) * (1.-u);
-     float bu2 = 3. * u * u * (1.-u);
+     float bu0 = (1.0 - u) * (1.0 - u) * (1.0 - u);
+     float bu1 =  u * (1.0 - u) * (1.0 - u);
+     float bu2 =  u * u * (1.0 - u);
      float bu3 = u * u * u;
-     float dbu0 = -3. * (1.-u) * (1.-u);
-     float dbu1 = 3. * (1.-u) * (1.-3.*u);
-     float dbu2 = 3. * u * (2.-3.*u);
-     float dbu3 = 3. * u * u;
-     float bv0 = (1.-v) * (1.-v) * (1.-v);
-     float bv1 = 3. * v * (1.-v) * (1.-v);
-     float bv2 = 3. * v * v * (1.-v);
+
+     float dbu0 = -1.0 * (1.0 - u) * (1.0 - u);
+     float dbu1 = (1.0 - u) * (1.0 - u);
+     float dbu2 = u * (1.0 - u);
+     float dbu3 = u * u;
+
+     float bv0 = (1.0 - v) * (1.0 - v) * (1.0 - v);
+     float bv1 = v * (1.0 - v) * (1.0 - v);
+     float bv2 = v * v * (1.0 - v);
      float bv3 = v * v * v;
-     float dbv0 = -3. * (1.-v) * (1.-v);
-     float dbv1 = 3. * (1.-v) * (1.-3.*v);
-     float dbv2 = 3. * v * (2.-3.*v);
-     float dbv3 = 3. * v * v;
+
+     float dbv0 = -1.0 * (1.0 - v) * (1.0 - v);
+     float dbv1 =  (1.0 - v) * (1.0 - v);
+     float dbv2 =  v * (1.0 - v);
+     float dbv3 =  v * v;
 
      gl_Position = view_transform *
           (bu0 * ( bv0*p00 + bv1*p01 + bv2*p02 + bv3*p03 )
@@ -61,5 +62,5 @@ void main() {
           + bu1 * ( dbv0*p10 + dbv1*p11 + dbv2*p12 + dbv3*p13 )
           + bu2 * ( dbv0*p20 + dbv1*p21 + dbv2*p22 + dbv3*p23 )
           + bu3 * ( dbv0*p30 + dbv1*p31 + dbv2*p32 + dbv3*p33 );
-     teNormal = tcNormal_view_transform[gl_PrimitiveID] * normalize( cross( dpdu.xyz, dpdv.xyz ) );
+     teNormal = normalize( cross( dpdv.xyz, dpdu.xyz ) );
 }

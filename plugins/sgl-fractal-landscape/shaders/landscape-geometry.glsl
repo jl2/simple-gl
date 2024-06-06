@@ -1,7 +1,9 @@
 #version 460 core
 
 layout(triangles) in;
-layout(line_strip, max_vertices = 2) out;
+layout(triangle_strip, max_vertices = 3) out;
+
+uniform mat4 view_transform = mat4(1);
 
 in vec3 teNormal[];
 in vec3 tePosition[];
@@ -16,10 +18,6 @@ void main()
           gPosition = gl_Position.xyz;
           gNormal = teNormal[i];
           EmitVertex();
-          gl_Position = gl_in[i].gl_Position + vec4(teNormal[i], 0.0);
-          gPosition = gl_Position.xyz;
-          gNormal = teNormal[i];
-          EmitVertex();
-          EndPrimitive();
      }
+     EndPrimitive();
 }

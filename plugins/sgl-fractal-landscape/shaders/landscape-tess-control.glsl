@@ -3,11 +3,8 @@
 // Input from vertex shader
 layout (vertices = 16) out;
 
-uniform float inner = 16;
+uniform float inner = 32;
 uniform float outer = 32;
-
-in mat3 vNormal_view_transform[];
-out mat3 tcNormal_view_transform[];
 
 // Per-vertex output
 // out float tcFoo;
@@ -18,8 +15,6 @@ out mat3 tcNormal_view_transform[];
 void main()
 {
      bool cull = false;
-
-     tcNormal_view_transform[gl_InvocationID] = vNormal_view_transform[gl_InvocationID];
 
      if (cull) {
           gl_TessLevelOuter[0] = 0.0;

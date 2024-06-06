@@ -2,8 +2,6 @@
 
 layout (location = 0) out vec4 out_color;
 
-uniform mat4 view_transform;
-
 in vec3 gNormal;
 in vec3 gPosition;
 
