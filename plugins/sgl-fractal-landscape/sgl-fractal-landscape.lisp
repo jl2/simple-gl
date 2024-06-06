@@ -22,15 +22,13 @@
 
 (defclass fractal-landscape (sgl:opengl-object)
   ((sgl:primitive-type :initform :patches)
-   (sgl:styles :initform (list
-                          `(:obj-style
+   (sgl:styles :initform `((:obj-style
                             .
                             ,(sgl:make-style-from-files "landscape-vertex.glsl"
                                                         "landscape-plastic-fragment.glsl"
                                                         "landscape-tess-eval.glsl"
                                                         "landscape-tess-control.glsl"
-                                                        "landscape-geometry.glsl"
-                                                        )))
+                                                        "landscape-geometry.glsl")))
                :initarg :styles)))
 
 (defmethod sgl:initialize-buffers ((object fractal-landscape) &key)

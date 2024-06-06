@@ -23,6 +23,13 @@
               :initarg :poly-mode
               :documentation "Polygon mode (:fill or :line) for this style.")))
 
+(defmethod clone ((old style))
+  (with-slots (enabled program shaders poly-mode) old
+    (make-instance 'style
+                   :poly-mode poly-mode
+                   :enabled enabled
+                   :shaders (mapcar #'clone shaders))))
+
 (defmethod update ((style style) elapsed-seconds)
   (declare (ignorable style elapsed-seconds))
   nil)

@@ -55,7 +55,11 @@
                 :documentation "The filename of the OpenGL shader file."))
   (:documentation "An OpenGL shader whose source code is stored in a file."))
 
-
+1(defmethod clone ((obj gl-file-shader))
+  (with-slots (shader-type source-file) obj
+    (make-instance 'gl-file-shader
+                   :shader-type shader-type
+                   :source-file source-file)))
 
 (defmethod print-object ((shader-error shader-error) stream)
   (with-slots (status object info-log) shader-error

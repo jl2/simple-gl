@@ -83,6 +83,8 @@
 (defgeneric build-style (object)
   (:documentation "Bind the correct VAO and build object's shader programs."))
 
+(defgeneric clone (object)
+  (:documentation "Create an identical but different object."))
 
 (defun show-slots (white-space object slots)
   "Print the specified slots of object, one per line, indenting with white-space on each line.~

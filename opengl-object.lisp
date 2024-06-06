@@ -156,19 +156,28 @@
 (defmethod rebuild-style ((object opengl-object))
   (bind object)
   (with-slots (styles buffers uniforms) object
-    (loop :for (nil . style) :in styles :do
-      (cleanup style)
-      (build-style style)
-      (use-style style))
-
-    (loop :for (nil . buffer) :in buffers :do
-      (loop :for (nil . style) :in styles :do
-        (bind buffer)
-        (associate-attributes buffer (program style))))
-
-    (loop :for (nil . uniform) :in uniforms :do
-      (loop :for (nil . style) :in styles :do
-        (use-uniform uniform (program style)))))
+    (setf styles (loop
+                   :for (name . style) :in styles
+                   :for new-style = (clone style)
+                   :collecting (cons name (handler-case
+                                              (progn
+                                                (build-style new-style)
+                                                (cleanup style)
+                                                (use-style new-style)
+                                                new-style)
+                                            (shader-error (condition)
+                                              (format t "Shader error: ~a~%" condition)
+                                              (format t "Not replacing style.~%")
+                                              style)))))
+    (loop
+      :for (nil . style) :in styles
+      :for program = (program style) :do
+        (use-style style)
+        (loop :for (nil . buffer) :in buffers :do
+          (bind buffer)
+          (associate-attributes buffer (program style)))
+        (loop :for (nil . uniform) :in uniforms :do
+          (use-uniform uniform program))))
   t)
 
 
