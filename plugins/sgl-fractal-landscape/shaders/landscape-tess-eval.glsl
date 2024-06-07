@@ -64,3 +64,5 @@ void main() {
           + bu3 * ( dbv0*p30 + dbv1*p31 + dbv2*p32 + dbv3*p33 );
      teNormal = normalize( cross( dpdv.xyz, dpdu.xyz ) );
 }
+
+

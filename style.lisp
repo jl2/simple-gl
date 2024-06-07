@@ -34,6 +34,12 @@
   (declare (ignorable style elapsed-seconds))
   nil)
 
+(defmethod needs-rebuild ((style style))
+  (with-slots (shaders) style
+    (loop :for shader :in shaders
+          :when (needs-rebuild shader)
+            :collect shader)))
+
 (defmethod show-info ((style style) &key (indent 0))
   (let ((this-ws (indent-whitespace indent))
         (plus-ws (indent-whitespace (+ 1 indent)))

@@ -543,7 +543,12 @@ best practices on other platforms too.")
     ;; the main thread.
     (let ((was-view-changed view-changed))
       ;; Change this back immediately
-      (setf view-changed nil)
+      (setf view-changed (not
+                          (null
+                           (loop
+                             :for (nil . object) :in objects
+                             :when (needs-rebuild object)
+                               :collect (rebuild-style object)))))
       (flet
           ;; Call update on objects in a worker thread and return
           ;; objects that need to be initialized in the main thread
@@ -563,13 +568,16 @@ best practices on other platforms too.")
                        (> (- elapsed-seconds last-update-time)
                           seconds-between-updates))
                   (update object elapsed-seconds))
-                 (t nil)))))
+                 (t
+                  nil)))))
         ;; Call update-object on each object
         (let ((update-results (lparallel:pmapcar #'update-object objects)))
-          (if (integerp enable-update)
-              (if (zerop (- enable-update 1))
-                  (setf enable-update nil)
-                  (decf enable-update)))
+          ;;          (format t "Got update-results: ~a~%" update-results)
+          (when (integerp enable-update)
+            (if (zerop (- enable-update 1))
+                (setf enable-update nil)
+                (decf enable-update)))
+
           (loop
             :for obj :in update-results
 
@@ -583,12 +591,15 @@ best practices on other platforms too.")
             :when (consp obj)
               :do
                  (setf last-update-time elapsed-seconds)
-                 (loop
-                   :for thing :in obj
-                   :when thing
-                     :do
-                        ;; (bind object)
-                        (reload thing))))))))
+                 (cond ((eq (car obj) :rebuild)
+                        (rebuild-style (cdr obj)))
+                       (t
+                        (loop
+                          :for thing :in obj
+                          :when thing
+                            :do
+                               ;; (bind object)
+                               (reload thing))))))))))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer
@@ -721,7 +732,6 @@ best practices on other platforms too.")
 
                            ;; Update for next frame
                            (update viewer elapsed-time)
-
                            ;; Apply viewer-wide drawing settings
                            (gl:clear-color (vx background-color)
                                            (vy background-color)

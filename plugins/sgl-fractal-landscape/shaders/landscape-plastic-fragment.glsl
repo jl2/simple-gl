@@ -10,9 +10,9 @@ uniform vec4 light_pos = vec4(-3.0, 3.0, -20.0, 1.0);
 uniform vec3 light_color = vec3(1.0, 1.0, 1.0);
 uniform float light_power = 90.0;
 
-uniform vec4 Kd = vec4(0.2, 0.8, 0.2, 1.0);
-uniform vec3 Ka = vec3(0.03, 0.03, 0.03);
-uniform vec3 Ks = vec3(0.2, 0.2, 0.2);
+uniform vec4 Kd = vec4(0.1, 0.9, 0.2, 1.0);
+uniform vec3 Ka = vec3(0.03, 0.013, 0.03);
+uniform vec3 Ks = vec3(0.0, 0.0, 0.0);
 
 uniform float Ns = 20.0;
 uniform vec3 Ke = vec3(0,0,0);
@@ -72,3 +72,4 @@ void main() {
      // use the gamma corrected color in the fragment
      out_color = vec4(color_gamma_corrected, Kd.a);
 }
+

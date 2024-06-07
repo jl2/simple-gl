@@ -42,6 +42,9 @@
 
   (:documentation "An opengl shader class."))
 
+(defmethod needs-rebuild ((shader gl-shader))
+  nil)
+
 (defgeneric get-source (shader)
   (:documentation "Return shader source code as a string."))
 
@@ -52,14 +55,31 @@
   ((source-file :initarg :source-file
                 :type (or pathname string)
                 :accessor source-file
-                :documentation "The filename of the OpenGL shader file."))
+                :documentation "The filename of the OpenGL shader file.")
+   (stat :initform nil
+         :initarg :stat
+         :type (or null osicat-posix:stat)
+         :accessor stat
+         :documentation "The time last access time of the shader."))
   (:documentation "An OpenGL shader whose source code is stored in a file."))
 
-1(defmethod clone ((obj gl-file-shader))
-  (with-slots (shader-type source-file) obj
+(defmethod needs-rebuild ((shader gl-file-shader))
+  (with-slots (source-file stat) shader
+    (let* ((new-stat (osicat-posix:stat (truename source-file)))
+           (rval (or (null stat)
+                 (/= (osicat-posix:stat-mtime-sec stat)
+                     (osicat-posix:stat-mtime-sec new-stat))
+                 (/= (osicat-posix:stat-mtime-nsec stat)
+                     (osicat-posix:stat-mtime-nsec new-stat)))))
+      (setf (stat shader) new-stat)
+      rval)))
+
+(defmethod clone ((obj gl-file-shader))
+  (with-slots (shader-type source-file stat) obj
     (make-instance 'gl-file-shader
                    :shader-type shader-type
-                   :source-file source-file)))
+                   :source-file source-file
+                   :stat stat)))
 
 (defmethod print-object ((shader-error shader-error) stream)
   (with-slots (status object info-log) shader-error
@@ -134,7 +154,10 @@
                        (find-gl-shader file-name))))
     (when (not (uiop:file-exists-p real-name))
       (error "~a ~a do not exist!" file-name real-name))
-    (make-instance 'gl-file-shader :source-file real-name :shader-type stype)))
+    (make-instance 'gl-file-shader
+                   :source-file real-name
+                   :shader-type stype
+                   :stat (osicat-posix:stat real-name))))
 
 (defmethod get-source ((shader gl-shader))
   "")

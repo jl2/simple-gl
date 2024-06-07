@@ -43,7 +43,8 @@
 (defgeneric use-style (style)
   (:documentation "Apply style settings."))
 
-
+(defgeneric needs-rebuild (object)
+  (:documentation "Returns non-nil, usually a list of things that need updating."))
 
 (defgeneric fill-texture (obj))
 

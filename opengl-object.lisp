@@ -157,18 +157,22 @@
   (bind object)
   (with-slots (styles buffers uniforms) object
     (setf styles (loop
+                   :for pair :in styles
                    :for (name . style) :in styles
                    :for new-style = (clone style)
-                   :collecting (cons name (handler-case
-                                              (progn
-                                                (build-style new-style)
-                                                (cleanup style)
-                                                (use-style new-style)
-                                                new-style)
-                                            (shader-error (condition)
-                                              (format t "Shader error: ~a~%" condition)
-                                              (format t "Not replacing style.~%")
-                                              style)))))
+                   :collect
+                   (handler-case
+                       (progn
+                         (format t "Rebuilding style...")
+                         (build-style new-style)
+                         (format t "~%cleaning up~%")
+                         (cleanup style)
+                         (use-style new-style)
+                         (cons name new-style))
+                     (shader-error (condition)
+                       (format t "Shader error: ~a~%" condition)
+                       (format t "Not replacing style.~%")
+                       pair))))
     (loop
       :for (nil . style) :in styles
       :for program = (program style) :do
@@ -180,6 +184,11 @@
           (use-uniform uniform program))))
   t)
 
+(defmethod needs-rebuild ((object opengl-object))
+  (with-slots (styles) object
+    (loop :for (nil . style) :in styles
+          :when (needs-rebuild style)
+            :collect style)))
 
 (defmethod refill-textures ((object opengl-object))
   (bind object)

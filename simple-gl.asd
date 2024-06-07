@@ -32,6 +32,7 @@
                #:3d-vectors
                #:3d-matrices
                #:ieee-floats
+               #:osicat
                #:zpng
 
                #:bordeaux-threads
