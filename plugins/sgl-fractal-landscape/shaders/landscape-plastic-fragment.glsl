@@ -51,14 +51,12 @@ void main() {
      float lambertian = dot(light_dir,
                             gNormal);
 
-     float specular = 0.0;
-
      vec3 view_dir = -normalize(gPosition.xyz - cam_position);
 
      // Blinn-Phong
      vec3 half_dir = normalize(light_dir - view_dir);
      float spec_angle = max(dot( gNormal, half_dir), 0.0);
-     specular = pow(spec_angle, Ns);
+     float specular = pow(spec_angle, Ns);
 
 
      vec3 color_linear =
