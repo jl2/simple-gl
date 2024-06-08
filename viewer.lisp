@@ -718,6 +718,7 @@ best practices on other platforms too.")
 
 
                       :do ;; This do is important...
+                          ;; Because it breaks out of the previous :when
                           (glfw:swap-buffers window)
 
                       #+spacenav
