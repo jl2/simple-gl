@@ -26,9 +26,7 @@
 
 (defun blend2d-quad (size)
   (make-instance 'sgl:quad
-                 :styles (list
-                          (cons :blt
-                                (sgl:make-style-from-files "blt-vertex.glsl" "blt-fragment.glsl")))
+                 :styles (blend2d-texture-style)
                  :textures (list (make-instance 'sgl-blend2d-texture:sgl-blend2d-texture :size `#(,size ,size)))))
 
 (defclass sgl-blend2d-texture (texture)
