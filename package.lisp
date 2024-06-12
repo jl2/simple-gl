@@ -140,7 +140,9 @@
 
            ;; Textures
            #:texture
+           #:textures
+           #:add-texture
            #:fill-texture
            #:png-texture
-
+           #:png-quad
            ))
