@@ -131,20 +131,41 @@
 
 
 (defun lookup-shader-type (file-name)
-  (let ((pn (pathname-name file-name)))
-    (cond ((ends-with-subseq "-vertex" pn)
-           :vertex-shader)
-          ((ends-with-subseq "-fragment" pn)
-           :fragment-shader)
-          ((ends-with-subseq "-compute" pn)
-           :compute-shader)
-          ((ends-with-subseq "-geometry" pn)
-           :geometry-shader)
-          ((ends-with-subseq "-tess-eval" pn)
-           :tess-evaluation-shader)
-          ((ends-with-subseq "-tess-control" pn)
-           :tess-control-shader))))
+  (let ((pn (pathname-name file-name))
+        (ptype (pathname-type file-name)))
 
+    (cond ((or (string= "vert" ptype)
+               (string= "v" ptype)
+               (ends-with-subseq "-vertex" pn))
+           :vertex-shader)
+
+          ((or (string= "frag" ptype)
+               (string= "f" ptype)
+               (ends-with-subseq "-fragment" pn))
+           :fragment-shader)
+
+          ((or (string= "comp" ptype)
+               (string= "c" ptype)
+               (ends-with-subseq "-compute" pn))
+           :compute-shader)
+
+          ((or (string= "geom" ptype)
+               (string= "geo" ptype)
+               (string= "g" ptype)
+               (ends-with-subseq "-geometry" pn))
+           :geometry-shader)
+
+          ((or (string= "tesse" ptype)
+               (string= "tese" ptype)
+               (string= "te" ptype)
+               (ends-with-subseq "-tess-eval" pn))
+           :tess-evaluation-shader)
+
+          ((or (string= "tessc" ptype)
+               (string= "tesc" ptype)
+               (string= "tc" ptype)
+               (ends-with-subseq "-tess-control" pn))
+           :tess-control-shader))))
 
 (defun read-shader (file-name &optional type)
   "Read a shader language file and parse out basic information, like type and layout"

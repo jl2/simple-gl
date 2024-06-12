@@ -131,6 +131,7 @@
            #:style
            #:gl-shader
            #:make-style-from-files
+           #:style-from-directory
            #:use-style
            #:build-style
            #:find-gl-shader

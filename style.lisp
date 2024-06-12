@@ -144,10 +144,14 @@
     (gl:use-program program))
   t)
 
+
 (defun make-style-from-files (&rest shaders)
   (if shaders
       (make-instance 'style :shaders (mapcar #'read-shader shaders))
       (error "No shaders for style.")))
+
+(defun style-from-directory (directory-name &optional (pattern "*"))
+  (apply #'make-style-from-files (uiop:directory-files directory-name pattern)))
 
 (defun point-style (&rest extra-shaders)
   (if extra-shaders
