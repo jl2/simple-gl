@@ -34,6 +34,7 @@
                #:ieee-floats
                #:osicat
                #:zpng
+               #:simple-png
 
                #:bordeaux-threads
                #:lparallel
