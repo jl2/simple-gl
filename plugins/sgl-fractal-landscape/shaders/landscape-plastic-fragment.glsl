@@ -62,7 +62,7 @@ void main() {
      vec3 color_linear =
           Ke +
           Ka +
-          Kd.rgb * lambertian * light_color * light_power / distance +
+          out_color.rgb * lambertian * light_color * light_power / distance +
           Ks.rgb * specular * light_color * light_power / distance;
      // apply gamma correction (assume ambient_color, diffuseColor and spec_color
      // have been linearized, i.e. have no gamma correction in them)

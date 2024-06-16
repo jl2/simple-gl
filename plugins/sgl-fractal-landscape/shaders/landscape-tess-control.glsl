@@ -1,10 +1,10 @@
 #version 460 core
 
 // Input from vertex shader
-layout (vertices = 16) out;
+layout (vertices = 4) out;
 
-uniform float inner = 32;
-uniform float outer = 32;
+uniform float inner = 16;
+ uniform float outer = 16;
 
 // Per-vertex output
 // out float tcFoo;

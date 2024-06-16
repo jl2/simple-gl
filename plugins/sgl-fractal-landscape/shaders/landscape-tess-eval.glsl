@@ -12,57 +12,26 @@ void main() {
      vec4 p10 = gl_in[ 1].gl_Position;
      vec4 p20 = gl_in[ 2].gl_Position;
      vec4 p30 = gl_in[ 3].gl_Position;
-     vec4 p01 = gl_in[ 4].gl_Position;
-     vec4 p11 = gl_in[ 5].gl_Position;
-     vec4 p21 = gl_in[ 6].gl_Position;
-     vec4 p31 = gl_in[ 7].gl_Position;
-     vec4 p02 = gl_in[ 8].gl_Position;
-     vec4 p12 = gl_in[ 9].gl_Position;
-     vec4 p22 = gl_in[10].gl_Position;
-     vec4 p32 = gl_in[11].gl_Position;
-     vec4 p03 = gl_in[12].gl_Position;
-     vec4 p13 = gl_in[13].gl_Position;
-     vec4 p23 = gl_in[14].gl_Position;
-     vec4 p33 = gl_in[15].gl_Position;
-     float u = gl_TessCoord.x;
-     float v = gl_TessCoord.y;
-
-     float bu0 = (1.0 - u) * (1.0 - u) * (1.0 - u);
-     float bu1 =  u * (1.0 - u) * (1.0 - u);
-     float bu2 =  u * u * (1.0 - u);
-     float bu3 = u * u * u;
-
-     float dbu0 = -1.0 * (1.0 - u) * (1.0 - u);
-     float dbu1 = (1.0 - u) * (1.0 - u);
-     float dbu2 = u * (1.0 - u);
-     float dbu3 = u * u;
-
-     float bv0 = (1.0 - v) * (1.0 - v) * (1.0 - v);
-     float bv1 = v * (1.0 - v) * (1.0 - v);
-     float bv2 = v * v * (1.0 - v);
-     float bv3 = v * v * v;
-
-     float dbv0 = -1.0 * (1.0 - v) * (1.0 - v);
-     float dbv1 =  (1.0 - v) * (1.0 - v);
-     float dbv2 =  v * (1.0 - v);
-     float dbv3 =  v * v;
-
-     gl_Position = view_transform *
-          (bu0 * ( bv0*p00 + bv1*p01 + bv2*p02 + bv3*p03 )
-           + bu1 * ( bv0*p10 + bv1*p11 + bv2*p12 + bv3*p13 )
-           + bu2 * ( bv0*p20 + bv1*p21 + bv2*p22 + bv3*p23 )
-           + bu3 * ( bv0*p30 + bv1*p31 + bv2*p32 + bv3*p33 ));
-     tePosition = gl_Position.xyz;
-
-     vec4 dpdu = dbu0 * ( bv0*p00 + bv1*p01 + bv2*p02 + bv3*p03 )
-          + dbu1 * ( bv0*p10 + bv1*p11 + bv2*p12 + bv3*p13 )
-          + dbu2 * ( bv0*p20 + bv1*p21 + bv2*p22 + bv3*p23 )
-          + dbu3 * ( bv0*p30 + bv1*p31 + bv2*p32 + bv3*p33 );
-     vec4 dpdv = bu0 * ( dbv0*p00 + dbv1*p01 + dbv2*p02 + dbv3*p03 )
-          + bu1 * ( dbv0*p10 + dbv1*p11 + dbv2*p12 + dbv3*p13 )
-          + bu2 * ( dbv0*p20 + dbv1*p21 + dbv2*p22 + dbv3*p23 )
-          + bu3 * ( dbv0*p30 + dbv1*p31 + dbv2*p32 + dbv3*p33 );
-     teNormal = normalize( cross( dpdv.xyz, dpdu.xyz ) );
+     float u = (p10 - p00).x + p00.x + gl_TessCoord.x;
+     u *= 3.141592654;
+     float v = (p20 - p00).y + p00.y + gl_TessCoord.y;
+     v *= 2 * 3.141592654;
+     vec3 pt0 = vec3(2 * sin(u) * cos(v),
+                     2 * sin(u) * sin(v),
+                     2 * cos(u));
+     float u1 = u + 0.001;
+     float v1 = v + 0.001;
+     vec3 pt1 = vec3(2 * sin(u1) * cos(v),
+                     2 * sin(u1) * sin(v),
+                     2 * cos(u1));
+     vec3 pt2 = vec3(2 * sin(u) * cos(v1),
+                     2 * sin(u) * sin(v1),
+                     2 * cos(u));
+     
+     gl_Position = view_transform * vec4(pt0,
+                                         1.0);
+     tePosition = p00.xyz + gl_Position.xyz;
+     teNormal = normalize(cross(pt1-pt0, pt0-pt2));
 }
 
 

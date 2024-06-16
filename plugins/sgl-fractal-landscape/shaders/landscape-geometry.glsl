@@ -14,10 +14,15 @@ out vec3 gNormal;
 void main()
 {
      for(int i = 0; i < gl_in.length(); ++i) {
-          gl_Position = gl_in[i].gl_Position;
+          gl_Position = gl_in[i].gl_Position.xyzw;
           gPosition = gl_Position.xyz;
           gNormal = teNormal[i];
           EmitVertex();
+          // gl_Position = gl_in[i].gl_Position.xyzw + vec4(teNormal[i], 0.0);
+          // gPosition = gl_Position.xyz + teNormal[i];
+          // gNormal = teNormal[i];
+          // EmitVertex();
+
      }
      EndPrimitive();
 }
