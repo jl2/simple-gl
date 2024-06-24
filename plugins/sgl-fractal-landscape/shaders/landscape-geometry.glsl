@@ -1,7 +1,7 @@
 #version 460 core
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 3) out;
+layout(triangle_strip, max_vertices = 4) out;
 
 uniform mat4 view_transform = mat4(1);
 
@@ -13,16 +13,12 @@ out vec3 gNormal;
 
 void main()
 {
+     mat3 norm_view_transform = mat3(transpose(inverse(view_transform)));
      for(int i = 0; i < gl_in.length(); ++i) {
           gl_Position = gl_in[i].gl_Position.xyzw;
           gPosition = gl_Position.xyz;
           gNormal = teNormal[i];
           EmitVertex();
-          // gl_Position = gl_in[i].gl_Position.xyzw + vec4(teNormal[i], 0.0);
-          // gPosition = gl_Position.xyz + teNormal[i];
-          // gNormal = teNormal[i];
-          // EmitVertex();
-
      }
      EndPrimitive();
 }

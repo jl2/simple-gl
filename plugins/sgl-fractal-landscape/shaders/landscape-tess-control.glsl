@@ -3,8 +3,8 @@
 // Input from vertex shader
 layout (vertices = 4) out;
 
-uniform float inner = 16;
- uniform float outer = 16;
+uniform float inner = 32;
+ uniform float outer = 8;
 
 // Per-vertex output
 // out float tcFoo;
