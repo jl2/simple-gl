@@ -286,7 +286,7 @@
                                                (* sn:y -0.02)
                                                (* sn:z 0.02))
                                          quat)))))))))
-
+#+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
   (sgl:with-viewer-lock (viewer)
     (with-slots (sgl:view-changed
