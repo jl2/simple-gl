@@ -776,9 +776,11 @@ best practices on other platforms too.")
 
     (cond
       ((slot-value viewer 'use-main-thread)
-       (tmt:with-body-in-main-thread (:blocking nil)
-         (window-main)))
-      (t (window-main)))))
+       (format t "Running in main thread~%")
+       (tmt:call-in-main-thread #'window-main :blocking nil))
+      (t
+       (format t "Running in THIS thread~%")
+       (window-main)))))
 
 (defun show-gl-state ()
   "Print debug information about the OpenGL state."
