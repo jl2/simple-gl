@@ -18,19 +18,24 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-obj-file "shaders/") sgl:*shader-dirs*))
 
+
 (defclass sgl-obj (sgl:instanced-opengl-object)
-  ((sgl:styles :initform (list
-                          `(:obj-style
-                            .
-                            ,(sgl:make-style-from-files "obj-vertex.glsl"
-                                                        "obj-plastic-fragment.glsl")))
+  ((sgl:styles :initform `((:obj-style . ,(sgl:make-style-from-files "obj-vertex.glsl"
+                                                                     "obj-plastic-fragment.glsl")))
                :initarg :styles)
    (filename :initarg :filename
              :type (or string pathname))
+   (transforms :initform (list (meye 4))
+               :initarg :transforms
+               :type list)
    (obj-file :initform nil
              :type (or null obj-reader:obj-file))
-   (transforms :initform (list (meye 4))
-               :initargs :transforms)))
+))
+(defun obj-file (filename &key (name "obj-file"))
+  (make-instance 'sgl-obj
+                 :name name
+                 :filename filename
+                 :instance-count 1))
 
 (defun ensure-loaded (sgl-obj)
   (with-slots (obj-file filename transforms sgl:instance-count) sgl-obj
@@ -124,11 +129,12 @@
                (sgl:set-buffer obj :indices (sgl:constant-index-buffer index-count
                                                                        :free nil))
                (setf sgl:instance-count 1)
-               (sgl:set-buffer obj :obj-transform (sgl:constant-instance-buffer transforms
+               (sgl:set-buffer obj :obj-transform (sgl:constant-instance-buffer (ensure-list transforms)
                                                                                 (* 16 (length transforms))
                                                                                 '(("obj_transform" . :mat4))
                                                                                 :free nil
-                                                                                ))))))))
+                                                                                ))
+               ))))))
 
 (defmethod sgl:initialize-uniforms ((object sgl-obj) &key)
   (with-slots (obj-file filename transforms) object

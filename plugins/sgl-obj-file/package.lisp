@@ -24,4 +24,5 @@
   (:export #:main
            #:ensure-loaded
            #:sgl-obj
+           #:obj-file
            ))
