@@ -124,7 +124,7 @@
   (make-instance 'instance-buffer
                  :pointer (to-gl-array :float
                                        float-count
-                                       data)
+                                       (ensure-list data))
                  :stride nil
                  :divisor divisor
                  :attributes attributes
@@ -236,7 +236,6 @@
                          (%gl:vertex-attrib-lpointer attrib-idx
                                                      this-comp-count
                                                      comp-type
-                                                     nil
                                                      stride
                                                      this-offset))
                         (t
@@ -290,7 +289,6 @@
                           (%gl:vertex-attrib-lpointer attrib-idx
                                                      this-comp-count
                                                      comp-type
-                                                     nil
                                                      stride
                                                      this-offset))
                         (t
