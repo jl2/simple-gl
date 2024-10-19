@@ -223,14 +223,14 @@
            (center-move-percent (if alt-down
                                     0.01
                                     0.1))
-           
+
            (need-reload
              (with-slots (center radius) object
                (cond
                  ((and (eq key :f5) (eq action :press))
                   (setf center  #C(0.0f0 0.0f0))
                   (setf radius  #C(4.0f0 4.0f0)))
-                 
+
                  ((and (eq key :page-down)
                        (or (eq action :release)
                            (eq action :press)
@@ -238,7 +238,7 @@
                   (zoom-complex-fractal-window zoom-in-percent
                                                window-center
                                                object))
-                 
+
                  ((and (eq key :page-up)
                        (or (eq action :release)
                            (eq action :press)
@@ -246,15 +246,15 @@
                   (zoom-complex-fractal-window zoom-out-percent
                                                window-center
                                                object))
-                 
+
                  ((and (eq key :down)
                        shift-down
                        (or (eq action :press)
                            (eq action :repeat)))
-                  
+
                   (adjust-center object "cImag" center-move-percent))
-                 
-                 
+
+
                  ((and (eq key :up)
                        shift-down
                        (or (eq action :press)
