@@ -67,6 +67,10 @@
 
            #:handle-3d-mouse-event
            #:handle-key
+           #:handle-joystick
+           #:buttons
+           #:axes
+           #:joystick
 
            #:with-viewer-lock
            #:*display-in-main-thread*

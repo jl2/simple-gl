@@ -216,6 +216,9 @@ best practices on other platforms too.")
 (defgeneric handle-click (object window click-info)
   (:documentation "Handle a mouse click."))
 
+(defgeneric handle-joystick (object joystick)
+  (:documentation "Handle joystick movement."))
+
 (defgeneric handle-scroll (object window cpos x-scroll y-scroll)
   (:documentation "Handle scrolling."))
 
@@ -355,15 +358,21 @@ best practices on other platforms too.")
         (refill-textures object))
       (setf view-changed t))))
 
-(defmethod update-all-view-transforms-safe (viewer))
+(defmethod update-all-view-transforms-safe (viewer)
+  (declare (ignorable viewer)))
+
 (defmethod update-all-view-transforms-safe ((viewer viewer))
   (with-slots (view-changed objects) viewer
     (when view-changed
       (loop
-        :for (name . obj) :in objects
+        :for (nil . obj) :in objects
         :do
            (set-uniform obj "view_transform" (view-matrix viewer) :mat4))
       (setf view-changed nil))))
+
+(defmethod handle-joystick ((viewer viewer) joystick)
+  (declare (ignorable viewer joystick))
+  nil)
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
   (let ((shift-down (find :shift mod-keys))
@@ -717,14 +726,14 @@ best practices on other platforms too.")
                            (setf frame-count 0)
 
 
-                      :do ;; This do is important...
-                          ;; Because it breaks out of the previous :when
-                          (glfw:swap-buffers window)
+                      :do
 
                       #+spacenav
                        (when-let (ev (sn:poll-event))
                          (handle-3d-mouse-event viewer ev)
                          (sn:remove-events :motion))
+
+                       (handle-joystick viewer (slot-value viewer 'joystick))
 
                       :do
                          (with-viewer-lock (viewer)

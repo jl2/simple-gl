@@ -40,6 +40,11 @@
     :initarg :far
     :type real
     :documentation "The view's far distance.")
+   (joystick
+    :initform nil
+    :initarg :joystick
+    :type (or fixnum null)
+    :documentation "")
    )
 
   (:documentation "A viewer with keyboard and 3d mouse camera rotation around a target point."))
@@ -286,6 +291,55 @@
                                                (* sn:y -0.02)
                                                (* sn:z 0.02))
                                          quat)))))))))
+
+(defmethod handle-joystick ((viewer 3d-viewer) joystick)
+  (with-viewer-lock (viewer)
+    (with-slots (pos
+                 quat
+                 zoom-enabled
+                 rotation-enabled
+                 view-changed) viewer
+      (when (not  joystick)
+        (return-from handle-joystick nil))
+
+      (let ((buttons (let ((bs (glfw:get-joystick-buttons joystick)))
+                       (make-array (length bs) :initial-contents bs :element-type 'fixnum)) )
+            (axes (let ((as (glfw:get-joystick-axes joystick)))
+                    (make-array (length as) :initial-contents as :element-type 'float)) ))
+
+        (declare (ignorable buttons))
+        (setf view-changed t)
+        (let ((len (sqrt (+ (* (aref axes 0) (aref axes 0))
+                            (* (aref axes 1) (aref axes 1))
+                            (* (aref axes 2) (aref axes 2))))))
+          (declare (ignorable len))
+          ;; (when (and rotation-enabled
+          ;;            (not (zerop len)))
+          ;;   (setf quat (quaternion-rotate quat
+          ;;                                 (* len 0.03)
+          ;;                                 (vec3 (/ (aref axes 0) len -1.0)
+          ;;                                       (/ (aref axes 1) len -1.0)
+          ;;                                       (/ (aref axes 2) len 1.0)))))
+
+          (when zoom-enabled
+            (setf pos (v+ pos (vec3-qrot (vec3 (* (if (> (abs (aref axes 0)) 0.02)
+                                                      (aref axes 0)
+                                                      0.0)
+                                                  -0.2)
+                                               (* (if (> (abs (aref axes 2)) 0.02)
+                                                      (aref axes 2)
+                                                      0.0)
+                                                  0.1)
+
+                                               (*  (if
+                                                    (> (abs (aref axes 1)) 0.02)
+                                                    (aref axes 1)
+                                                    0.0)
+                                                   -0.5)
+                                               )
+                                         quat))))
+          )))))
+
 #+spacenav
 (defmethod handle-3d-mouse-event ((viewer 3d-viewer) (event sn:button-event))
   (sgl:with-viewer-lock (viewer)
