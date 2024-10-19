@@ -134,38 +134,54 @@
   (let ((pn (pathname-name file-name))
         (ptype (pathname-type file-name)))
 
-    (cond ((or (string= "vert" ptype)
-               (string= "v" ptype)
-               (ends-with-subseq "-vertex" pn))
-           :vertex-shader)
+    (cond
+      ((or (find ptype
+                 '("vertex" "vert" "v" )
+                 :test #'string=)
+           (ends-with-subseq "-vertex" pn)
+           (ends-with-subseq "-vert" pn))
+       :vertex-shader)
 
-          ((or (string= "frag" ptype)
-               (string= "f" ptype)
-               (ends-with-subseq "-fragment" pn))
-           :fragment-shader)
+      ((or (find ptype
+                 '("fragment" "frag" "f")
+                 :test #'string=)
+           (ends-with-subseq "-fragment" pn)
+           (ends-with-subseq "-frag" pn))
+       :fragment-shader)
 
-          ((or (string= "comp" ptype)
-               (string= "c" ptype)
-               (ends-with-subseq "-compute" pn))
-           :compute-shader)
+      ((or (find ptype
+                 '("compute" "comp" "c")
+                 :test #'string=)
+           (ends-with-subseq "-compute" pn)
+           (ends-with-subseq "-comp" pn)
+           (ends-with-subseq "-c" pn))
+       :compute-shader)
 
-          ((or (string= "geom" ptype)
-               (string= "geo" ptype)
-               (string= "g" ptype)
-               (ends-with-subseq "-geometry" pn))
-           :geometry-shader)
+      ((or (find ptype
+                 '("geom" "geo" "g")
+                 :test #'string=)
+           (ends-with-subseq "-geometry" pn)
+           (ends-with-subseq "-geo" pn)
+           (ends-with-subseq "-geom" pn))
+       :geometry-shader)
 
-          ((or (string= "tesse" ptype)
-               (string= "tese" ptype)
-               (string= "te" ptype)
-               (ends-with-subseq "-tess-eval" pn))
-           :tess-evaluation-shader)
+      ((or (find ptype
+                 '("tess-eval" "tesselation-eval" "tesselation-evaluation" "tess-e" "tesse" "tese" "te")
+                 :test #'string=)
+           (ends-with-subseq "-tess-eval" pn)
+           (ends-with-subseq "-tesselation-eval" pn)
+           (ends-with-subseq "-tesselation-evaluation" pn))
+       :tess-evaluation-shader)
 
-          ((or (string= "tessc" ptype)
-               (string= "tesc" ptype)
-               (string= "tc" ptype)
-               (ends-with-subseq "-tess-control" pn))
-           :tess-control-shader))))
+      ((or (find ptype
+                 '("tess-cont" "tess-control" "tessellation-control" "tess-c" "tessc" "tesc" "tc")
+                 :test #'string=)
+           (ends-with-subseq "-tess-cont" pn)
+           (ends-with-subseq "-tess-control" pn)
+           (ends-with-subseq "-tesselation-cont" pn)
+           (ends-with-subseq "-tesselation-control" pn)
+           )
+       :tess-control-shader))))
 
 (defun read-shader (file-name &optional type)
   "Read a shader language file and parse out basic information, like type and layout"
