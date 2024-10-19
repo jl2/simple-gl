@@ -19,6 +19,14 @@
       :do
          (sgl:handle-3d-mouse-event object event))))
 
+(defmethod sgl:handle-joystick ((viewer complex-fractal-viewer) joystick)
+  (with-slots (sgl:objects) viewer
+    ;;(format t "sending handle-3d-mouse-event to ~a~%" sgl:objects)
+    (loop
+      :for (nil . object) :in (objects viewer)
+      :do
+         (sgl:handle-joystick object joystick))))
+
 
 (defclass complex-window (opengl-object)
   ((center :initarg :center :initform #C(0.0f0 0.0f0))
@@ -165,6 +173,32 @@
       (pan-complex-fractal-window (complex xm ym) object)))
   (update-bounds object))
 
+(defmethod handle-joystick ((object complex-window) joystick)
+  (with-viewer-lock (viewer)
+    (with-slots (pos
+                 quat
+                 zoom-enabled
+                 rotation-enabled
+                 view-changed
+                 joystick) viewer
+      (when (not  joystick)
+        (return-from handle-joystick nil))
+
+      (let ((buttons (let ((bs (glfw:get-joystick-buttons joystick)))
+                       (make-array (length bs) :initial-contents bs :element-type 'fixnum)) )
+            (axes (let ((as (glfw:get-joystick-axes joystick)))
+                    (make-array (length as) :initial-contents as :element-type 'float)) ))
+
+        (declare (ignorable buttons))
+
+        (let ((zoom-in-percent (+ 1.0f0 (/ (aref buttons 1) 5000.0)))
+              (xm (/ (aref buttons 0) 50.0))
+              (ym (/ (aref buttons 2) 50.0))
+              (window-center (mapcar (rcurry #'/ 2.0) (glfw:get-window-size))))
+          (zoom-complex-fractal-window zoom-in-percent window-center object)
+          (pan-complex-fractal-window (complex xm ym) object)
+          (setf view-changed t))
+        (update-bounds object)))))
 
 (defmethod sgl:handle-key ((object complex-window) window key scancode action mod-keys)
   (declare (ignorable window key scancode action mod-keys))
