@@ -768,7 +768,7 @@ best practices on other platforms too.")
                            (gl:clear :color-buffer
                                      :depth-buffer)
                            (render viewer))
-
+                         (glfw:swap-buffers window)
                       :do
                          (glfw:poll-events)
                       :do
