@@ -179,6 +179,11 @@
 Some platforms require this (OSX, for example), and may be
 best practices on other platforms too.")
 
+   (wait-for-exit
+    :initform nil
+    :initarg :wait-for-exit
+    :documentation "t to wait for the window to close, nil to run in a background thread.")
+
    (error-stream
     :initform t
     :initarg :error-stream
@@ -786,7 +791,7 @@ best practices on other platforms too.")
     (cond
       ((slot-value viewer 'use-main-thread)
        (format t "Running in main thread~%")
-       (tmt:call-in-main-thread #'window-main :blocking nil))
+       (tmt:call-in-main-thread #'window-main :blocking (slot-value viewer 'wait-for-exit)))
       (t
        (format t "Running in THIS thread~%")
        (window-main)))))
