@@ -42,6 +42,16 @@
     (when (null obj-file)
       (setf obj-file (obj:read-obj-from-file filename)))))
 
+(defun float-stride (format)
+  "Lookup the stride (number of indices) used by a specific data format."
+  (assoc-value '((:vertex-texture-normal . 9)
+                 (:vertex-normal . 6)
+                 (:vertex-texture . 5)
+                 (:vertex . 3)
+                 (:normal . 3))
+               format))
+
+
 (defmethod sgl:initialize-buffers ((obj sgl-obj) &key)
   (with-slots (obj-file filename transforms sgl:instance-count) obj
     (ensure-loaded obj)
@@ -54,7 +64,8 @@
                         obj:normals
                         obj:tex-coords
                         obj:vertices
-                        obj:v-params) object
+                        obj:v-params)
+               object
              ;; (format t "Filling buffers for ~a~%" obj:object-name)
              (let ((attribute-data (make-array (+ (* 3 (length obj:vertices)))
                                                :element-type 'float
@@ -82,28 +93,24 @@
                                               (:vertex-normal . ((,obj:vertices ,obj:normals ) . (3 3)))
                                               (:vertex-vdata . ((,obj:vertices ,obj:v-params) . (3 1))))))
                                (loop
-                                  :for idx :across obj:indices
-                                  :do
-                                     (loop
-                                       :for current-index :across idx
-                                       :for container :in (car (assoc-value options obj:idx-format))
-                                       :for component-count :in (cdr (assoc-value options obj:idx-format))
+                                 :for idx :across obj:indices
+                                 :do
 
-                                       :do
-                                          (incf index-count)
-                                          (loop :for i :below component-count
+                                    (loop
+                                      :for current-index :across idx
+                                      :for container :in (car (assoc-value options obj:idx-format))
+                                      :for component-count :in (cdr (assoc-value options obj:idx-format))
 
-                                                :do
-
-                                                   (vector-push-extend (aref container (+ i (* component-count current-index)))
-                                                                       attribute-data))))
-                               )))))
+                                      :do
+                                         (incf index-count)
+                                         (vector-push-extend (aref container current-index)
+                                                             attribute-data))))))))
                ;;                (format t "idx-format: ~a~%" idx-format)
                (sgl:set-buffer
                 obj
                 :vertices (sgl:constant-attribute-buffer
                            attribute-data
-                           (length attribute-data)
+                           (* (float-stride idx-format) (length attribute-data))
                            (case idx-format
                              (:vertex-texture-normal-vdata
                               '(("in_position" . :vec3)
