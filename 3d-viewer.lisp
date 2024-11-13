@@ -345,13 +345,22 @@
   (sgl:with-viewer-lock (viewer)
     (with-slots (sgl:view-changed
                  rotation-enabled
+                 window
                  sgl:objects) viewer
       (cond
-        ((sn:button-press-p event 1)
+        ((sn:button-press-p event :fit)
+         (format t ":fit pressed!~%")
          (reset-view-safe viewer)
          (setf view-changed t)
          t)
 
-        ((sn:button-press-p event 0)
+        ((sn:button-press-p event :esc)
+         (format t ":esc pressed!~%")
+         (glfw:set-window-should-close window)
+         (setf view-changed t)
+         t)
+
+        ((sn:button-press-p event :joystick)
+         (format t ":joystick pressed!~%")
          (setf rotation-enabled (not rotation-enabled))
          t)))))
