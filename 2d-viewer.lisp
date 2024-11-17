@@ -146,25 +146,22 @@
                  pan
                  sgl:view-changed) viewer
       (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
-
-        (setf center-pt (if pan
-                             (v+ center-pt
-                                 (vec2 (* radius (/ sn:x 2000.0))
-                                       (* radius (/ sn:z 2000.0))))
-                             center-pt)
-              radius (if zoom
-                         (max 1.0
-                              (+ radius (* radius
-                                           (/ sn:y
-                                              2000.0))))
-                         radius)
-              ϴ (if rotation-enabled
-                    (mod (+ ϴ
-                            (/ sn:ry
-                               2000.0))
-                         (* 4 pi))
-                    ϴ)
-              sgl:view-changed t)))))
+        (let ((n-scale 1/160))
+          (setf center-pt (if pan
+                              (v+ center-pt
+                                  (vec2 (* radius (- sn:x) n-scale)
+                                        (* radius (- sn:z) n-scale)))
+                              center-pt)
+                radius (if zoom
+                           (max 1.0
+                                (+ radius (* radius (+ sn:y) n-scale)))
+                           radius)
+                ϴ (if rotation-enabled
+                      (mod (+ ϴ
+                              (* sn:ry n-scale))
+                           (* 4 pi))
+                      ϴ)
+                sgl:view-changed t))))))
 
 (defmethod handle-3d-mouse-event ((viewer 2d-viewer) (event sn:button-event))
   (sgl:with-viewer-lock (viewer)
