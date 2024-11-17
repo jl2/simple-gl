@@ -73,13 +73,23 @@
   (with-slots (y-coord) object
     (let* ((wsize (glfw:get-window-size))
            (ar (/ (cadr wsize) (car wsize)  1.0)))
-    (sgl:set-uniform object "obj_transform" (m* (mscaling (vec3 ar 1.0 1.0))
-                                            (mrotation (vec3 0 0 1) (/ pi 3))
-                                            (mscaling (vec3 0.018 0.018 1.0))) :mat4)
-    (sgl:set-uniform object "y_coordinate" y-coord :float))))
+    (sgl:set-uniform object
+                     "obj_transform"
+                     (m* (mscaling (vec3 ar 1.0 1.0))
+                         (mrotation (vec3 0 0 1) (/ pi 3))
+                         (mscaling (vec3 0.18 0.18 1.0)))
+                     :mat4)
+    (sgl:set-uniform object
+                     "y_coordinate"
+                     y-coord
+                     :float))))
 
 (defmethod sgl:update ((object sgl-hex-grid) elapsed-seconds )
-  (sgl:set-uniform object "time" elapsed-seconds :float)
+  (sgl:set-uniform object
+                   "time"
+                   elapsed-seconds
+                   :float)
+
   (with-slots (hex-grids state-idx) object
     (let* ((cur-grid (aref hex-grids state-idx))
            (next-grid (aref hex-grids (next-state-idx object)))
