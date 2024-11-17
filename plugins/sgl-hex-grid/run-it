@@ -2,5 +2,16 @@
 
 
 sbcl --eval "(ql:quickload '(:spacenav :sgl-hex-grid :3d-vectors))" \
-     --eval "(sgl:display-in (make-instance 'shg:sgl-hex-grid :radius 1.0) (make-instance 'simple-gl:3d-viewer))" \
+     --eval "(defparameter *viewer* \
+   (let ((viewer (make-instance 'simple-gl:2d-viewer \
+                                :wait-for-exit nil \
+                                :use-main-thread t))) \
+       (sgl:add-object viewer \
+                       :hg (shg:make-sgl-hex-grid \
+                               :initial-hex-grid (hg:make-hex-grid \
+                               :min-hex (hg:oddr :col -8 :row -8) \
+                               :max-hex (hg:oddr :row 8 :col 8)))) \
+       (sgl:display viewer) \
+       viewer))" \
      --eval "(quit)"
+
