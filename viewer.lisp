@@ -192,8 +192,13 @@ best practices on other platforms too.")
    (synchronous-output
     :initform nil
     :initarg :synchronous-output
-    :documentation "Whether or not to force OpenGL output to be synchronous."))
+    :documentation "Whether or not to force OpenGL output to be synchronous.")
 
+   (joysticks
+    :initform nil
+    :initarg :joysticks
+    :type (or fixnum list null)
+    :documentation ""))
   (:documentation "A collection of objects and a viewport."))
 
 
@@ -221,7 +226,7 @@ best practices on other platforms too.")
 (defgeneric handle-click (object window click-info)
   (:documentation "Handle a mouse click."))
 
-(defgeneric handle-joystick (object joystick)
+(defgeneric handle-joystick (object)
   (:documentation "Handle joystick movement."))
 
 (defgeneric handle-scroll (object window cpos x-scroll y-scroll)
@@ -375,8 +380,8 @@ best practices on other platforms too.")
            (set-uniform obj "view_transform" (view-matrix viewer) :mat4))
       (setf view-changed nil))))
 
-(defmethod handle-joystick ((viewer viewer) joystick)
-  (declare (ignorable viewer joystick))
+(defmethod handle-joystick ((viewer viewer))
+  (declare (ignorable viewer))
   nil)
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
@@ -738,7 +743,7 @@ best practices on other platforms too.")
                          (handle-3d-mouse-event viewer ev)
                          (sn:remove-events :motion))
 
-                       (handle-joystick viewer (slot-value viewer 'joystick))
+                       (handle-joystick viewer)
 
                       :do
                          (with-viewer-lock (viewer)
@@ -747,6 +752,7 @@ best practices on other platforms too.")
 
                            ;; Update for next frame
                            (update viewer elapsed-time)
+
                            ;; Apply viewer-wide drawing settings
                            (gl:clear-color (vx background-color)
                                            (vy background-color)
@@ -769,8 +775,10 @@ best practices on other platforms too.")
                                      :depth-buffer)
                            (render viewer))
                          (glfw:swap-buffers window)
+
                       :do
                          (glfw:poll-events)
+
                       :do
                          (let* ((now (glfw:get-time))
                                 (rem-time (- (+ current-seconds (/ 1.0 desired-fps))
