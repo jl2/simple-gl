@@ -24,7 +24,8 @@
                #:alexandria
                #:obj-reader
                #:3d-vectors
-               #:3d-matrices)
+               #:3d-matrices
+               #:cl-argparse)
 
   :components ((:file "package")
                (:file "main")

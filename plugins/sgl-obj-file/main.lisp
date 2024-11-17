@@ -16,6 +16,17 @@
 (in-package :sgl-obj-file)
 
 (defun main (args)
-  (format t "Hello!  This tool is REPL only for now.~%")
-  (format t "Args: ~{~a~^ ~}~%" args)
-  0)
+  (handler-case
+      (let* ((parser (cl-argparse:create-main-parser
+                         (main-parser "Display an OBJ file.")
+                       (cl-argparse:add-positional main-parser
+                                                   :name "obj-file"
+                                                   :help "the string to work on")))
+             (pargvs (cl-argparse:parse parser args))
+             (file-name (cl-argparse:get-value "obj-file" pargvs)))
+        (let ((viewer (make-instance 'sgl:3d-viewer :use-main-thread t)))
+          (sgl:add-object viewer :obj (sobj:obj-file file-name))
+          (sgl:display viewer)))
+    (cl-argparse:cancel-parsing-error (e)
+      (format t "~a~%" e))))
+
