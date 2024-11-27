@@ -138,13 +138,14 @@
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((viewer 2d-viewer) (event sn:motion-event))
   (sgl:with-viewer-lock (viewer)
-    (with-slots (center-pt
-                 radius
-                 ϴ
-                 rotation-enabled
-                 zoom
-                 pan
-                 sgl:view-changed) viewer
+    (with-slots
+          (center-pt
+           radius
+           ϴ
+           rotation-enabled
+           zoom
+           pan
+           sgl:view-changed) viewer
       (with-slots (sn:x sn:y sn:z  sn:rx sn:ry sn:rz) event
         (let ((n-scale 1/160))
           (setf center-pt (if pan
@@ -163,11 +164,13 @@
                       ϴ)
                 sgl:view-changed t))))))
 
+#+spacenav
 (defmethod handle-3d-mouse-event ((viewer 2d-viewer) (event sn:button-event))
   (sgl:with-viewer-lock (viewer)
     (with-slots (sgl:view-changed
                  rotation-enabled
-                 sgl:objects) viewer
+                 sgl:objects
+                 window) viewer
       (cond
         ((sn:button-press-p event :fit)
          (format t ":fit pressed!~%")

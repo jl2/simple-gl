@@ -46,6 +46,7 @@
 
 
 (defun mat4-quat (quat)
+  ;; (declare (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (let* ((xsq2 (* 2 (vx quat) (vx quat)))
          (ysq2 (* 2 (vy quat) (vy quat)))
          (zsq2 (* 2 (vz quat) (vz quat)))

@@ -86,7 +86,7 @@
     :initarg :seconds-between-updates
     :documentation "Ideal number of seconds between each update call.  Should be ~ (1 / desired-fps)")
 
-   ;; Should cull-face, front-face, and blend be per-object?
+   ;; TODO: Should cull-face, front-face, and blend be per-object?
    (cull-face
     :initform nil
     :initarg :cull-face
