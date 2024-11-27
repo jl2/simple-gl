@@ -154,6 +154,20 @@
     :accessor use-shader-callback
     :documentation "Whether or not to log shader debug messages.")
 
+   (gl-major-version
+    :initform 4
+    :type fixnum
+    :initarg :gl-major-version
+    :accessor gl-major-version
+    :documentation "OpenGL major version to use for the OpenGL context.")
+
+   (gl-minor-version
+    :initform 6
+    :type fixnum
+    :initarg :gl-minor-version
+    :accessor gl-minor-version
+    :documentation "OpenGL minor version to use for the OpenGL context.")
+
    (discarded-objects
     :initform nil
     :documentation "Objects that have been removed from the viewer, but still need to be cleaned up by OpenGL.")
@@ -672,8 +686,8 @@ best practices on other platforms too.")
                                             :height (slot-value viewer 'height)
                                             :decorated (slot-value viewer 'decorated)
                                             :opengl-profile :opengl-core-profile
-                                            :context-version-major 4
-                                            :context-version-minor 0
+                                            :context-version-major (slot-value viewer 'gl-major-version)
+                                            :context-version-minor (slot-value viewer 'gl-minor-version)
                                             :opengl-debug-context (slot-value viewer 'debug-context)
                                             :opengl-forward-compat (slot-value viewer 'forward-context)
                                             :samples (slot-value viewer 'samples)
