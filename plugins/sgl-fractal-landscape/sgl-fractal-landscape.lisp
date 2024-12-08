@@ -56,11 +56,13 @@
   (with-slots (sgl:buffers sgl:uniforms sgl:primitive-type sgl:styles
                x-steps y-steps) object
     (sgl:bind object)
-    (loop :for (nil . style) :in sgl:styles :do
-      (sgl:use-style style)
-      (loop :for (nil . uniform) :in sgl:uniforms :do
-        (sgl:use-uniform uniform (sgl:program style)))
-      (gl:patch-parameter :patch-vertices 4)
-      (gl:draw-elements sgl:primitive-type
-                        (gl:make-null-gl-array :unsigned-int)
-                        :count (sgl:idx-count (assoc-value sgl:buffers :indices))))))
+    (loop
+      :for (nil . style) :in sgl:styles :do
+        (sgl:use-style style)
+        (loop
+          :for (nil . uniform) :in sgl:uniforms :do
+            (sgl:use-uniform uniform (sgl:program style)))
+        (gl:patch-parameter :patch-vertices 4)
+        (gl:draw-elements sgl:primitive-type
+                          (gl:make-null-gl-array :unsigned-int)
+                          :count (sgl:idx-count (assoc-value sgl:buffers :indices))))))

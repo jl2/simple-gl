@@ -114,6 +114,10 @@
 
            ;; Buffers
            #:buffer
+           #:buffer-reloader
+           #:style-rebuilder
+           #:obj-initializer
+
            #:attribute-buffer
            #:constant-attribute-buffer
            #:constant-instance-buffer

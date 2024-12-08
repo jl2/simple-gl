@@ -103,7 +103,7 @@
               (make-instance
                'index-buffer
                :idx-count 16
-               :pointer (to-gl-array :unsigned-int 16 (loop for i below 16 collecting i))
+               :pointer (to-gl-array :unsigned-int 16 #.(loop :for i :below 16 :collecting i))
                :stride nil
                :usage :static-draw
                :free t))

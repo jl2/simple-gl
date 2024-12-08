@@ -11,20 +11,15 @@
 (deftype color () 'vec4)
 
 (defun deg2rad (deg)
+  (declare (optimize (speed 3) (space 0) (safety 0) (debug 0))
+           (type #.3d-vectors::*float-type* deg))
   (* deg
-     (/ pi
-        180)))
-
-
+     (/ pi 180)))
 
 (defun rad2deg (rad)
+  (declare (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (/ rad
-     (/ pi 180))
-  )
-
-
-
-
+     (/ pi 180)))
 
 (defgeneric use-uniform (uniform program)
   (:documentation "Pass the uniform's value into the OpenGL program."))

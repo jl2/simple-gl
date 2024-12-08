@@ -46,30 +46,33 @@
 
 
 (defun mat4-quat (quat)
-  ;; (declare (optimize (speed 3) (space 0) (safety 0) (debug 0)))
+  (declare (optimize (speed 3) (space 0) (safety 0) (debug 0))
+           (type vec4 quat))
   (let* ((xsq2 (* 2 (vx quat) (vx quat)))
          (ysq2 (* 2 (vy quat) (vy quat)))
          (zsq2 (* 2 (vz quat) (vz quat)))
          (sx (- 1 ysq2 zsq2))
          (sy (- 1 xsq2 zsq2))
          (sz (- 1 xsq2 ysq2)))
+    (declare (type real xsq2 ysq2 zsq2 sx sy sz))
+
     (with-vec4 (x y z w) quat
-      (mat4 (list  sx ;; 0
-                   (* 2 (+ (* x y) (* w z))) ;; 1
-                   (* 2 (+ (* z x) (* -1 w y))) ;; 2
-                   0 ;; 3
-                   (* 2 (+ (* x y) (* -1 w z))) ;; 4
-                   sy ;; 5
-                   (* 2 (+ (* y z) (* w x))) ;; 6
-                   0 ;;7
-                   (* 2 (+ (* z x) (* w y))) ;; 8
-                   (* 2 (+ (* y z) (* -1 w x))) ;; 9
-                   sz ;; 10
-                   0 ;; 11
-                   0 ;; 12
-                   0 ;; 13
-                   0 ;; 14
-                   1.0) ;; 15
+      (mat4 `(,sx                           ;; 0
+              ,(* 2 (+ (* x y) (* w z)))    ;; 1
+              ,(* 2 (+ (* z x) (* -1 w y))) ;; 2
+              0                             ;; 3
+              ,(* 2 (+ (* x y) (* -1 w z))) ;; 4
+              ,sy                           ;; 5
+              ,(* 2 (+ (* y z) (* w x)))    ;; 6
+              0                             ;;7
+              ,(* 2 (+ (* z x) (* w y)))    ;; 8
+              ,(* 2 (+ (* y z) (* -1 w x))) ;; 9
+              ,sz                           ;; 10
+              0                             ;; 11
+              0                             ;; 12
+              0                             ;; 13
+              0                             ;; 14
+              1.0)                          ;; 15
             ))))
 
 
@@ -86,7 +89,7 @@
     (setf quat (vec4 0 0 0.0 1))
 
     (loop
-      :with view-xform = (view-matrix viewer)
+      :with view-xform :of-type mat4 = (view-matrix viewer)
       :for (nil . object) :in objects
       :do
          (ensure-initialized object)
@@ -94,7 +97,8 @@
     (setf view-changed t)))
 
 (defmethod handle-key ((viewer 3d-viewer) window key scancode action mod-keys)
-  (declare (ignorable window scancode mod-keys))
+  (declare (ignorable window scancode mod-keys)
+           (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (with-viewer-lock (viewer)
     (with-slots (aspect-ratio rotation-enabled zoom-enabled pos quat view-changed) viewer
       (let* (
@@ -215,6 +219,9 @@
   (call-next-method))
 
 (defun quaternion-rotate (quaternion angle xyz)
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0))
+            (type #.3d-vectors::*float-type* angle)
+            (type vec3 xyz))
   (let ((half (* 0.5 angle))
         (sin-half (sin (* 0.5 angle))))
     (quat-mul quaternion
@@ -225,8 +232,14 @@
               )))
 
 (defun quat-mul (a b)
+ 
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0))
+            (type vec4 a b))
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let ((dot (v. (vxyz a) (vxyz b)))
         (cross (vc (vxyz a) (vxyz b))))
+    (declare  (type #.3d-vectors::*float-type* dot)
+             (type vec3 cross))
     (with-vec4 (ax ay az aw) a
       (with-vec4 (bx by bz bw) b
         (with-vec3 (cx cy cz) cross
@@ -243,7 +256,9 @@
                    dot)))))))
 
 (defun quat-invert (quat)
-  (let* ((len-sq (3d-vectors:vsqrlength quat))
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0))
+            (type vec4 quat))
+  (let* ((len-sq (vsqrlength quat))
          (scale (if (> len-sq 0.01)
                     (/ 1.0 len-sq)
                     1.0)))

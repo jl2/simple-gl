@@ -396,6 +396,7 @@ best practices on other platforms too.")
   nil)
 
 (defmethod handle-key ((viewer viewer) window key scancode action mod-keys)
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let ((shift-down (find :shift mod-keys))
         (alt-down (find :alt mod-keys))
         (ctrl-down (find :ctrl mod-keys))
@@ -555,6 +556,7 @@ best practices on other platforms too.")
          (handle-scroll object window cpos x-scroll y-scroll))))
 
 (defmethod update ((viewer viewer) elapsed-seconds)
+    (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (with-slots (objects
                view-changed
                enable-update
@@ -653,7 +655,7 @@ best practices on other platforms too.")
 
 (defmethod display ((viewer viewer))
   "High level function to display a viewer and start processing in a background thread."
-
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   ;; "GLFW Event Loop function that initializes GLFW and OpenGL, creates a window,
   ;;  and runs an event loop."
   (when (slot-value viewer 'error-stream)
@@ -666,6 +668,7 @@ best practices on other platforms too.")
 
   (flet
       ((window-main ()
+         (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0)))
          (let* ((window (glfw:create-window :title "OpenGL Viewer"
                                             :width (slot-value viewer 'width)
                                             :height (slot-value viewer 'height)

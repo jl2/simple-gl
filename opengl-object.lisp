@@ -260,9 +260,10 @@
 
 (defmethod bind ((object opengl-object))
   (with-slots (vao buffers textures) object
-    (if (= vao 0)
-        (error "Trying to bind an uninitialized opengl-object!")
-        (gl:bind-vertex-array vao))))
+    (declare (type fixnum vao))
+    (when (zerop vao)
+      (error "Trying to bind an uninitialized opengl-object!"))
+    (gl:bind-vertex-array vao)))
 
 (defmethod render ((object opengl-object))
   (with-slots (buffers uniforms primitive-type styles) object
