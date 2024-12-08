@@ -310,7 +310,7 @@
           fill-buffer))
 (defun gl-iset (array idx value)
   "Set array position idx to value. value must be a fixnum"
-  (declare (optimize (speed 3))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0))
            (type fixnum idx)
            (type fixnum value)
            (type gl:gl-array array))
@@ -320,7 +320,7 @@
 
 (defun gl-fset (array idx value)
   "Set array position idx to value. value is coerced to a single-float."
-  (declare (optimize (speed 3))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0))
            (type fixnum idx)
            (type single-float value)
            (type gl:gl-array array))
@@ -330,7 +330,7 @@
 
 (defun gl-dset (array idx value)
   "Set array position idx to value. value is coerced to a double-float."
-  (declare (optimize (speed 3))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0))
            (type fixnum idx)
            (type double-float value)
            (type gl:gl-array array))
@@ -338,7 +338,7 @@
 
 (defun gl-get (array idx)
   "Return the array value at idx."
-  (declare (optimize (speed 3))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0))
            (type fixnum idx)
            (type gl:gl-array array))
   (gl:glaref array idx))
@@ -346,7 +346,7 @@
 
 (defun to-gl-array (gl-type size data)
   "Create an OpenGL array of the specified type and size, initialized with the contents of arr.  If data is"
-  (declare (optimize (speed 3)))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let* ((gl-array (gl:alloc-gl-array gl-type size)))
     (fill-pointer-offset data gl-array 0)
     gl-array))
@@ -359,18 +359,21 @@
 
 
 (defmethod fill-pointer-offset ((data vec2) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (gl-fset ptr (+ 0 offset) (vx data))
   (gl-fset ptr (+ 1 offset) (vy data))
   (+ 2 offset))
 
 
 (defmethod fill-pointer-offset ((data vec3) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (gl-fset ptr (+ 0 offset) (vx data))
   (gl-fset ptr (+ 1 offset) (vy data))
   (gl-fset ptr (+ 2 offset) (vz data))
   (+ 3 offset))
 
 (defmethod fill-pointer-offset ((data vec4) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (gl-fset ptr (+ 0 offset) (vx data))
   (gl-fset ptr (+ 1 offset) (vy data))
   (gl-fset ptr (+ 2 offset) (vz data))
@@ -378,23 +381,26 @@
   (+ 4 offset))
 
 (defmethod fill-pointer-offset ((data mat3) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
-    :for off :from 0
-    :for d :across (marr (mtranspose data))
+    :for off fixnum :from 0
+    :for d real :across (marr (mtranspose data))
     :do
        (gl-fset ptr (+ off offset) d)
     :finally (return (+ off offset))))
 
 (defmethod fill-pointer-offset ((data mat4) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
-    :for off :from 0
-    :for d :across (marr (mtranspose data))
+    :for off fixnum :from 0
+    :for d real :across (marr (mtranspose data))
     :do
        (gl-fset ptr (+ off offset) d)
     :finally (return (+ off offset))))
 
 
 (defmethod fill-pointer-offset ((data integer) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (gl-iset ptr offset data)
   (1+ offset))
 
@@ -403,26 +409,29 @@
   (1+ offset))
 
 (defmethod fill-pointer-offset ((data vector) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
     :for obj :across data
-    :for off = offset :then next-off
-    :for next-off = (fill-pointer-offset obj ptr off)
+    :for off fixnum = offset :then next-off
+    :for next-off fixnum = (fill-pointer-offset obj ptr off)
     :finally (return next-off)))
 
 (defmethod fill-pointer-offset ((data list) ptr offset)
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
     :for obj :in data
-    :for off = offset :then next-off
-    :for next-off = (fill-pointer-offset obj ptr off)
+    :for off fixnum = offset :then next-off
+    :for next-off fixnum = (fill-pointer-offset obj ptr off)
     :finally (return next-off)))
 
 (defun show-gl-array (array &optional count stride)
   "Print the contents of array to standard out."
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
-    :for i :below (if count
-                      (min count
-                           (gl::gl-array-size array))
-                      (gl::gl-array-size array))
+    :for i fixnum :below (if count
+                             (min count
+                                  (gl::gl-array-size array))
+                             (gl::gl-array-size array))
     :do
        (when (and stride (zerop (mod i stride)))
          (terpri))
@@ -431,13 +440,14 @@
 
 (defun from-gl-array (array &optional count)
   "Return a Lisp array with the contents of array to standard out."
-  (let* ((real-count (if count
-                         (min count
-                              (gl::gl-array-size array))
-                         (gl::gl-array-size array)))
-         (rval (make-array real-count)))
-    (loop
-      :for i :below real-count
-      :do
-         (setf (aref rval i) (gl:glaref array i)))
-    rval))
+  (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
+  (loop
+    :with real-count fixnum = (if count
+                                  (min count
+                                       (gl::gl-array-size array))
+                                  (gl::gl-array-size array))
+    :with rval = (make-array real-count)
+    :for i fixnum :below real-count
+    :do
+       (setf (aref rval i) (gl:glaref array i))
+    :finally (return rval)))
