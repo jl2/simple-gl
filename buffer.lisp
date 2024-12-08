@@ -209,109 +209,82 @@
 
 
 (defmethod associate-attributes ((buffer attribute-buffer) program)
-  ;; (format t "buffer ~a program ~a~%" buffer program)
   (with-slots (attributes) buffer
     (loop
-      :with stride = (compute-stride buffer)
-      :for offset = 0 :then (+ offset byte-size)
+      :with stride fixnum = (compute-stride buffer)
+      :for offset fixnum = 0 :then (+ offset byte-size)
       :for (name . type) :in attributes
-      :for (comp-type comp-count byte-size vec4-size) = (glsl-type-info type)
-      :for this-comp-count = (min comp-count 4)
-      :do
-         (let ((entry-attrib (gl:get-attrib-location program name)))
-           ;; (format t "entry-attrib: ~a program ~a name ~a~%" entry-attrib program name)
-           (when (>= entry-attrib 0)
-             (loop
-               :for i :below vec4-size
-               :for attrib-idx = (+ entry-attrib i)
-               :for this-offset = (+ offset (* this-comp-count 4 i))
-               :do
-                  (cond ((eq comp-type :int)
-                          (gl:vertex-attrib-ipointer attrib-idx
-                                                     this-comp-count
-                                                     comp-type
-                                                     stride
-                                                     this-offset))
-                        ((eq comp-type :double)
-                         (%gl:vertex-attrib-lpointer attrib-idx
-                                                     this-comp-count
-                                                     comp-type
-                                                     stride
-                                                     this-offset))
-                        (t
-                         (gl:vertex-attrib-pointer attrib-idx
-                                                   this-comp-count
-                                                   comp-type
-                                                   nil
-                                                   stride
-                                                   this-offset)))
-                  (gl:enable-vertex-attrib-array attrib-idx)
-                  ;; (format t "attrib-idx ~a~%~
-                  ;;                           comp-count ~a~%~
-                  ;;                           comp-type ~a~%~
-                  ;;                           :false ~a~%~
-                  ;;                           stride ~a~%~
-                  ;;                           this-offset ~a~%"
-                  ;;         attrib-idx
-                  ;;         this-comp-count
-                  ;;         comp-type
-                  ;;         :false
-                  ;;         stride
-                  ;;         this-offset)
-               )))))
+      :for (comp-type comp-count byte-size vec4-size) :of-type (t fixnum fixnum fixnum) = (glsl-type-info type)
+      :for this-comp-count fixnum = (min comp-count 4)
+      :for entry-attrib fixnum = (gl:get-attrib-location program name)
+      :when (>= entry-attrib 0) :do
+        (loop
+          :for i fixnum :below vec4-size
+          :for attrib-idx fixnum = (+ entry-attrib i)
+          :for this-offset fixnum = (+ offset (* this-comp-count 4 i))
+          :for is-int = (eq comp-type :int)
+          :for is-double = (eq comp-type :double)
+          :when is-int :do
+            (gl:vertex-attrib-ipointer attrib-idx
+                                       this-comp-count
+                                       comp-type
+                                       stride
+                                       this-offset)
+          :when is-double :do
+            (%gl:vertex-attrib-lpointer attrib-idx
+                                        this-comp-count
+                                        comp-type
+                                        stride
+                                        this-offset)
+          :when (and (not is-double) (not is-int)) :do
+            (gl:vertex-attrib-pointer attrib-idx
+                                      this-comp-count
+                                      comp-type
+                                      nil
+                                      stride
+                                      this-offset)
+          :do
+             (gl:enable-vertex-attrib-array attrib-idx))))
   t)
 
 (defmethod associate-attributes ((buffer instance-buffer) program)
-  ;; (format t "buffer ~a program ~a~%" buffer program)
   (with-slots (attributes divisor) buffer
     (loop
-      :with stride = (compute-stride buffer)
-      :for offset = 0 :then (+ offset byte-size)
+      :with stride fixnum = (compute-stride buffer)
+      :for offset fixnum = 0 :then (+ offset byte-size)
       :for (name . type) :in attributes
-      :for (comp-type comp-count byte-size vec4-size) = (glsl-type-info type)
-      :for this-comp-count = (min comp-count 4)
-      :do
-         (let ((entry-attrib (gl:get-attrib-location program name)))
-           ;; (format t "entry-attrib: ~a program ~a name ~a~%" entry-attrib program name)
-           (when (>= entry-attrib 0)
-             (loop
-               :for i :below vec4-size
-               :for attrib-idx = (+ entry-attrib i)
-               :for this-offset = (+ offset (* this-comp-count 4 i))
-               :do
-                  (cond ((eq comp-type :int)
-                         (gl:vertex-attrib-ipointer attrib-idx
-                                                    this-comp-count
-                                                    comp-type
-                                                    stride
-                                                    this-offset))
-                        ((eq comp-type :double)
-                          (%gl:vertex-attrib-lpointer attrib-idx
-                                                     this-comp-count
-                                                     comp-type
-                                                     stride
-                                                     this-offset))
-                        (t
-                         (gl:vertex-attrib-pointer attrib-idx
-                                                   this-comp-count
-                                                   comp-type
-                                                   nil
-                                                   stride
-                                                   this-offset)))
-                  (gl:enable-vertex-attrib-array attrib-idx)
-                  ;; (format t "attrib-idx ~a~%~
-                  ;;                           comp-count ~a~%~
-                  ;;                           comp-type ~a~%~
-                  ;;                           :false ~a~%~
-                  ;;                           stride ~a~%~
-                  ;;                           (+ offset (* comp-count 4 i)) ~a~%"
-                  ;;         attrib-idx
-                  ;;         this-comp-count
-                  ;;         comp-type
-                  ;;         :false
-                  ;;         stride
-                  ;;         this-offset)
-                  (%gl:vertex-attrib-divisor attrib-idx divisor))))))
+      :for (comp-type comp-count byte-size vec4-size) :of-type (t fixnum fixnum fixnum) = (glsl-type-info type)
+      :for this-comp-count fixnum = (min comp-count 4)
+      :for entry-attrib fixnum = (gl:get-attrib-location program name)
+      :when (>= entry-attrib 0) :do
+        (loop
+          :for i fixnum :below vec4-size
+          :for attrib-idx fixnum = (+ entry-attrib i)
+          :for this-offset fixnum = (+ offset (* this-comp-count 4 i))
+          :for is-int = (eq comp-type :int)
+          :for is-double = (eq comp-type :double)
+          :when is-int :do
+            (gl:vertex-attrib-ipointer attrib-idx
+                                       this-comp-count
+                                       comp-type
+                                       stride
+                                       this-offset)
+          :when is-double :do
+            (%gl:vertex-attrib-lpointer attrib-idx
+                                        this-comp-count
+                                        comp-type
+                                        stride
+                                        this-offset)
+          :when (and (not is-int) (not is-double)) :do
+            (gl:vertex-attrib-pointer attrib-idx
+                                      this-comp-count
+                                      comp-type
+                                      nil
+                                      stride
+                                      this-offset)
+          :do
+             (gl:enable-vertex-attrib-array attrib-idx)
+             (%gl:vertex-attrib-divisor attrib-idx divisor))))
   t)
 
 (defmethod update ((object buffer) elapsed-seconds)
@@ -323,9 +296,7 @@
   (with-slots (pointer free target) buffer
     (when (null pointer)
       (error "Cannot refill buffer from nil."))
-    ;; (format t "Calling buffer sub-data ~a...~%" target)
     (gl:buffer-sub-data target pointer)
-    ;; (show-gl-array pointer)
     (when (and free pointer)
       (gl:free-gl-array pointer)
       (setf pointer nil))))
