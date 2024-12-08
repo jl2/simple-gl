@@ -29,7 +29,7 @@
     :initform 80.0
     :initarg :field-of-view
     :type real
-    :documentation "The view field of view for p;erspective viewing.")
+    :documentation "The view field of view for perspective viewing.")
    (near
     :initform 0.1
     :initarg :near

@@ -19,13 +19,13 @@
     :initarg :target
     :type (or :array-buffer :element-array-buffer)
     :accessor target
-    :documentation "The OpenGL target for the buffer, typically :array-buffer or :index-buffer.")
+    :documentation "The OpenGL target for the buffer, :array-buffer or :element-array-buffer.")
    (usage
     :initform :static-draw
     :initarg :usage
     :type (or :static-draw :dynamic-draw :stream)
     :accessor usage
-    :documentation "The intended usage of the buffer.  Usually :static-draw or :dynamic-draw")
+    :documentation "The intended usage of the buffer.  :static-draw or :dynamic-draw or :stream")
    (stride
     :initform nil
     :initarg :stride
@@ -78,7 +78,7 @@
    (bind-location
     :initform 0
     :initarg :bind-location))
-  (:documentation "A mutable buffer containing uniform values.."))
+  (:documentation "A mutable buffer containing uniform values."))
 
 
 (defclass instance-buffer (attribute-buffer)
