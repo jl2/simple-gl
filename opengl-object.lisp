@@ -96,19 +96,23 @@
 (defmethod update ((object opengl-object) elapsed-seconds )
   (declare (ignorable object elapsed-seconds))
   (with-slots (textures styles buffers) object
-    (concatenate 'list
-                 (loop :for tex :in textures
-                       :for updated = (update tex elapsed-seconds)
-                       :when updated
-                         :collect tex)
-                 (loop :for (nil . style) :in styles
-                       :for updated = (update style elapsed-seconds)
-                       :when updated
-                         :return style)
-                 (loop :for (nil . buffer) :in buffers
-                       :for updated = (update buffer elapsed-seconds)
-                       :when updated
-                         :collect buffer))))
+    (let ((buffers (concatenate
+                             'list
+                             (loop :for tex :in textures
+                                   :for updated = (update tex elapsed-seconds)
+                                   :when updated
+                                     :collect tex)
+                             (loop :for (nil . style) :in styles
+                                   :for updated = (update style elapsed-seconds)
+                                   :when updated
+                                     :return style)
+                             (loop :for (nil . buffer) :in buffers
+                                   :for updated = (update buffer elapsed-seconds)
+                                   :when updated
+                                     :collect buffer))))
+      (when buffers
+        (make-instance 'buffer-reloader
+                       :buffers buffers)))))
 
 (defun set-uniform (obj name value type &key (overwrite t))
   (with-slots (uniforms) obj

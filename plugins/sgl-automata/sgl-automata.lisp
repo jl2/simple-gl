@@ -43,14 +43,14 @@
   (:documentation "Compute the next instance  of the automata."))
 
 
-(defmethod update ((object cellular-automata) elapsed-seconds)
+(defmethod sgl:update ((object cellular-automata) elapsed-seconds)
   (declare (ignorable elapsed-seconds))
   (with-slots (animating current-iteration generated-iteration) object
     (when animating
       (incf current-iteration)
       (compute-next object))
     (let ((rval (add-current-instances object)))
-      (ensure-list rval))))
+      (make-instance 'sgl:buffer-reloader :buffers rval))))
 
 (defmethod initialize-buffers ((object cellular-automata) &key)
   (when (buffers object)

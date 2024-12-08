@@ -219,7 +219,7 @@ best practices on other platforms too.")
 (defgeneric add-object (viewer name object)
   (:documentation "Add an object with the given name to the viewer."))
 
-(defgeneric rm-objcet (viewer name)
+(defgeneric rm-object (viewer name)
   (:documentation "Remove the named object from the viewer."))
 
 (defgeneric replace-object (viewer name object)
@@ -227,9 +227,6 @@ best practices on other platforms too.")
 
 (defgeneric view-matrix (viewer)
   (:documentation "Return the view transformation the viewer is using."))
-
-(defgeneric rebuild-style (object)
-  (:documentation "Return the view transformation."))
 
 (defgeneric refill-textures (object)
   (:documentation "Return the view transformation."))
@@ -597,6 +594,7 @@ best practices on other platforms too.")
                (cond
                  ((not (initialized-p object))
                   object)
+                 ;; Otherwise, call update and return the results (a list of buffers that need updating)
                  ((and enable-update
                        (> (- elapsed-seconds last-update-time)
                           seconds-between-updates))
@@ -606,33 +604,20 @@ best practices on other platforms too.")
         ;; Call update-object on each object
         (let ((update-results (lparallel:pmapcar #'update-object objects)))
           ;;          (format t "Got update-results: ~a~%" update-results)
+          ;; Update `enable-update` times and then stop (?)
+          ;; TODO: What was this for?
           (when (integerp enable-update)
             (if (zerop (- enable-update 1))
                 (setf enable-update nil)
                 (decf enable-update)))
 
+          ;; update-results is a list of buffers that need
+          ;; to be reloaded in this OpenGL thread
           (loop
-            :for obj :in update-results
-
-            ;; Initialize objects that need it
-            :when (and obj (atom obj))
-              :do
-                 (initialize obj)
-                 (setf last-update-time elapsed-seconds)
-
-                 ;; reload buffers that need it
-            :when (consp obj)
-              :do
-                 (setf last-update-time elapsed-seconds)
-                 (cond ((eq (car obj) :rebuild)
-                        (rebuild-style (cdr obj)))
-                       (t
-                        (loop
-                          :for thing :in obj
-                          :when thing
-                            :do
-                               ;; (bind object)
-                               (reload thing))))))))))
+            :for result :in update-results
+            :when result :do
+                  (perform-main-thread-update result)
+              (setf last-update-time elapsed-seconds)))))))
 
 (defmethod render ((viewer viewer))
   (with-slots (objects) viewer

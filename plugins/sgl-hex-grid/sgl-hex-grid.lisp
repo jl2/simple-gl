@@ -143,7 +143,7 @@
                   (incf (hg:oddr-row coord))))
            (incf (hg:oddr-col coord)))
       (hg:swap-states object)
-      (list radii-buffer state-buffer))))
+      (make-instance 'sgl:buffer-reloader :buffers (list radii-buffer state-buffer)))))
 
 (defmethod sgl:initialize-buffers ((object sgl-hex-grid) &key)
   (when (sgl:buffers object)

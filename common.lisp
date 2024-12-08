@@ -43,6 +43,9 @@
 (defgeneric use-style (style)
   (:documentation "Apply style settings."))
 
+(defgeneric rebuild-style (object)
+  (:documentation "Rebuild a style."))
+
 (defgeneric needs-rebuild (object)
   (:documentation "Returns non-nil, usually a list of things that need updating."))
 
@@ -73,7 +76,41 @@
   (:documentation "Copy new data for object to OpenGL."))
 
 (defgeneric update (object elapsed-seconds)
-  (:documentation "Called on an object before rendering, to update for the next animation frame."))
+  (:documentation "Called on an object before rendering, to update for the next animation frame.  Returns nil or an update-result"))
+
+(defclass update-result ()
+  ()
+  (:documentation "The result of an update.  After an update (perform-main-thread-update update-result) is called in the OpenGL thread."))
+
+(defgeneric perform-main-thread-update (update-result)
+  (:documentation "Run the part of the update that needs to run in the OpenGL thread."))
+
+(defclass style-rebuilder (update-result)
+  ((styles :initarg :styles))
+  (:documentation "An update-result who's GL thread action is to rebuild the object's shaders."))
+
+(defclass buffer-reloader (update-result)
+  ((buffers :initarg :buffers))
+  (:documentation "An update-result who's GL thread action is to reload the object."))
+
+(defclass obj-initializer (update-result)
+  ((obj :initarg :obj))
+  (:documentation "An update-result who's GL thread action is to initialize the object."))
+
+(defmethod perform-main-thread-update ((result buffer-reloader))
+  (with-slots (buffers) result
+    (dolist (buf (ensure-list buffers))
+      (reload buf))))
+
+(defmethod perform-main-thread-update ((result style-rebuilder))
+  (with-slots (styles) result
+    (dolist (sty styles)
+      (rebuild-style sty))))
+
+(defmethod perform-main-thread-update ((result obj-initializer))
+  (with-slots (obj) result
+    (initialize obj)))
+
 
 (defgeneric cleanup (object)
   (:documentation "Cleanup any OpenGL resources owned by obj."))
