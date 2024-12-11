@@ -332,7 +332,7 @@
                                   (* (if (> (abs (aref axes 0)) 0.02)
                                          (aref axes 0)
                                          0.0)
-                                     -0.2)
+                                     0.2)
                                   (* (if (> (abs (aref axes 2)) 0.02)
                                          (aref axes 2)
                                          0.0)
