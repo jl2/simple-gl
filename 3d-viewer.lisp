@@ -316,12 +316,10 @@
       (let* ((joystick (etypecase joysticks
                          (list (first joysticks))
                          (fixnum joysticks)))
-             (buttons (let ((bs (glfw:get-joystick-buttons joystick)))
-                        (make-array (length bs) :initial-contents bs :element-type 'fixnum)) )
-             (axes (let ((as (glfw:get-joystick-axes joystick)))
-                     (make-array (length as) :initial-contents as :element-type 'float)) ))
-
+             (buttons (make-array (length #1=(the list (glfw:get-joystick-buttons joystick))) :element-type 'fixnum :initial-contents #1#))
+             (axes (make-array (length #2= (the list (glfw:get-joystick-axes joystick))) :element-type 'single-float :initial-contents #2#)))
         (declare (ignorable buttons))
+        ;;        (format t "buttons: ~a axes: ~a~%" buttons axes)
         (setf view-changed t)
         (let ((len (sqrt (+ (* (aref axes 0) (aref axes 0))
                             (* (aref axes 1) (aref axes 1))
