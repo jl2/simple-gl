@@ -45,24 +45,21 @@
                               1
                               (1- depth)))))
           (data (loop
-                             for i below width
-                             collecting
-                             (loop
-                               for j below height
-                               collecting
-                               (loop
-                                 for k below depth
-                                 for pt = (v+
-                                           min-corner
-                                           (v* (vec3 i j k) step))
-                                 collecting pt
-                                 collecting (let* ((r (random 1.0))
-                                                   (g (+ 0.5 (random 0.5)))
-                                                   (b (random 1.0))
-                                                   (alpha 0.5))
-                                              (vec4 r g b alpha))))))
-           (indices (loop for i below (* width height depth)
-                          collecting i)))
+                  :for i :below width
+                  :collecting (loop
+                                :for j :below height
+                    :collecting
+                    (loop
+                      :for k :below depth
+                      :for pt = (v+
+                                 min-corner
+                                 (v* (vec3 i j k) step))
+                      :collecting pt
+                      :collecting (let* ((r (random 1.0))
+                                        (g (+ 0.5 (random 0.5)))
+                                        (b (random 1.0))
+                                        (alpha 0.5))
+                                   (vec4 r g b alpha)))))))
       (set-buffer object
                 :vertices
                 (make-instance
@@ -77,15 +74,7 @@
                  :free t))
       (set-buffer object
                   :indices
-                  (make-instance
-                   'index-buffer
-                   :idx-count (* 1 width height depth)
-                   :pointer (to-gl-array :unsigned-int
-                                         (* 1 width height depth)
-                                         indices)
-                   :stride nil
-                   :usage :static-draw
-                   :free t))
+                  (sgl:constant-index-buffer (* width height depth)))
       (set-buffer object
                   :obj-transform
                   (make-instance
