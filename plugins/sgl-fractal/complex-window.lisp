@@ -19,8 +19,8 @@
       :do
          (sgl:handle-3d-mouse-event object event))))
 
-(defmethod sgl:handle-joystick ((viewer complex-fractal-viewer) joystick)
-  (with-slots (sgl:objects) viewer
+(defmethod sgl:handle-joystick ((viewer complex-fractal-viewer))
+  (with-slots (sgl:objects sgl:joysticks) viewer
     ;;(format t "sending handle-3d-mouse-event to ~a~%" sgl:objects)
     (loop
       :for (nil . object) :in (objects viewer)
@@ -173,21 +173,22 @@
       (pan-complex-fractal-window (complex xm ym) object)))
   (update-bounds object))
 
-(defmethod handle-joystick ((object complex-window) joystick)
+(defmethod handle-joystick ((object complex-window))
   (with-viewer-lock (viewer)
     (with-slots (pos
                  quat
                  zoom-enabled
                  rotation-enabled
                  view-changed
-                 joystick) viewer
-      (when (not  joystick)
+                 joysticks) viewer
+      (when (null  joysticks)
         (return-from handle-joystick nil))
 
-      (let ((buttons (let ((bs (glfw:get-joystick-buttons joystick)))
-                       (make-array (length bs) :initial-contents bs :element-type 'fixnum)) )
-            (axes (let ((as (glfw:get-joystick-axes joystick)))
-                    (make-array (length as) :initial-contents as :element-type 'float)) ))
+      (let* ((joystick (car joysticks))
+             (buttons (let ((bs (glfw:get-joystick-buttons joystick)))
+                        (make-array (length bs) :initial-contents bs :element-type 'fixnum)) )
+             (axes (let ((as (glfw:get-joystick-axes joystick)))
+                     (make-array (length as) :initial-contents as :element-type 'float)) ))
 
         (declare (ignorable buttons))
 
