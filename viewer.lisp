@@ -876,6 +876,31 @@ best practices on other platforms too.")
         (push (cons name object) objects)
         (setf view-changed t)))))
 
+#+spacenav
+(defmethod handle-3d-mouse-event ((viewer viewer) (event sn:motion-event))
+  (with-viewer-lock (viewer)
+    (with-slots (objects view-changed) viewer
+      (dolist (object objects)
+        (when (handle-3d-mouse-event (cdr object) event)
+          (setf view-changed t)))
+      t)))
+
+#+spacenav
+(defmethod handle-3d-mouse-event ((viewer viewer) (event sn:button-event))
+  (sgl:with-viewer-lock (viewer)
+    (with-slots (sgl:view-changed
+                 window
+                 objects) viewer
+      (cond
+        ((sn:button-press-p event :esc)
+         (format t ":esc pressed!~%")
+         (glfw:set-window-should-close window)
+         (setf view-changed t)
+         t)
+        (t
+         (dolist (object objects)
+           (when (handle-3d-mouse-event (cdr object) event)
+          )))))))
 
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
@@ -885,7 +910,8 @@ best practices on other platforms too.")
     (sleep timeout)))
 
 (defmethod view-matrix ((viewer viewer))
-  (meye 4))
+  (m* (mortho -4.0 4.0 -4.0 4.0 -1 1)
+      ))
 
 (defmacro with-object-in-viewer-lock ((variable name viewer) &body body)
   (with-gensyms (obj
