@@ -38,6 +38,7 @@
            #:show-info
            #:uniforms
            #:buffers
+           #:joysticks
            #:program
            #:uniforms
            #:primitive-type

@@ -4,6 +4,13 @@
 
 (in-package #:simple-gl)
 
+(declaim (inline
+          gl-fset gl-iset gl-dset
+          gl-get
+          to-gl-array
+          fill-pointer-offset
+          fill-buffer))
+
 (defclass buffer ()
   ((bo
     :initform 0
@@ -302,12 +309,7 @@
       (setf pointer nil))))
 
 
-(declaim (inline
-          gl-fset gl-iset gl-dset
-          gl-get
-          to-gl-array
-          fill-pointer-offset
-          fill-buffer))
+
 (defun gl-iset (array idx value)
   "Set array position idx to value. value must be a fixnum"
   (declare (optimize (speed 3) (safety 0) (debug 0) (space 0))
