@@ -1,6 +1,6 @@
 sgla-automata: manifest.txt *.lisp *.asd
 	buildapp --output sgla-automata \
-             --manifest-file ~/src/lisp/simple-gl/plugins/sgl-automata/manifest.txt \
+             --manifest-file manifest.txt \
              --load-system asdf \
              --load-system sb-posix \
              --load-system alexandria \
@@ -14,7 +14,7 @@ manifest.txt: *.asd
          --non-interactive \
          --load ~/quicklisp/setup.lisp \
          --eval '(ql:quickload :alexandria)' \
-		 --eval '(ql:write-asdf-manifest-file "~/src/lisp/simple-gl/plugins/sgl-automata/manifest.txt")'
+		 --eval '(ql:write-asdf-manifest-file "manifest.txt")'
 
 clean:
 	rm -Rf manifest.txt  *.fasl
