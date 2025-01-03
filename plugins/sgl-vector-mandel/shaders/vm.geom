@@ -21,27 +21,14 @@ vec2 mandel_iterate(vec2 pt) {
      return c + vec2(new_r * cos(power * (theta)),
                      new_r * sin(power * (theta)));
 }
-vec4 fpt(vec4 pt) {
-     float divisor = 0.2 * 3.1415;
-     return vec4(sin(pt.x), cos(pt.y * cos(pt.x)), pt.y, pt.w);
-}
-
-float fx(float xv) {
-    // return sin(xv  + sin(1 * xv * xv)) + cos(xv);
-    // return sin(xv + sin( xv * sin(xv) - cos( xv * sin(xv))));
-    return 6.0*sin(xv + xv * sin( xv - xv * cos(xv) * cos( xv * sin(xv))));
-}
-
 
 
 void main() {
      int i;
      vec4 pt = gl_in[0].gl_Position;
-     diffuse_color = vec4(0,0.5,0, 0.8);
+     diffuse_color = vec4(0, 0.5, 0, 0.9);
      gl_Position = gs_in[0].final_transform * pt;
-     int max_steps = 20;
-     float blue = 1.0;
-     float red = 0.0;
+     int max_steps = 24;
      float dc = 1.0/max_steps;
      vec4 oldpt = pt;
      EmitVertex();
@@ -52,7 +39,10 @@ void main() {
                break;
           }
           float mag = pt.x*pt.x + pt.y * pt.y;
-          diffuse_color = vec4( (dc * i) + (mag/48.0),0, 1.0 - (dc * i), 0.4);
+          diffuse_color = vec4( (0.8* dc * i) + (mag/32.0),
+                                mag/127.0,
+                                0.9 - 0.8* (dc * i),
+                                ( (0.8 * i)/max_steps ));
           gl_Position = gs_in[0].final_transform * pt;
           EmitVertex();
           oldpt = pt;
