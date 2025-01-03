@@ -1,7 +1,29 @@
 * sgl-vector-mandel
 
 ** About
-This is a project to do something.
+A package to generate OpenGL vector graphics based on the Mandelbrot and Julia Sets.
+
+** How to use
+
+#+begin_src lisp
+  (ql:quickload '(:spacenav
+                  :simple-gl
+                  :3d-vectors :3d-matrices
+                  :sgl-vector-mandel))
+  (use-package :3d-vectors)
+  (defparameter *viewer* (make-instance 'sgl:viewer))
+  (sgl:add-object *viewer*
+                  :vector-mandel (svm:create-vector-mandel :width 27 :height 255
+                                                           :min-corner (vec2 -1.5 -1.5)
+                                                           :max-corner (vec2 1.5 1.5)))
+  (sgl:display *viewer*)
+
+  (sleep 60)
+  (sgl:replace-object *viewer*
+                      :vector-mandel (svm:create-vector-mandel :width 31 :height 73
+                                                               :min-corner (vec2 -1.5 -1.5)
+                                                               :max-corner (vec2 1.5 1.5)))
+#+end_src
 
 ** License
 ISC

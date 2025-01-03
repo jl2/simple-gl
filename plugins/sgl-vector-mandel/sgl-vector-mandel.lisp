@@ -18,10 +18,11 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-vector-mandel "shaders/") sgl:*shader-dirs*))
 
-(defparameter *position-steps* 300)
-(defparameter *power-steps* 260)
-(defparameter *radius* 1.75)
+(defparameter *position-steps* 60)
+(defparameter *power-steps* 240)
+(defparameter *radius* 1.95)
 (defparameter *max-power* 17.0)
+
 (defclass sgl-vector-mandel (opengl-object)
   ((primitive-type :initform :points)
    (width :initform 128 :initarg :width)
@@ -50,9 +51,9 @@
   (with-slots (width height depth max-corner min-corner) object
     (let* ((step (v/ (v- max-corner
                          min-corner)
-                    (vec2 (if (= width 1)
-                              1
-                              (1- width))
+                    (vec2  (if (= width 1)
+                                 1
+                                 (1- width))
                           (if (= height 1)
                               1
                               (1- height)))))
@@ -159,17 +160,20 @@
       (format t "c = ~a~%target = ~a~%steps: ~a~%" position target-position steps-to-position)
       )
 
-    (setf position (let ((rc (vlength position))
-                         (rn (vlength target-position))
-                         (tc (atan (vy position) (vx position)))
-                         (tn (atan (vy target-position) (vx target-position))))
-                     (vec2 (* (+ rc (/ (- rn rc) steps-to-position))
-                              (cos (+ tc (/ (- tn tc) steps-to-position))))
-                           (* (+ rc (/ (- rn rc) steps-to-position))
-                              (sin (+ tc (/ (- tn tc) steps-to-position))))))
-          ;; (v+ position
-          ;;     (v/ (v- target-position position)
-          ;;         steps-to-position))
+    (setf position (let* ((rc (vlength position))
+                          (rn (vlength target-position))
+                          (tc (atan (vy position) (vx position)))
+                          (tn (atan (vy target-position) (vx target-position)))
+                          (dr (- rn rc))
+                          (dt (- tn tc))
+                          (next-r (+ rc (/ dr
+                                           steps-to-position)))
+                          (next-t (+ tc (/ dt
+                                           steps-to-position))))
+                     (vec2 (* next-r
+                              (cos next-t))
+                           (* next-r
+                              (sin next-t))))
           )
     (setf power (+ power
                    (/ (- target-power power)
