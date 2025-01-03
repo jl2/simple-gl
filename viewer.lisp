@@ -921,8 +921,9 @@ best practices on other platforms too.")
     (sleep timeout)))
 
 (defmethod view-matrix ((viewer viewer))
-  (m* (mortho -4.0 4.0 -4.0 4.0 -1 1)
-      ))
+  (with-slots (aspect-ratio) viewer
+    (m* (mortho (* -4.0 aspect-ratio) (*  4.0 aspect-ratio) -4.0 4.0 -1 1)
+        )))
 
 (defmacro with-object-in-viewer-lock ((variable name viewer) &body body)
   (with-gensyms (obj
