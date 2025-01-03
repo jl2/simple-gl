@@ -56,15 +56,15 @@
                           (if (= height 1)
                               1
                               (1- height)))))
-          (data (loop
-                  :for i :below width
-                  :nconcing
-                  (loop
-                    :for j :below height
-                    :collecting
-                    (v+
-                     min-corner
-                     (v* (vec2 i j) step))))))
+           (data (loop
+                   :for i :below width
+                   :nconcing
+                   (loop
+                     :for j :below height
+                     :collecting
+                     (v+ min-corner
+                         (vec2  (* (vx step) i)
+                                (sin (* (vy step) j))))))))
       (set-buffer object
                 :vertices
                 (make-instance
