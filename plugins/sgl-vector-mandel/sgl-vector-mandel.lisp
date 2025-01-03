@@ -20,8 +20,8 @@
 
 (defparameter *position-steps* 300)
 (defparameter *power-steps* 260)
-(defparameter *radius* 2.5)
-(defparameter *max-power* 7.0)
+(defparameter *radius* 1.75)
+(defparameter *max-power* 17.0)
 (defclass sgl-vector-mandel (opengl-object)
   ((primitive-type :initform :points)
    (width :initform 128 :initarg :width)
@@ -63,8 +63,7 @@
                      :for j :below height
                      :collecting
                      (v+ min-corner
-                         (vec2  (* (vx step) i)
-                                (sin (* (vy step) j))))))))
+                         (v* step (vec2 i j)))))))
       (set-buffer object
                 :vertices
                 (make-instance
