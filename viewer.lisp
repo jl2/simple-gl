@@ -922,7 +922,7 @@ best practices on other platforms too.")
 
 (defmethod view-matrix ((viewer viewer))
   (with-slots (aspect-ratio) viewer
-    (m* (mortho (* -4.0 aspect-ratio) (*  4.0 aspect-ratio) -4.0 4.0 -1 1)
+    (m* (mortho (* -2.0 aspect-ratio) (*  2.0 aspect-ratio) -2.0 2.0 -1 1)
         )))
 
 (defmacro with-object-in-viewer-lock ((variable name viewer) &body body)

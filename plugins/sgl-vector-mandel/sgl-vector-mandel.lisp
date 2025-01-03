@@ -80,6 +80,7 @@
       (set-buffer object
                   :indices
                   (sgl:constant-index-buffer (* width height) :free nil)))))
+
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((object sgl-vector-mandel) (event sn:motion-event))
   (sn:sensitivity 1.0d0)

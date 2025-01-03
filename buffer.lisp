@@ -7,9 +7,7 @@
 (declaim (inline
           gl-fset gl-iset gl-dset
           gl-get
-          to-gl-array
-          fill-pointer-offset
-          fill-buffer))
+          to-gl-array))
 
 (defclass buffer ()
   ((bo
