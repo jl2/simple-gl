@@ -890,6 +890,7 @@ best practices on other platforms too.")
   (sgl:with-viewer-lock (viewer)
     (with-slots (sgl:view-changed
                  window
+                 enable-update
                  objects) viewer
       (cond
         ((sn:button-press-p event :esc)
@@ -897,10 +898,20 @@ best practices on other platforms too.")
          (glfw:set-window-should-close window)
          (setf view-changed t)
          t)
+        ((sn:button-press-p event :ctrl)
+         (cond ((integerp enable-update)
+                (setf enable-update t))
+               ((null enable-update)
+                (setf enable-update t))
+               (t
+                (setf enable-update nil)))
+         (format t "enable-update: ~a~%" enable-update)
+         (format t ":esc pressed!~%")
+         t)
         (t
          (dolist (object objects)
            (when (handle-3d-mouse-event (cdr object) event)
-          )))))))
+             )))))))
 
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
