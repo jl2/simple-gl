@@ -18,10 +18,8 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-vector-mandel "shaders/") sgl:*shader-dirs*))
 
-(defparameter *position-steps* 60)
-(defparameter *power-steps* 240)
-(defparameter *radius* 1.95)
-(defparameter *pow-radius* 17.0)
+(defparameter *radius* 2.8)
+(defparameter *pow-radius* 3.8)
 
 (defun random-mandel-position (crad prad)
   
@@ -49,9 +47,9 @@
    
    (target-position :initform (random-mandel-position *radius* *pow-radius*)
                     :initarg :target-position)
-   (target-step :initform (vec3 60 90 120)
+   (target-step :initform (vec3 190 190 220)
                 :initarg :target-step)
-   (current-step :initform (vec3 60 90 120))
+   (current-step :initform (vec3 190 190 220))
    (sgl:styles :initform (list (cons :vector-mandel 
                                      (make-instance 'style
                                                     :shaders (list (sgl:read-shader "vm.vert")
@@ -111,9 +109,9 @@
   (sn:sensitivity 1.0d0)
   (with-slots (sn:y sn:x sn:z) event
     (with-slots (position) object
-      (let ((rv (v+ (vec3 (* 0.000124 sn:x)
-                          (* 0.000124 sn:z)
-                          (* 0.000124 sn:y))
+      (let ((rv (v+ (vec3 (* 0.000024 sn:x)
+                          (* 0.000024 sn:z)
+                          (* 0.000024 sn:y))
                     position)))
         (setf position (vec3 (clamp (vx rv) (- *radius*) *radius*)
                              (clamp (vy rv) (- *radius*) *radius*)

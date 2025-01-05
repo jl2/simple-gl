@@ -27,16 +27,16 @@ vec3 mandel_iterate(vec3 pt) {
 void main() {
      int i;
      vec4 pt = gl_in[0].gl_Position;
-     diffuse_color = vec4(0, 0.5, 0, 0.9);
+     diffuse_color = vec4(0, 0.5, 0, 0.6);
      gl_Position = gs_in[0].final_transform * pt;
-     int max_steps = 24;
+     int max_steps = 20;
      float dc = 1.0/max_steps;
      vec4 oldpt = pt;
      EmitVertex();
      for (i=0; i<max_steps; ++i) {
           
           pt = vec4(mandel_iterate(pt.xyz).xy, 0,1);
-          if (pt.x*pt.x + pt.y * pt.y > 64) {
+          if (pt.x*pt.x + pt.y * pt.y > 32) {
                break;
           }
           float mag = pt.x*pt.x + pt.y * pt.y;
