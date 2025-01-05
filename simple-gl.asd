@@ -31,7 +31,9 @@
 
                #:3d-vectors
                #:3d-matrices
+
                #:ieee-floats
+               #:local-time
                #:osicat
                #:zpng
                #:simple-png

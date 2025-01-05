@@ -348,6 +348,9 @@ best practices on other platforms too.")
   (with-viewer-lock (viewer)
     (reset-view-safe viewer)))
 
+(defmethod reset-view-safe ((viewer viewer))
+  t)
+
 (defun rebuild-buffers (viewer)
   (format t "Refilling buffers~%")
   (with-viewer-lock (viewer)
@@ -503,20 +506,7 @@ best practices on other platforms too.")
 
       ((and (eq key :f12) (eq action :press))
        ;; TODO: Run this in a background thread?
-       (let* ((win-size (glfw:get-window-size))
-              (width (car win-size))
-              (height(cadr win-size))
-              (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
-              (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~4,'0d.png" (random 10000))))
-         (format t "Screenshot to: ~a~%" fname)
-         (zpng:write-png
-          (make-instance 'zpng:png :color-type :truecolor-alpha
-                                   :image-data (make-array (array-dimensions data) :element-type '(unsigned-byte 8)
-                                                                                   :initial-contents data)
-                                   :width width
-                                   :height height)
-          fname)
-         t))
+       (screenshot))
       (t
        (with-viewer-lock (viewer)
          (funcall #'some #'identity
@@ -524,6 +514,34 @@ best practices on other platforms too.")
                     :for (nil . object) :in (objects viewer)
                     :collect
                     (handle-key object window key scancode action mod-keys))))))))
+
+(defun screenshot ()
+  (let* ((win-size (glfw:get-window-size))
+         (width (car win-size))
+         (height(cadr win-size))
+         (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
+
+         (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~a.png" (local-time:format-rfc3339-timestring t (local-time:now)))))
+
+    (format t "Screenshot to: ~a~%" fname)
+    (loop :for this-line :below (truncate height 2)
+          :for this-line-idx = (* this-line 4 width)
+          :for that-line :from (- height 1) :downto (ceiling height 2)
+          :for that-line-idx = (* that-line 4 width)
+          :do
+             (loop :for column :below (* 4 width)
+                   :for this-idx = (+ column this-line-idx)
+                   :for that-idx = (+ column that-line-idx)
+                   :do
+                      (rotatef (aref data this-idx) (aref data that-idx))))
+
+    (zpng:write-png
+     (make-instance 'zpng:png :color-type :truecolor-alpha
+                              :image-data data
+                              :width width
+                              :height height)
+     fname)
+    t))
 
 
 (defmethod handle-resize ((viewer viewer) window new-width new-height)
@@ -898,6 +916,13 @@ best practices on other platforms too.")
          (glfw:set-window-should-close window)
          (setf view-changed t)
          t)
+
+        ((sn:button-press-p event :fit)
+         (format t ":fit pressed!~%")
+         (reset-view-safe viewer)
+         (setf view-changed t)
+         t)
+
         ((sn:button-press-p event :ctrl)
          (cond ((integerp enable-update)
                 (setf enable-update t))
@@ -908,10 +933,12 @@ best practices on other platforms too.")
          (format t "enable-update: ~a~%" enable-update)
          (format t ":esc pressed!~%")
          t)
+        ((sn:button-press-p event :rotate)
+         (screenshot)
+         t)
         (t
-         (dolist (object objects)
-           (when (handle-3d-mouse-event (cdr object) event)
-             )))))))
+         (loop :for object :in objects
+               :until (handle-3d-mouse-event (cdr object) event)))))))
 
 (defun big-enough (val &optional (tol 0.0001))
   (> (abs val) tol))
@@ -922,8 +949,7 @@ best practices on other platforms too.")
 
 (defmethod view-matrix ((viewer viewer))
   (with-slots (aspect-ratio) viewer
-    (m* (mortho (* -2.0 aspect-ratio) (*  2.0 aspect-ratio) -2.0 2.0 -1 1)
-        )))
+    (m* (mortho (* -2.0 aspect-ratio) (*  2.0 aspect-ratio) -2.0 2.0 -1 1))))
 
 (defmacro with-object-in-viewer-lock ((variable name viewer) &body body)
   (with-gensyms (obj

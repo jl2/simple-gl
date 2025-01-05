@@ -83,7 +83,7 @@
      (3d-matrices:mtranslation pos)
      (mat4-quat quat))))
 
-(defmethod reset-view-safe (viewer)
+(defmethod reset-view-safe ((viewer 3d-viewer))
   (with-slots (view-changed objects pos quat) viewer
     (setf pos (vec3 0 0 -5))
     (setf quat (vec4 0 0 0.0 1))
@@ -351,19 +351,9 @@
                  window
                  sgl:objects) viewer
       (cond
-        ((sn:button-press-p event :fit)
-         (format t ":fit pressed!~%")
-         (reset-view-safe viewer)
-         (setf view-changed t)
-         t)
-
-        ((sn:button-press-p event :esc)
-         (format t ":esc pressed!~%")
-         (glfw:set-window-should-close window)
-         (setf view-changed t)
-         t)
-
         ((sn:button-press-p event :joystick)
          (format t ":joystick pressed!~%")
          (setf rotation-enabled (not rotation-enabled))
-         t)))))
+         t)
+        (t
+         (call-next-method))))))
