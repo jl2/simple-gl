@@ -21,28 +21,48 @@
 (defparameter *position-steps* 60)
 (defparameter *power-steps* 240)
 (defparameter *radius* 1.95)
-(defparameter *max-power* 17.0)
+(defparameter *pow-radius* 17.0)
+
+(defun random-mandel-position (crad prad)
+  
+  (let ((rv (vec3-random (- crad) crad)))
+    (setf (vz rv) (if (zerop prad)
+                      0.0
+                      (- (random (* 2 prad))
+                         prad)))
+    rv))
 
 (defclass sgl-vector-mandel (opengl-object)
   ((primitive-type :initform :points)
+
    (width :initform 128 :initarg :width)
    (height :initform 128 :initarg :height)
-   (min-corner :initform (vec2 (- *radius*) (- *radius*)) :initarg :min-corner)
-   (max-corner :initform (vec2 *radius* *radius*) :initarg :max-corner)
-   (position :initform (vec2 0.0 0.0) :initarg :position)
-   (power :initform 2.0 :initarg :power)
+   (depth :initform 1 :initarg :depth)
+
+   (min-corner :initform (vec3 -1.95 -1.95 0.0)
+               :initarg :min-corner)
+   (max-corner :initform (vec3 1.95 1.95 0.0)
+               :initarg :max-corner)
+
+   (position :initform (vec3 0.0 0.0 2.0)
+             :initarg :position :type vec3)
    
-   (target-position :initform (vec2-random (- *radius*) *radius*) :initarg :target-position)
-   (target-power :initform (rb (- *radius*) *radius*) :initarg :target-power)
-   (steps-to-power :initform *power-steps* :initarg :steps-to-power)
-   (steps-to-position :initform *position-steps* :initarg :steps-to-position)
+   (target-position :initform (random-mandel-position *radius* *pow-radius*)
+                    :initarg :target-position)
+   (target-step :initform (vec3 60 90 120)
+                :initarg :target-step)
+   (current-step :initform (vec3 60 90 120))
+   (sgl:styles :initform (list (cons :vector-mandel 
+                                     (make-instance 'style
+                                                    :shaders (list (sgl:read-shader "vm.vert")
+                                                                   (sgl:read-shader "vm.frag")
+                                                                   (sgl:read-shader "vm.geom"))))))
    ))
 
 (defmethod initialize-uniforms ((object opengl-object) &key)
   (set-uniform object "obj_transform" (meye 4) :mat4)
   (set-uniform object "view_transform" (meye 4) :mat4)
-  (set-uniform object "power" (slot-value object 'power) :float)
-  (set-uniform object "c" (slot-value object 'position) :vec2)
+  (set-uniform object "position" (slot-value object 'position) :vec3)
   t)
 
 (defmethod sgl:initialize-buffers ((object sgl-vector-mandel) &key)
@@ -51,137 +71,108 @@
   (with-slots (width height depth max-corner min-corner) object
     (let* ((step (v/ (v- max-corner
                          min-corner)
-                    (vec2  (if (= width 1)
+                    (vec3  (if (= width 1)
                                  1
                                  (1- width))
                           (if (= height 1)
                               1
-                              (1- height)))))
+                              (1- height))
+                          (if (= depth 1)
+                              1
+                              (1- depth)))))
            (data (loop
                    :for i :below width
                    :nconcing
                    (loop
                      :for j :below height
-                     :collecting
-                     (v+ min-corner
-                         (v* step (vec2 i j)))))))
+                     :nconcing
+                     (loop :for k :below depth
+                           :collecting
+                           (v+ min-corner
+                               (v* step (vec3 i j k))))))))
       (set-buffer object
                 :vertices
                 (make-instance
                  'attribute-buffer
                  :pointer (to-gl-array
                            :float
-                           (* 2 width height)
+                           (* 3 width height depth)
                            data)
                  :stride nil
-                 :attributes '(("in_position" . :vec2))
+                 :attributes '(("in_position" . :vec3))
                  :usage :static-draw
                  :free nil))
       (set-buffer object
                   :indices
-                  (sgl:constant-index-buffer (* width height) :free nil)))))
+                  (sgl:constant-index-buffer (* width height depth) :free nil)))))
 
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((object sgl-vector-mandel) (event sn:motion-event))
   (sn:sensitivity 1.0d0)
   (with-slots (sn:y sn:x sn:z) event
-    (with-slots (power position) object
-      (setf position (v+ (vec2 (* 0.000124 sn:x) (* 0.000124 sn:z)) position))
-      (setf power (min *max-power* (max (- *max-power*) (+ power (* 0.000124 sn:y)))))
-      (format t "c = ~a power: ~a~%" position power)
-      (set-uniform object "c" position :vec2)
-      (set-uniform object "power" power :float))))
+    (with-slots (position) object
+      (let ((rv (v+ (vec3 (* 0.000124 sn:x)
+                          (* 0.000124 sn:z)
+                          (* 0.000124 sn:y))
+                    position)))
+        (setf position (vec3 (clamp (vx rv) (- *radius*) *radius*)
+                             (clamp (vy rv) (- *radius*) *radius*)
+                             (clamp (vz rv) (- *pow-radius*) *pow-radius*)
+                             ) ))
+      (set-uniform object "position" position :vec3))))
 
 #+spacenav
 (defmethod sgl:handle-3d-mouse-event ((object sgl-vector-mandel) (event sn:button-event))
-  (with-slots (power position target-position target-power steps-to-power steps-to-position) object
+  (with-slots (power position target-position current-step target-step) object
     (cond
-      ((sn:button-press-p event :fit)
-       (setf position (vec2 0.0 0.0))
-       (setf power 2.0)
-       (setf steps-to-position *position-steps*)
-       (setf steps-to-power *power-steps*)
-       (set-uniform object "power" power :float)
-       (set-uniform object "c" position :vec2)))))
+      ((sn:button-press-p event :menu)
+       (setf position (vec3 0.0 0.0 2.0)
+             current-step target-step
+             target-position (random-mandel-position *radius* *pow-radius*))
+       (set-uniform object "position" position :vec3)))))
 
 
-
-(defun create-vector-mandel (&key (width 120)
-                               (height 120)
-                               (min-corner (vec2 -1.5 -1.5))
-                               (max-corner (vec2 1.5 1.5))
-                               (position (vec2 0.0 0.0))
-                               (power 2.0)
-                               (target-position (vec2-random (- *radius*) *radius*))
-                               (target-power (rb (- *radius*) *radius*))
-                               (steps-to-position *position-steps*)
-                               (steps-to-power *power-steps*)
-                               )
-  (declare (type fixnum width height steps-to-power steps-to-position)
-           (type vec2 min-corner max-corner position target-position)
-           (type float power target-power))
-  (let ((obj (make-instance 'sgl-vector-mandel
-                             :width width
-                             :height height
-                             :max-corner max-corner
-                             :min-corner min-corner
-                             :position position
-                             :target-position target-position
-                             :power power
-                             :target-power target-power
-                             :steps-to-position steps-to-position
-                             :steps-to-power steps-to-power
-                             :styles (list (cons :vector-mandel 
-                                                 (make-instance 'style
-                                                                :shaders (list (sgl:read-shader "vm.vert")
-                                                                               (sgl:read-shader "vm.frag")
-                                                                               (sgl:read-shader "vm.geom"))))))))
-    (sgl:set-uniform obj "diffuse_color" (vec4 0.0 0.8 0.0 0.9) :vec4)
-    obj))
 
 (defun rb (min max)
   (+ min (random (- max min))))
 
-(defmethod update ((object sgl-vector-mandel) elapsed-seconds)
-  (with-slots (power position target-position steps-to-position target-power steps-to-power) object
+(defmethod sgl:update ((object sgl-vector-mandel) elapsed-seconds)
+  (with-slots (position target-position current-step target-step) object
 
-    (when (zerop steps-to-power)
-      (setf target-power (rb (- *max-power*) *max-power*)
-            steps-to-power *power-steps*)
-      (format t "power: ~a~%target-power: ~a~%steps: ~a~%" power target-power steps-to-power)
-      )
+    (when (zerop (vx current-step))
+      (setf (vx target-position) (rb (- *radius*) *radius*)
+            (vx current-step) (vx target-step))
+      (format t "target: ~a~%tcurrent-step: ~a~%" target-position current-step))
 
-    (when (zerop steps-to-position)
-      (setf target-position (let ((rr (random *radius*))
-                                  (rt (random (* 2 pi))))
-                              (vec2 (* rr (cos rt))
-                                    (* rr (sin rt))))
-            ;;(vec2-random (- *radius*) *radius*)
-            steps-to-position *position-steps*)
-      (format t "c = ~a~%target = ~a~%steps: ~a~%" position target-position steps-to-position)
-      )
+    (when (zerop (vy current-step))
+      (setf (vy target-position) (rb (- *radius*) *radius*)
+            (vy current-step) (vy target-step))
+      (format t "target: ~a~%tcurrent-step: ~a~%" target-position current-step))
 
-    (setf position (let* ((rc (vlength position))
-                          (rn (vlength target-position))
+    (when (zerop (vz current-step))
+      (setf (vz target-position) (rb (- *pow-radius*) *pow-radius*)
+            (vz current-step) (vy target-step))
+      (format t "target: ~a~%tcurrent-step: ~a~%" target-position current-step))
+
+    (setf position (let* ((rc (vlength (vxy  position)))
+                          (rn (vlength (vxy target-position)))
                           (tc (atan (vy position) (vx position)))
                           (tn (atan (vy target-position) (vx target-position)))
                           (dr (- rn rc))
                           (dt (- tn tc))
                           (next-r (+ rc (/ dr
-                                           steps-to-position)))
+                                           (vx current-step))))
                           (next-t (+ tc (/ dt
-                                           steps-to-position))))
-                     (vec2 (* next-r
+                                           (vy current-step)))))
+                     (vec3 (* next-r
                               (cos next-t))
                            (* next-r
-                              (sin next-t))))
-          )
-    (setf power (+ power
-                   (/ (- target-power power)
-                      steps-to-power)))
-    (decf steps-to-position)
-    (decf steps-to-power)
-    (set-uniform object "c" position :vec2)
-    (set-uniform object "power" power :float))
+                              (sin next-t))
+                           (+ (vz position)
+                              (/ (- (vz target-position)
+                                    (vz position))
+                                 (vz current-step))))))
+    (setf current-step (v- current-step (vec3 1 1 1)))
+    (set-uniform object "position" position :vec3))
   nil)
   

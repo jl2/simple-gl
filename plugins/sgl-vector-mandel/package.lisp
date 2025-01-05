@@ -18,6 +18,6 @@
   (:nicknames :svm)
 
   (:use #:cl #:alexandria #:simple-gl #:3d-vectors #:3d-matrices)
-  (:export #:create-vector-mandel
+  (:export 
            #:sgl-vector-mandel
            ))

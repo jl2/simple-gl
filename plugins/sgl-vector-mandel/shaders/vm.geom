@@ -8,18 +8,19 @@ in VS_OUT {
      mat4 final_transform;
 } gs_in[];
 
-uniform float power = 2.028;
-uniform vec2 c = vec2(0.98, 0.0229);
+uniform vec3 position = vec3(0.98, 0.0229, 2.028);
 
 out vec4 diffuse_color;
 
-vec2 mandel_iterate(vec2 pt) {
+vec3 mandel_iterate(vec3 pt) {
+     float power = position.z + pt.z;
      float r = sqrt(pt.x * pt.x + pt.y * pt.y);
      float theta = atan(pt.y, pt.x);
      float new_r = pow(r, power);
      
-     return c + vec2(new_r * cos(power * (theta)),
-                     new_r * sin(power * (theta)));
+     return vec3(position.xy, pt.z) + vec3(new_r * cos(power * (theta)),
+                                           new_r * sin(power * (theta)),
+                                           0.0);
 }
 
 
@@ -34,7 +35,7 @@ void main() {
      EmitVertex();
      for (i=0; i<max_steps; ++i) {
           
-          pt = vec4(mandel_iterate(pt.xy), 0,1);
+          pt = vec4(mandel_iterate(pt.xyz).xy, 0,1);
           if (pt.x*pt.x + pt.y * pt.y > 64) {
                break;
           }
