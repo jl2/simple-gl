@@ -516,31 +516,36 @@ best practices on other platforms too.")
                     (handle-key object window key scancode action mod-keys))))))))
 
 (defun screenshot ()
+  (declare  (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (let* ((win-size (glfw:get-window-size))
          (width (car win-size))
-         (height(cadr win-size))
+         (height (cadr win-size))
          (data (gl:read-pixels 0 0 width height :rgba :unsigned-byte))
 
-         (fname (format nil "/home/jeremiah/screenshots/sgl-screenshot~a.png" (local-time:format-rfc3339-timestring t (local-time:now)))))
-
-    (format t "Screenshot to: ~a~%" fname)
-    (loop :for this-line :below (truncate height 2)
-          :for this-line-idx = (* this-line 4 width)
-          :for that-line :from (- height 1) :downto (ceiling height 2)
-          :for that-line-idx = (* that-line 4 width)
-          :do
-             (loop :for column :below (* 4 width)
-                   :for this-idx = (+ column this-line-idx)
-                   :for that-idx = (+ column that-line-idx)
-                   :do
-                      (rotatef (aref data this-idx) (aref data that-idx))))
-
-    (zpng:write-png
-     (make-instance 'zpng:png :color-type :truecolor-alpha
-                              :image-data data
-                              :width width
-                              :height height)
-     fname)
+         (fname (format nil
+                        "/home/jeremiah/screenshots/sgl-screenshot~a.png"
+                        (local-time:format-rfc3339-timestring t (local-time:now)))))
+    (declare (type fixnum width height)
+             (type (simple-array (unsigned-byte 8) *) data))
+    (lparallel.thread-util:with-thread (:name fname)
+      (format t "Screenshot to: ~a~%" fname)
+      (time
+       (loop :for this-line fixnum :below (truncate height 2)
+             :for this-line-idx fixnum = (* this-line 4 width)
+             :for that-line fixnum :from (- height 1) :downto (ceiling height 2)
+             :for that-line-idx fixnum = (* that-line 4 width)
+             :do
+                (loop :for column fixnum :below (* 4 width)
+                      :for this-idx fixnum = (+ column this-line-idx)
+                      :for that-idx fixnum = (+ column that-line-idx)
+                      :do
+                         (rotatef (aref data this-idx) (aref data that-idx)))))
+      (zpng:write-png
+       (make-instance 'zpng:png :color-type :truecolor-alpha
+                                :image-data data
+                                :width width
+                                :height height)
+       fname))
     t))
 
 
