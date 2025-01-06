@@ -18,8 +18,8 @@
 (setf sgl:*shader-dirs*
       (adjoin (asdf:system-relative-pathname :sgl-vector-mandel "shaders/") sgl:*shader-dirs*))
 
-(defparameter *radius* 2.8)
-(defparameter *pow-radius* 3.8)
+(defparameter *radius* 1.8)
+(defparameter *pow-radius* 9.8)
 
 (defun random-mandel-position (crad prad)
   
