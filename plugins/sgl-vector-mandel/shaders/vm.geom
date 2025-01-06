@@ -14,12 +14,12 @@ out vec4 diffuse_color;
 
 vec3 mandel_iterate(vec3 pt) {
      float power = position.z + pt.z;
-     float r = sqrt(pt.x * pt.x + pt.y * pt.y);
+     float r = sqrt(pt.x*pt.x + pt.y*pt.y);
      float theta = atan(pt.y, pt.x);
      float new_r = pow(r, power);
      
-     return vec3(position.xy, pt.z) + vec3(new_r * cos(power * (theta)),
-                                           new_r * sin(power * (theta)),
+     return vec3(position.xy, pt.z) + vec3(new_r * cos(power * theta),
+                                           new_r * sin(power * theta),
                                            0.0);
 }
 
