@@ -384,7 +384,7 @@
   (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
     :for off fixnum :from 0
-    :for d real :across (marr (mtranspose data))
+    :for d :of-type real :across (marr (mtranspose data))
     :do
        (gl-fset ptr (+ off offset) d)
     :finally (return (+ off offset))))
@@ -393,7 +393,7 @@
   (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
   (loop
     :for off fixnum :from 0
-    :for d real :across (marr (mtranspose data))
+    :for d :of-type real :across (marr (mtranspose data))
     :do
        (gl-fset ptr (+ off offset) d)
     :finally (return (+ off offset))))
