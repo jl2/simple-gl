@@ -69,6 +69,21 @@ right now, for things like buffers during animation.
 I'd also like to refactor the (display viewer) method to better handle
 operations that require doing things in the OpenGL thread.
 
+** 3d-mouse-refactor Branch
+
+Feature branch to change how views and 3D mouse and joystick input is routed to objects, and eventually all input will be updated to match.
+
+Remove 2d-viewer and 3d-viewer and use viewer for everything.
+
+
+
+*** Make view mode based
+:1 will switch to 3D navigation mode
+:2 will switch to 2D navigation mode
+:3 will send 3D mouse and joystick input to be sent to the "current" object
+:4 will move to the next object
+:alt + :4 will move to the previous object
+
 
 ** Future Ideas
 
